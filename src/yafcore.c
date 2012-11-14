@@ -328,7 +328,7 @@ typedef struct yfIpfixFlow_st {
     uint8_t     flowEndReason;
     uint8_t     paddingOctets[2];
     int32_t     reverseFlowDeltaMilliseconds;
-    /* TCP stuff for SiLK */
+    /* TCP specific info */
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
     uint8_t     initialTCPFlags;

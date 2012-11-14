@@ -86,9 +86,6 @@
 #define YF_FLUSH_DELAY 5000
 #define YF_MAX_CQ      2500
 
-static int       pcap_meta_num = 0;
-static int       pcap_meta_read = 0;
-
 typedef struct yfFlowNode_st {
     struct yfFlowNode_st        *p;
     struct yfFlowNode_st        *n;
@@ -182,6 +179,7 @@ struct yfFlowTab_st {
     gboolean        uniflow;
     gboolean        silkmode;
     gboolean        macmode;
+    gboolean        force_read_all;
     gboolean        stats_mode;
     /* Statistics */
     struct yfFlowTabStats_st stats;
@@ -559,89 +557,6 @@ static void yfFlowClose(
     --(flowtab->count);
 }
 
-
-static void
-yfActiveFlowCleanUp(
-    yfFlowTab_t *flowtab,
-    yfFlowNode_t *fn)
-{
-    /* this is a nop -- removed in depayloadification */
-}
-
-/**
- * yfCloseActiveFlow
- *
- * close a flow and write it but keep it active
- * mainly for udp-uniflow option.
- *
- * @param flowtab pointer to the flow table
- * @param fn pointer to the flow node entry in the flow table
- * @param reason reason code for closing the flow
- *
- */
-
-
-static void yfCloseActiveFlow(
-    yfFlowTab_t                     *flowtab,
-    yfFlowNode_t                    *fn,
-    yfFlowVal_t                     *val,
-    const uint8_t                   *pkt,
-    uint32_t                        paylen,
-    uint8_t                         reason,
-    uint16_t                        iplen)
-{
-    yfFlowNode_t *tfn;  /*temp flow to write*/
-    yfFlowKey_t rkey;
-    yfFlowVal_t *valtemp;
-
-#if YAF_ENABLE_COMPACT_IP4
-    if (fn->f.key.version == 4) {
-        tfn = (yfFlowNode_t *) yg_slice_new0(yfFlowNodeIPv4_t);
-        memcpy(tfn, fn, sizeof(yfFlowNodeIPv4_t));
-    } else {
-#endif
-        tfn = yg_slice_new0(yfFlowNode_t);
-        memcpy(tfn, fn, sizeof(yfFlowNode_t));
-#if YAF_ENABLE_COMPACT_IP4
-    }
-#endif
-
-    if (&(fn->f.rval) == val) {
-        memcpy(&(tfn->f.val), val, sizeof(yfFlowVal_t));
-        yfFlowKeyReverse(&(fn->f.key), &rkey);
-        yfFlowKeyCopy(&(rkey), &(tfn->f.key));
-    }
-
-    /* "Uniflow" */
-    memset(&(tfn->f.rval), 0, sizeof(yfFlowVal_t));
-
-    tfn->f.rdtime = 0;
-    tfn->f.val.pkt = 1;
-
-    /* octet count of only this flow! */
-    tfn->f.val.oct = iplen;
-
-    /* Update start time of this flow - to now */
-    tfn->f.stime = flowtab->ctime;
-
-    /* store closure reason - shouldn't have any other bits turned on */
-    tfn->f.reason &= ~YAF_END_MASK;
-    tfn->f.reason |= reason;
-
-    tfn->n = NULL;
-    tfn->p = NULL;
-    valtemp = &(tfn->f.val);
-    valtemp->payload = NULL;
-
-    /* move flow node to close queue */
-    piqEnQ(&flowtab->cq, tfn);
-
-    ++(flowtab->cq_count);
-
-    yfActiveFlowCleanUp(flowtab, fn);
-}
-
-
 /**
  * yfFlowTabAlloc
  *
@@ -707,15 +622,6 @@ void yfFlowTabFree(
     for (fn = flowtab->aq.head; fn; fn = nfn) {
         nfn = fn->p;
         yfFlowFree(flowtab, fn);
-    }
-
-    /* Free GString */
-    if (flowtab->pcap_roll) {
-        g_string_free(flowtab->pcap_roll, TRUE);
-    }
-
-    if (flowtab->pcap_meta) {
-        fclose(flowtab->pcap_meta);
     }
 
    /* free the key index table */
@@ -810,21 +716,17 @@ static void yfFlowPktTCP(
     yfFlowTab_t                 *flowtab,
     yfFlowNode_t                *fn,
     yfFlowVal_t                 *val,
-    const uint8_t               *pkt,
-    uint32_t                    caplen,
     yfTCPInfo_t                 *tcpinfo,
     uint8_t                     *headerVal,
     uint16_t                    headerLen)
 {
-    uint32_t                    appdata_po;
-    int                         p;
 
     /*Update flags in flow record - may need to upload iflags if out of order*/
-    if (val->pkt && (tcpinfo->seq > val->isn)) {
+    if (tcpinfo->seq > val->isn) {
         /* Union flags */
         val->uflags |= tcpinfo->flags;
     } else {
-        if (val->pkt && (tcpinfo->seq <= val->isn)) {
+        if (tcpinfo->seq <= val->isn) {
           /*if packets out of order - don't lose other flags - add to uflags*/
             val->uflags |= val->iflags;
         }
@@ -902,6 +804,7 @@ yfFlowStatistics(
 
 }
 
+#if 0
 static void
 yfAddOutOfSequence(
     yfFlowTab_t             *flowtab,
@@ -1095,7 +998,7 @@ yfAddOutOfSequence(
         yfFlowClose(flowtab, fn, YAF_END_IDLE);
     }
 }
-
+#endif
 
 /**
  * yfFlowPBuf
@@ -1121,14 +1024,8 @@ void yfFlowPBuf(
     yfFlowNode_t                *fn = NULL;
     yfTCPInfo_t                 *tcpinfo = &(pbuf->tcpinfo);
     yfL2Info_t                  *l2info = &(pbuf->l2info);
-    uint8_t                     *payload = (pbuflen >= YF_PBUFLEN_BASE) ?
-                                           pbuf->payload : NULL;
-    size_t                      paylen = (pbuflen >= YF_PBUFLEN_BASE) ?
-                                         pbuf->paylen : 0;
     uint16_t                    datalen = (pbuf->iplen - pbuf->allHeaderLen +
                                            l2info->l2hlen);
-    uint32_t                    pcap_len = 0;
-    uint32_t                    hash;
 
     /* skip and count out of sequence packets */
     if (pbuf->ptime < flowtab->ctime) {
@@ -1136,7 +1033,9 @@ void yfFlowPBuf(
             ++(flowtab->stats.stat_seqrej);
             return;
         } else {
-            yfAddOutOfSequence(flowtab, key, pbuflen, pbuf);
+            fprintf(stderr, "Skipping out of sequence packet until yfAddOufOfSequence refactor complete.");
+            ++(flowtab->stats.stat_seqrej);
+            /* yfAddOutOfSequence(flowtab, key, pbuflen, pbuf); */
             return;
         }
     }
@@ -1147,16 +1046,6 @@ void yfFlowPBuf(
     /* Count the packet and its octets */
     ++(flowtab->stats.stat_packets);
     flowtab->stats.stat_octets += pbuf->iplen;
-
-    if (payload) {
-        if (paylen >= pbuf->allHeaderLen) {
-            paylen -= pbuf->allHeaderLen;
-            payload += pbuf->allHeaderLen;
-        } else {
-            paylen = 0;
-            payload = NULL;
-        }
-    }
 
     /* Get a flow node for this flow */
     fn = yfFlowGetNode(flowtab, key, &val);
@@ -1187,7 +1076,7 @@ void yfFlowPBuf(
     /* Do payload and TCP stuff */
     if (fn->f.key.proto == YF_PROTO_TCP) {
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
-        yfFlowPktTCP(flowtab, fn, val, payload, paylen, tcpinfo, NULL, 0);
+        yfFlowPktTCP(flowtab, fn, val, tcpinfo, NULL, 0);
 
     } 
 
@@ -1227,60 +1116,6 @@ void yfFlowPBuf(
     /* Update stats */
     if (flowtab->stats_mode) {
         yfFlowStatistics(fn, val, pbuf->ptime, datalen);
-    }
-
-    pcap_len = pbuf->pcap_hdr.caplen + 16;
-
-    /* Write Pcap Meta Info */
-    if (flowtab->pcap_meta) {
-        if (val == &(fn->f.rval)) {
-            yfFlowKeyReverse(key, &rkey);
-            hash = yfFlowKeyHash(&rkey);
-        } else {
-            hash = yfFlowKeyHash(key);
-        }
-        if (pcap_meta_read == -1) {
-            int rv;
-            rv = fprintf(flowtab->pcap_meta, "%u|%llu|%d|%llu|%d\n",
-                         hash, (long long unsigned int)fn->f.stime,
-                         pbuf->pcap_caplist,
-                         (long long unsigned int)pbuf->pcap_offset,
-                         pcap_len);
-            if (rv < 0) {
-                if (yfRotatePcapMetaFile(flowtab)) {
-                    fprintf(flowtab->pcap_meta, "%u|%llu|%d|%llu|%d\n",
-                            hash, (long long unsigned int)fn->f.stime,
-                            pbuf->pcap_caplist,
-                            (long long unsigned int)pbuf->pcap_offset,
-                            pcap_len);
-                }
-            }
-        } else {
-            if (flowtab->index_pcap) {
-                /* print every packet */
-                fprintf(flowtab->pcap_meta, "%u|%llu|%s|%llu|%d\n",
-                        hash, (long long unsigned int)fn->f.stime,
-                        flowtab->pcap_roll->str,
-                        (long long unsigned int)pbuf->pcap_offset, pcap_len);
-            } else if (flowtab->pcap_file_no != fn->f.pcap_file_no) {
-                /* print when the flow rolls over multiple files */
-                fprintf(flowtab->pcap_meta, "%u|%llu|%s\n",
-                        hash, (long long unsigned int)fn->f.stime,
-                        flowtab->pcap_roll->str);
-                fn->f.pcap_file_no = flowtab->pcap_file_no;
-            }
-        }
-    }
-
-    /* if udp-uniflow-mode, close UDP flow now */
-    if ((fn->f.key.proto == YF_PROTO_UDP) && (flowtab->udp_uniflow_port != 0)){
-        if (((flowtab->udp_uniflow_port == 1) ||
-             (flowtab->udp_uniflow_port == fn->f.key.sp) ||
-             (flowtab->udp_uniflow_port == fn->f.key.dp)))
-        {
-            yfCloseActiveFlow(flowtab, fn, val, payload, paylen,
-                              YAF_END_UDPFORCE, pbuf->iplen);
-        }
     }
 
     /* close flow, or move it to head of queue */

@@ -86,8 +86,6 @@ static uint64_t      yaf_rotate_ms = 0;
 static gboolean      yaf_opt_caplist_mode = FALSE;
 static char          *yaf_opt_ipfix_transport = NULL;
 static gboolean      yaf_opt_ipfix_tls = FALSE;
-static char          *yaf_pcap_meta_file = NULL;
-static gboolean      yaf_index_pcap = FALSE;
 
 /* GOption managed flow table options */
 static int          yaf_opt_idle = 300;

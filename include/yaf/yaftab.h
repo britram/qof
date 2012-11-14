@@ -163,14 +163,15 @@ typedef struct yfFlowTab_st yfFlowTab_t;
  *
  * @return a new flow table.
  */
-yfFlowTab_t *yfFlowTabAlloc(
-    uint64_t        idle_ms,
-    uint64_t        active_ms,
-    uint32_t        max_flows,
-    gboolean        uniflow,
-    gboolean        silkmode,
-    gboolean        macmode,
-    gboolean        stats_mode);
+ yfFlowTab_t *yfFlowTabAlloc(
+     uint64_t        idle_ms,
+     uint64_t        active_ms,
+     uint32_t        max_flows,
+     gboolean        uniflow,
+     gboolean        silkmode,
+     gboolean        macmode,
+     gboolean        force_read_all,
+     gboolean        stats_mode);
 
 /**
  * Free a previously allocated flow table. Discards any outstanding active

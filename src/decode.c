@@ -1394,15 +1394,6 @@ gboolean yfDecodeToPBuf(
 
     caplen = caplen + pbuf->allHeaderLen;
 
-    /* Copy payload if available */
-    if (pbuflen > YF_PBUFLEN_BASE) {
-        pbuf->paylen = pbuflen - YF_PBUFLEN_BASE;
-        if (pbuf->paylen > caplen) {
-            pbuf->paylen = caplen;
-        }
-        memcpy(pbuf->payload, ipTcpHeaderStart, pbuf->paylen);
-    }
-
     return TRUE;
 }
 
