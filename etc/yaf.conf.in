@@ -1,0 +1,63 @@
+## ------------------------------------------------------------------------
+## yaf.conf
+## YAF daemon startup script configuration file 
+## ------------------------------------------------------------------------
+## Copyright (C) 2007-2012 Carnegie Mellon University. All Rights Reserved.
+## ------------------------------------------------------------------------
+## Authors: Brian Trammell
+## ------------------------------------------------------------------------
+## GNU General Public License (GPL) Rights pursuant to Version 2, June 1991
+## Government Purpose License Rights (GPLR) pursuant to DFARS 252.227-7013
+## ------------------------------------------------------------------------
+
+# Must be non-empty to start YAF
+ENABLED=
+
+##### Capture Options ##########################################################
+
+# Live capture type. Must be pcap, or dag for Endace DAG if YAF was built
+# with libdag.
+YAF_CAP_TYPE=pcap
+
+# Live capture interface name.
+YAF_CAP_IF=eth0
+
+##### Export Options ###########################################################
+
+# IPFIX transport protocol to use for export. Must be one of tcp or udp, or
+# sctp if fixbuf was built with SCTP support.
+YAF_IPFIX_PROTO=tcp
+
+# Hostname or IP address of IPFIX collector to export flows to. 
+YAF_IPFIX_HOST=localhost
+
+# If present, connect to the IPFIX collector on the specified port. 
+# Defaults to port 4739, the IANA-assigned port for IPFIX
+#YAF_IPFIX_PORT=
+
+##### Logging and State Options ################################################
+
+# Path to state location directory; contains the log and pidfiles unless
+# modified by the following configuration parameters.
+# Defaults to @localstatedir@.
+#YAF_STATEDIR=
+
+# Path to PID file for YAF. Defaults to YAF_STATEDIR/yaf.pid
+#YAF_PIDFILE=
+
+# File or syslog facility name for YAF logging. If file, must be an absolute
+# path to a logfile. Defaults to YAF_STATEDIR/yaf.log
+#YAF_LOG=
+
+# File or syslog facility name for YAF airdaemon logging. If file, must be an
+# absolute path to a logfile. Defaults to YAF_STATEDIR/airdaemon-yaf.log
+#YAF_DAEMON_LOG=
+
+##### Miscellaneous Options ####################################################
+
+# If present, become the specified user after starting YAF
+#YAF_USER=
+
+# Additional flags to pass to the YAF process. Use --silk --ip4-only for
+# export to SiLK rwflowpack or SiLK flowcap.
+YAF_EXTRAFLAGS="--silk --ip4-only"

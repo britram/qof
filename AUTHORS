@@ -1,0 +1,18 @@
+QoF (Quality of Flow) is the performance measurement fork of YAF 2.3.2 by
+Brian Trammell <brian@trammell.ch> who is the primary maintainer of QoF.
+
+YAF was originally designed and implemented by Brian Trammell. Chris Inacio
+designed and built the plugin interface. Michael Duggan contributed to the
+design of YAF's packet decoder. Emily Ecoff is the present lead developer and
+maintainer.
+
+For question, comments, and support, please send email to 
+<netsa-help@cert.org>.
+
+Thanks to the organizers and participants of the IPFIX Interoperability Events
+sponsored by IPS-MoME in Salzburg, Austria in March 2006; by Fraunhofer FOKUS
+in Berlin, Germany in November 2006; and by FP7-DEMONS and CESNET in Prague, 
+Czech Republic in March 2011, for helping to ensure YAF's interoperability 
+with other IPFIX implementations.
+
+Thanks to Tony Cebzanov, Michael Duggan, and Sidney Faber for testing, as well.

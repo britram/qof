@@ -1,0 +1,73 @@
+Introduction
+============
+
+Airframe is an application utility library designed to ease the creation of
+command-line applications written in C that process data from a variety of
+input sources to a variety of output sources. It builds atop the fundamental
+data structures and utilities in glib (http://www.gtk.org) 2.0, adding
+additional higher-level functionality.
+
+All of the Airframe modules provide their own command-line processing atop 
+the GOption facility; in this way, all Airframe applications have similar 
+command-line user interfaces.
+
+Airframe was originally developed for NAF and is the mechanism by which the 
+NAF tools have a common interface. It evolved from the libair common library 
+used by the AirCERT project (http://aircert.sourceforge.net). It is released 
+as a separate library in the hopes that other applications developers may 
+find it useful.
+
+Modules
+=======
+
+Airframe provides four modules which may be used to ease application
+creation. The daeconfig module (defined in daeconfig.h) handles 
+user-controlled daemonization, compatible with the filedaemon pattern. 
+The privconfig module (defined in privconfig.h) handles
+user-controlled privilege management. The logconfig module (defined in 
+logconfig.h) handles user-controlled log message routing. The mio module 
+(defined in mio.h and mio_config.h) handles user-controlled file, network, 
+and packet capture I/O and record-oriented dispatch. 
+
+Utilities
+=========
+
+Additional utility functions we've found useful in building applications 
+for handling network event data are defined in airutil.h. airopt.h defines 
+a command-line options processing layer atop glib-2 or popt, and is used 
+by Airframe's modules and client applications. Also, airlock.h allows 
+applications not using MIO for I/O and dispatch to interoperate with 
+filedaemon-style locking.
+
+The filedaemon pattern implemented by MIO may be wrapped around any 
+stdin-to-stdout filter application using the filedaemon application
+built and installed with Airframe.
+
+Airframe also includes an application called airdaemon which simply invokes a
+child process and restarts it after a configurable delay if it exits
+abnormally.  airdaemon can retry after a fixed delay, or use a binary
+exponential backoff strategy to increase the retry delay.
+
+Downloading
+===========
+
+Airframe is now distributed with the tools that utilize it, but can still
+be downloaded separately here:
+http://tools.netsa.cert.org/defunct-projects.html#release-airframe-0.7.2
+
+Building
+========
+
+Airframe uses a reasonably standard autotools-based build system. 
+The customary build procedure (./configure && make 
+&& make install) should work in most environments. 
+
+Packet capture sources require libpcap; airframe's ./configure script 
+should find libpcap automatically. If not, you may need to supply the path to 
+pcap's headers and libraries in CFLAGS and LDFLAGS on the ./configure command 
+line, respectively. Note that YAF and NAF 0.7.0 or later do _not_ use
+airframe as a packet capture source.
+
+MIO UDP and TCP sources and sinks support IPv6 on dual-stack machines out 
+of the box; this support is only enabled if the configure script can find
+the getaddrinfo(3) function.

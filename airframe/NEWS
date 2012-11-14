@@ -1,0 +1,60 @@
+libairframe 0.7.2: January 18, 2008
+===================================
+
+Tweaks to the configure script and generated libairframe.spec and
+libairframe.pc.  The spec file now reflects the version as set in
+the configure script, and the .pc file now includes glib libraries
+as appropriate.
+
+libairframe 0.7.1: August 24, 2007
+==================================
+
+Tweaks to airdaemon options to support startup scripts in a forthcoming YAF
+release.
+
+libairframe 0.7.0: August 17, 2007
+==================================
+
+New application, filedaemon, which allows any stdin-to-stdout filter to
+operate as an Airframe-style filedaemon. New application, airdaemon, which
+invokes a child process, restarting it if it exits abnormally.	New lockfile
+managment facility separate from MIO. New option-handling facility for using
+either glib or popt options processing. IPv6 address handling routines.
+Various bugfixes.
+
+libairframe 0.6.6: May 17, 2007
+===============================
+
+Various bugfixes.
+
+libairframe 0.6.5: September 29, 2006
+=====================================
+
+Add privilege separation configuration for live capture applications to
+drop root as soon as the privileged device open is done. Add 
+air_ignore_sigpipe() for TCP applications to be able to handle remote 
+connection close. Various bugfixes.
+
+libairframe 0.6.2: June 16, 2006
+================================
+
+Changes for NAF 0.5.0 - add multiple file sink and application sink for 
+nafalize fanout and nafload respectively. Add portable timegm() for filter 
+parsing in nafalize and nafilter. Final removal of deprecated ioconfig.
+
+libairframe 0.6.0: March 14, 2006
+=================================
+
+Addition of MIO facility for more flexible input/output handling. Deprecation
+of ioconfig, which is still here until the NAF 0.5 release.
+
+libairframe 0.5.2: February 3, 2006
+===================================
+
+Tweaks to hexdump code for YAF payload output. Add millisecond time printing
+for YAF.
+
+libairframe 0.5.0: January 13, 2006
+===================================
+
+Separate Airframe into its own source distribution (from NAF 0.4.2).

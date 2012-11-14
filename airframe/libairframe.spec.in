@@ -1,0 +1,72 @@
+%define name libairframe
+%define version @PACKAGE_VERSION@
+%define release 1
+
+Summary: Airframe Application Utility Library
+Name: %{name}
+Version: %{version}
+Release: %{release}
+Group: NetSA
+License: LGPL
+Source: %{name}-%{version}.tar.gz
+BuildRoot: %{_tmppath}/%{name}-%{version}
+Packager: Tony Cebzanov <tonyc@cert.org>
+Vendor: http://tools.netsa.cert.org/
+Provides: libairframe
+Provides: libairframe.so
+Requires: glib2 >= 2.4.7
+BuildRequires: glib2-devel >= 2.4.7
+BuildRequires: pkgconfig >= 0.8
+
+%description 
+libairframe is an application utility library designed to ease the creation of
+command-line applications written in C that process files interactively and
+in batch mode.  It builds atop the fundamental data structures and utilities
+in glib (http://www.gtk.org) 2.0, adding additional higher-level functionality.
+
+%package devel
+Summary: Static libraries and C header files for libairframe
+Group: Development/NetSA
+Provides: libairframe-devel
+Requires: %{name} = %{version}
+Requires: pkgconfig >= 0.8
+
+
+%description devel
+Static libraries and C header files for libairframe.
+
+%prep
+%setup -q -n %{name}-%{version}
+
+%build
+%configure
+%{__make}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT%{_bindir}
+%makeinstall
+
+%post -p /sbin/ldconfig
+
+%postun -p /sbin/ldconfig
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-, root, root)
+%doc AUTHORS COPYING ChangeLog NEWS README
+%{_bindir}/airdaemon
+%{_bindir}/filedaemon
+%{_libdir}/*.a
+%{_libdir}/*.la
+%{_libdir}/*.so*
+%{_mandir}/*
+
+%files devel
+%defattr(-,root,root)
+%doc doc/html
+%{_includedir}/*
+%{_libdir}/pkgconfig/*
+

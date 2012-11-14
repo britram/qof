@@ -1,0 +1,1850 @@
+2007-08-17 21:19  tonyc
+
+	* [r8520] doc/html/airutil_8h-source.html, doc/html/index.html,
+	  doc/web/airframe_docs.html, include/airframe/airutil.h: Doc
+	  upadtes for 0.7 release.
+
+2007-08-17 20:31  tonyc
+
+	* [r8512] doc/web/airdaemon.1.pdf, doc/web/filedaemon.1.pdf: Add
+	  airdaemon and filedaemon man page PDFs for the web.
+
+2007-08-17 20:24  tonyc
+
+	* [r8508] airframe.xcodeproj/project.pbxproj,
+	  doc/web/airframe_docs.html, doc/web/index.html: Add airframe docs
+	  page, and link to it from airframe main page.
+
+2007-08-17 20:04  tonyc
+
+	* [r8506] ChangeLog, airframe.xcodeproj/project.pbxproj,
+	  doc/html/airlock_8h-source.html, doc/html/airlock_8h.html,
+	  doc/html/airutil_8h-source.html, doc/html/globals_vars.html,
+	  doc/html/index.html: Time to make the changelogs.
+	  Add missing HTML files.
+
+2007-08-17 17:47  tonyc
+
+	* [r8500] src/airdaemon.c: Remove incorrect and unnecessary debug
+	  message.
+
+2007-08-17 17:40  bht
+
+	* [r8498] airframe.xcodeproj/project.pbxproj, doc/airdaemon.pod:
+	  airframe tweaks
+
+2007-08-17 17:34  bht
+
+	* [r8497] src/logconfig.c: Log files should be opened for
+	  appending.
+
+2007-08-17 14:47  tonyc
+
+	* [r8489] AUTHORS, NEWS, README,
+	  airframe.xcodeproj/project.pbxproj, include/airframe/airutil.h:
+	  Add airdaemon to various docs.
+
+2007-08-17 13:09  tonyc
+
+	* [r8482] airframe.xcodeproj/project.pbxproj, doc/Makefile.am,
+	  doc/airdaemon.pod, doc/filedaemon.pod, src/Makefile.am,
+	  src/airdaemon.c: Add airdaemon, an airframe utility for invoking
+	  a child process and restarting
+	  it when it exits abnormally.
+
+2007-08-16 22:49  bht
+
+	* [r8479] airframe.xcodeproj/project.pbxproj,
+	  doc/web/airframe_download.html, doc/web/index.html: more 0.7.0
+	  release prep (web)
+
+2007-08-16 22:27  bht
+
+	* [r8476] AUTHORS, Doxyfile, NEWS, README, doc/Makefile.am,
+	  doc/html/airopt_8h-source.html, doc/html/airopt_8h.html,
+	  doc/html/airutil_8h-source.html, doc/html/airutil_8h.html,
+	  doc/html/annotated.html, doc/html/daeconfig_8h-source.html,
+	  doc/html/daeconfig_8h.html, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html,
+	  include/airframe/airlock.h, include/airframe/airutil.h: 0.7.0
+	  release prep
+
+2007-08-16 18:23  bht
+
+	* [r8461] src/logconfig.c: airframe copyright date fix in
+	  --version.
+
+2007-08-15 15:14  tonyc
+
+	* [r8436] doc/Makefile.am: Fix messed-up dist target.
+
+2007-08-14 22:09  bht
+
+	* [r8435] airframe.xcodeproj/project.pbxproj, configure.in,
+	  include/Makefile.am, include/airframe/airlock.h,
+	  include/airframe/airopt.h, src/Makefile.am, src/airlock.c,
+	  src/airopt.c, src/daeconfig.c, src/filedaemon.c, src/logconfig.c,
+	  src/mio_config.c, src/privconfig.c: Merge MIO removal from YAF
+	  back on to trunk in preparation for 0.7.0
+	  release. Merge build checkpoint. On to regression testing and
+	  documentation.
+
+2007-08-02 21:52  tonyc
+
+	* [r8251] airframe.xcodeproj/project.pbxproj, configure.in,
+	  doc/Makefile.am, doc/filedaemon.pod, src/filedaemon.c: Remove
+	  unnecessary bufsize option from filedaemon.
+	  Add filedaemon man page.
+	  Autotools changes for pod2man.
+
+2007-07-31 22:43  tonyc
+
+	* [r8207] src/filedaemon.c: More error fixes that I hadn't saved.
+
+2007-07-31 22:42  tonyc
+
+	* [r8206] include/airframe/autoinc.h, src/filedaemon.c: Fix
+	  output/nextdir/faildir logic.
+	  Add "delete" support to nextdir/faildir logic.
+	  Clean up some error statements.
+	  Add include of sys/wait.h
+
+2007-07-31 15:30  mthomas
+
+	* [r8189] src/airopt.c: Add newline to end of file
+
+2007-07-27 21:45  tonyc
+
+	* [r8174] doc/html/airopt_8h-source.html, doc/html/airopt_8h.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/globals.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html, doc/html/privconfig_8h-source.html,
+	  doc/html/privconfig_8h.html, include/airframe/airopt.h: Doxygen
+	  docs for air options interface.
+
+2007-07-26 21:27  tonyc
+
+	* [r8157] src/filedaemon.c, src/mio.c: Fix mio_dispatch_loop, which
+	  wasn't returning a value.
+	  Fix a couple of double frees, including a g_free that should have
+	  been a
+	  g_string_free.
+	  Unlock files, which, it turns out, is important.
+
+2007-07-25 23:26  tonyc
+
+	* [r8145] include/airframe/airopt.h, include/airframe/mio.h,
+	  src/airopt.c, src/filedaemon.c, src/mio.c: Filedaemon now
+	  daemonizes, as good file daemons ought to.
+	  Added --pidfile option so daemon process can be stopped.
+	  Change mio_dispatch_loop to return gboolean so that yaf,
+	  nafalize, etc. can
+	  return error conditions to filedaemon. Not very clean, but the
+	  best I can do
+	  without gutting MIO.
+	  Add show usage function to airopt.
+	  Some code/whitespace cleanup.
+
+2007-07-23 22:56  tonyc
+
+	* [r8021] src/filedaemon.c: Use the right buffer size for pipes and
+	  files. Command-line option to specify
+	  buffer size may go away, but is useful for debugging.
+	  Add nextdir/faildir logic. Unfortunately yaf (at least) doesn't
+	  return a
+	  nonzero rc when a file fails, so it can't "fail" properly.
+	  Add file locking. Unlocking isn't there yet because there's no
+	  "input file
+	  context" structure yet, and generating the lock filename twice is
+	  stupid.
+
+2007-07-19 03:41  bht
+
+	* [r7977] src/airopt.c, src/mio_source_pcap.c: Bivio build fix:
+	  
+	  1. Fix assert followed by variable declaration. We don't do C99
+	  here,
+	  but gcc on Bivio _really_ doesn't.
+	  
+	  2. Remove pcap_findalldevs; it apparently doesn't exist in zero
+	  copy
+	  libpcap (though it should) and was only used for "early" failure
+	  in
+	  airframe pcap anyway.
+
+2007-07-18 22:11  tonyc
+
+	* [r7974] src/filedaemon.c: Add call to logc_setup so logging works
+	  right.
+	  Clean up error and debug messages.
+
+2007-07-18 21:44  tonyc
+
+	* [r7971] airframe.xcodeproj/project.pbxproj, src/Makefile.am,
+	  src/filedaemon.c: Add first prototype of filedaemon code. Limited
+	  right now, in that output files go
+	  to the same directory as input files.
+
+2007-07-18 21:40  tonyc
+
+	* [r7970] src/airopt.c: Make popt's handling of remaining argv args
+	  consistent with GLib's. Prior to
+	  this change, the caller had to start at argv index 0 or 1
+	  depending on the
+	  option library used.
+	  Whitespace cleanup.
+
+2007-07-18 21:20  tonyc
+
+	* [r7969] configure.in: Get rid of autoconf warning.
+
+2007-07-18 21:20  tonyc
+
+	* [r7968] include/airframe/airopt.h: Error out if a supported
+	  options processor wasn't found.
+
+2007-07-09 19:12  tonyc
+
+	* [r7836] configure.in: Re-add AC_CANONICAL_TARGET which was
+	  accidentally nuked in an earlier commit.
+
+2007-07-09 18:07  bht
+
+	* [r7833] Doxyfile, NEWS, configure.in, doc/Makefile.am,
+	  doc/html/airopt_8h-source.html, doc/html/airopt_8h.html,
+	  doc/html/airutil_8h-source.html, doc/html/airutil_8h.html,
+	  doc/html/annotated.html, doc/html/daeconfig_8h-source.html,
+	  doc/html/daeconfig_8h.html, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html,
+	  libairframe.spec: 0.6.99 prep.
+
+2007-07-05 22:14  tonyc
+
+	* [r7789] src/mio_sink_file.c: Close the lock file prior to
+	  unlinking it to avoid fd leak.
+
+2007-07-03 19:02  bht
+
+	* [r7759] airframe.xcodeproj/project.pbxproj: airframe xcode build
+	  system tweak - works now.
+
+2007-07-03 04:12  tonyc
+
+	* [r7744] airframe.xcodeproj/project.pbxproj, autoconf,
+	  configure.in, include/Makefile.am, include/airframe/airopt.h,
+	  include/airframe/autoinc.h, include/airframe/daeconfig.h,
+	  include/airframe/logconfig.h, include/airframe/mio.h,
+	  include/airframe/mio_config.h, include/airframe/privconfig.h,
+	  src/Makefile.am, src/airopt.c, src/daeconfig.c, src/logconfig.c,
+	  src/mio_config.c, src/mio_source_pcap.c, src/privconfig.c: Branch
+	  surgery to merge the options rewrite / Solaris testing branches
+	  into
+	  trunk.
+
+2007-06-20 18:55  bht
+
+	* [r7598] configure.in: Bah. RHELAS4 sucks.
+
+2007-06-18 21:38  bht
+
+	* [r7578] configure.in, src/mio_source_file.c: Only use d_type
+	  member of struct dirent if it exists.
+
+2007-06-18 20:00  bht
+
+	* [r7575] include/airframe/autoinc.h: stdint/inttypes.h change.
+
+2007-06-13 21:43  bht
+
+	* [r7510] configure.in, include/airframe/airutil.h, src/airutil.c:
+	  IPv6 support (yaf 0.7.0, fixbuf 0.6.1, airframe 0.6.7) merge and
+	  build
+	  checkpoint. Not yet tested.
+
+2007-06-01 13:45  mthomas
+
+	* [r7363] doc/web/airframe_download.html: * Remove the dates next
+	  to the download links since there is a big
+	  date announcing the release just above, and on several pages the
+	  dates didn't match.
+	  * Remove the date next to the link for the required libraries,
+	  since
+	  this is just too many dates to keep track of. For example,
+	  airdbc-0.2.2 had at least three different dates.
+	  * Change displayed download links so it is obvious you are
+	  getting a
+	  tarball.
+	  * Change all of the most recent release dates to May-17 to match
+	  the
+	  NEWS files.
+	  * Update list of includes/requires to include IPA and SiLK
+	  * Change files to XHTML
+
+2007-05-30 21:40  mthomas
+
+	* [r7346] doc/web/index.html: Fix typo
+
+2007-05-30 18:11  mthomas
+
+	* [r7344] doc/web/airframe_download.html: * Put body tag before
+	  including the server-side header.
+	  * Add a trailing "/" on urls to directories.
+
+2007-05-30 17:57  mthomas
+
+	* [r7341] doc/web/index.html: * Put body tag before including the
+	  header.
+	  * Add a trailing "/" on urls to directories.
+
+2007-05-18 14:48  ajk
+
+	* [r7240] doc/web, doc/web/airframe_download.html,
+	  doc/web/index.html, doc/web/tools.css: Added top-level web
+	  content. airframe is now a top-level product on
+	  the tools site.
+
+2007-05-17 18:24  bht
+
+	* [r7220] NEWS, doc/Doxyfoot.html, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/mio_8h-source.html, doc/html/mio_8h.html,
+	  doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html: doc changes for
+	  0.6.6 release
+
+2007-03-14 20:11  bht
+
+	* [r6660] ChangeLog, Doxyfile, NEWS,
+	  doc/html/airutil_8h-source.html, doc/html/airutil_8h.html,
+	  doc/html/annotated.html, doc/html/daeconfig_8h-source.html,
+	  doc/html/daeconfig_8h.html, doc/html/doxygen.css,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/mio_8h-source.html, doc/html/mio_8h.html,
+	  doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html,
+	  include/airframe/airutil.h: Doc changes for 0.6.6 release.
+
+2007-03-08 00:08  bht
+
+	* [r6585] airframe.xcodeproj, configure.in,
+	  include/airframe/mio_sink_tls.h,
+	  include/airframe/mio_source_tls.h, libairframe.spec,
+	  src/mio_common_tls.c, src/mio_common_tls.h, src/mio_sink_file.c,
+	  src/mio_sink_tls.c, src/mio_source_tls.c: Merged fixbuf 0.6.0
+	  refactor branch back on to trunk. This completely
+	  changes 1. how fixbuf works, 2. the APIs for libnaf and libyaf,
+	  and
+	  3. the wire/disk representation for bidirectional flow data (to
+	  actually comply with draft-ietf-ipfix-biflow-03).
+	  
+	  This merge builds and the full yaf/naf/skipfix/rwio path appears
+	  to
+	  work in preliminary testing. The rest of this week is prepping
+	  the
+	  trunk for the 0.6.0 release.
+
+2006-12-07 20:30  tonyc
+
+	* [r5874] configure.in, include/Makefile.am,
+	  include/airframe/autoinc.h, include/airframe/mio.h,
+	  include/airframe/mio_config.h, include/airframe/mio_sink_tls.h,
+	  include/airframe/mio_source_tls.h, libairframe.spec,
+	  src/Makefile.am, src/mio_common_tls.c, src/mio_common_tls.h,
+	  src/mio_config.c, src/mio_sink_tls.c, src/mio_source_tcp.c,
+	  src/mio_source_tls.c, src/mioclient.c, src/mioserver.c,
+	  src/miotest.c: Travelling back in time, to a world without TLS...
+
+2006-11-15 23:06  tonyc
+
+	* [r5712] src/mio_common_tls.c, src/mio_source_tls.c: More infinite
+	  monkey theorem development. At this point, I see the sockets are
+	  all closed (netstat -an | grep PORT is empty) but the accept
+	  still fails with "address already in use.)
+	  
+	  Removed some debug code so that YAF with --print-all prints flow
+	  information nicely. Flow data looks correct. This should be good
+	  enough for a demo.
+
+2006-11-14 23:49  tonyc
+
+	* [r5700] src/mio_sink_tls.c, src/mio_source_tcp.c,
+	  src/mio_source_tls.c: Sadly, I cannot seem to shake the "address
+	  already in use" errors when mio_source_tls_next_conn() is called.
+	  Might need another set of eyes to figure this one out.
+
+2006-11-13 23:45  tonyc
+
+	* [r5684] include/Makefile.am, include/airframe/mio_sink_tls.h,
+	  include/airframe/mio_source_tls.h, libairframe.spec,
+	  src/mio_common_tls.h, src/mio_source_tls.c: Fixed general
+	  brokenness in YAF/fixbuf/airframe TLS integration. yafcollect now
+	  writes data from yaf (via TLS) but I don't think it's good data.
+	  Not sure why.
+
+2006-11-10 23:20  tonyc
+
+	* [r5640] src/mio_common_tls.c, src/mio_sink_tls.c,
+	  src/mio_source_tls.c, src/mioclient.c: More TLS work, including
+	  fixbuf/yaf modifications to support TLS. yaf can now open a
+	  connection to yafcollect, but there seems to be a bug when the
+	  source is closed. Not sure if the actual yaf read/write is
+	  working properly yet.
+
+2006-11-10 19:24  tonyc
+
+	* [r5631] src/mio_common_tls.c, src/mio_sink_tls.c,
+	  src/mio_source_tls.c, src/mioclient.c, src/mioserver.c: Improve
+	  error handling, and add debug statements to troubleshoot odd
+	  connection state issues.
+
+2006-11-09 23:34  tonyc
+
+	* [r5626] include/airframe/autoinc.h, src/mio_common_tls.c,
+	  src/mio_common_tls.h, src/mio_sink_tls.c, src/mio_source_tls.c,
+	  src/mioclient.c, src/mioserver.c: Added TLS verification. Client
+	  validates server now; server validation of clients is partially
+	  implemented.
+	  Fix several error handling bugs.
+
+2006-11-08 23:54  tonyc
+
+	* [r5609] src/Makefile.am, src/mio_config.c, src/mio_sink_tls.c,
+	  src/mioclient.c, src/mioserver.c, src/miotest.c: More TLS
+	  progress. Client now connects successfuly to the server and
+	  writes the first record, but the server bombs out when the second
+	  record is received.
+	  Had to split miotest into separate mioserver/mioclient programs
+	  due to idiosyncrasies of the way sources/sinks are created.
+
+2006-11-07 23:07  tonyc
+
+	* [r5600] src/Makefile.am, src/mio_common_tls.c, src/mio_config.c,
+	  src/mio_source_tls.c, src/miotest.c: Continued TLS work.
+
+2006-11-07 21:15  tonyc
+
+	* [r5592] include/airframe/autoinc.h, src/mio_common_tls.c,
+	  src/mio_config.c, src/mio_source_tls.c, src/miotest.c: More TLS.
+	  Source socket now gets created properly and accepts connections.
+	  Need to do some more work on TLS sink and the test driver to
+	  properly test it, though.
+
+2006-11-07 04:39  tonyc
+
+	* [r5567] include/airframe/autoinc.h,
+	  include/airframe/mio_sink_tls.h,
+	  include/airframe/mio_source_tls.h, src/mio_common_tls.c,
+	  src/mio_common_tls.h, src/mio_config.c, src/mio_sink_tls.c,
+	  src/mio_source_tls.c, src/miotest.c: Beginnings of TLS support.
+
+2006-10-31 23:38  tonyc
+
+	* [r5461] configure.in, include/airframe/mio.h,
+	  include/airframe/mio_config.h, include/airframe/mio_sink_tls.h,
+	  include/airframe/mio_source_tls.h, src/Makefile.am,
+	  src/mio_config.c, src/mio_sink_tls.c, src/mio_source_tls.c,
+	  src/miotest.c: Add miotest program for testing TLS (could also
+	  test other MIO things down the line if we want.)
+	  OpenSSL autoconf now checks pkgconfig if --with-openssl is
+	  specified with no argument (or with "yes" argument) then
+	  interprets the argument as a prefix.
+	  A whole slew of TLS source/sink file changes.
+	  At this point, everything compiles, but I'm getting a "type
+	  mismatch" error from mio_config_source. Will investigate
+	  tomorrow.
+
+2006-10-27 19:50  bht
+
+	* [r5429] configure.in, include/airframe/mio_sink_tls.h,
+	  include/airframe/mio_source_tls.h, src/mio_common_tls.c,
+	  src/mio_sink_tls.c, src/mio_source_tcp.c, src/mio_source_tls.c:
+	  Stub OpenSSL TLSv1/DTLSv1 support. Missing PKCS#12 load support
+	  and
+	  any TLS source (passive open) code. This appears to build, at
+	  least.
+
+2006-10-20 21:46  bht
+
+	* [r5387] src/mio_sink_tls.c: Complete TLS sink work. Datagram TLS
+	  not implemented yet because it's
+	  not documented. La. Next up, sources, then getting this all to
+	  build.
+
+2006-10-19 20:58  bht
+
+	* [r5383] include/airframe/mio.h, src/mio_common_tls.c,
+	  src/mio_common_tls.h, src/mio_sink_tls.c: Begin integrating TLS
+	  support into airframe (so simple TLS will work
+	  for the interop without the fixbuf refactor, in case the latter
+	  isn't
+	  done in time...) EOD checkin. Doesn't build; not added to the
+	  build
+	  system yet.
+
+2006-10-04 19:01  bht
+
+	* [r5227] doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_defs.html, doc/html/globals_enum.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/mio_8h-source.html, doc/html/mio_8h.html,
+	  doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html: YA Total
+	  Redoxidation.
+
+2006-10-04 18:55  bht
+
+	* [r5226] doc/Doxyfoot.html: fix doxygen footer typographical error
+	  errors.
+
+2006-10-04 15:55  bht
+
+	* [r5210] src/mio_common_net.c, src/mio_config.c,
+	  src/mio_sink_file.c: More warning cleanup.
+
+2006-10-04 15:51  bht
+
+	* [r5209] src/mio_source_file.c: fix another g_assert oddity...
+
+2006-10-04 15:24  tonyc
+
+	* [r5205] README, libairframe.spec: Added YAF specfile.
+	  Fixed package naming inconsistencies, particularly ones involving
+	  libraries.
+	  Changed all AirCERT references to NetSA.
+	  Changed aircert.sourceforge.net links to tools.netsa.cert.org
+	  where appropriate.
+	  Fixed a few specfile typos.
+	  Changed glib references to glib2.
+
+2006-10-02 18:47  ajk
+
+	* [r5164] doc/Doxyfoot.html, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/doxygen.css, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_defs.html,
+	  doc/html/globals_enum.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html: Updated doxy
+	  footers to use the full copyright footer. Regenerated all
+	  the doxygen content.
+
+2006-09-29 21:35  bht
+
+	* [r5147] Doxyfile, doc/Doxyhead.html, doc/Makefile.am,
+	  doc/doxygen.css, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/doxygen.css, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_defs.html,
+	  doc/html/globals_enum.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html,
+	  doc/html/tools.css, include/airframe/airutil.h: Final Airframe
+	  doxygen correction correction.
+
+2006-09-28 18:05  bht
+
+	* [r5081] src/mio.c, src/mio_common_net.h, src/mio_config.c,
+	  src/mio_source_file.c, src/mio_source_pcap.c: -Wmost -Werror
+	  fixes. MIO multiple error newline fix.
+
+2006-09-21 21:21  bht
+
+	* [r4957] ChangeLog, NEWS, doc/html/index.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  include/airframe/airutil.h, include/airframe/privconfig.h: Final
+	  0.6.5 release prep.
+
+2006-09-21 18:47  bht
+
+	* [r4949] configure.in: configure tweaks for privdrop method hack.
+
+2006-09-21 18:35  bht
+
+	* [r4948] configure.in: Add privilege hack detection to
+	  configure.in.
+
+2006-09-21 18:32  bht
+
+	* [r4947] README, doc/Makefile.am, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_defs.html, doc/html/globals_enum.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/mio_8h-source.html, doc/html/mio_8h.html,
+	  doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/privconfig_8h-source.html, doc/html/privconfig_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html,
+	  include/Makefile.am, include/airframe/airutil.h,
+	  include/airframe/autoinc.h, include/airframe/privconfig.h,
+	  src/Makefile.am, src/privconfig.c: Add privilege configuration
+	  (privconfig.c) from ldcap. YAF can use
+	  this to drop root privileges after setting up live capture from
+	  pcap
+	  or YAF. Generate docs for 0.6.5.
+
+2006-09-20 19:47  bht
+
+	* [r4937] Doxyfile, NEWS, configure.in, include/airframe/mio.h,
+	  libairframe.spec, src/mio.c: Prep for 0.6.5 release. Add retry
+	  control to mio_dispatch_loop.
+
+2006-09-12 18:14  bht
+
+	* [r4843] src/mio_common_net.c: Ew.
+
+2006-09-08 19:55  bht
+
+	* [r4790] src/Makefile.am: tweak Makefile to fix header include
+	  order bug.
+
+2006-08-30 14:41  bht
+
+	* [r4728] include/airframe/airutil.h, src/airutil.c: Add
+	  air_ignore_sigpipe(). Guess what it does.
+
+2006-08-29 22:01  bht
+
+	* [r4723] src/mio_common_net.c: fix null dereference in sink
+	  specifier parse, that I somehow neglected
+	  to test months ago.
+
+2006-08-29 19:48  bht
+
+	* [r4716] libairframe.pc.in: fix pkg-config to actually include
+	  glib dependencies. add
+	  libnaf.pc. xcode project evolution.
+
+2006-08-28 21:04  ajk
+
+	* [r4708] doc/doxygen.css, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/doxygen.css, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_defs.html,
+	  doc/html/globals_enum.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html: Made fonts
+	  consistent betwen doxygen pages and rest of site.
+	  Updated generated content.
+
+2006-08-28 19:17  ajk
+
+	* [r4702] doc/doxygen.css, doc/html/doxygen.css,
+	  doc/html/index.html, include/airframe/airutil.h: Various clean up
+	  and fixes related to tools site including
+	  replacing sourceforge urls.
+
+2006-08-28 16:39  ajk
+
+	* [r4696] Doxyfile, doc/Doxyfoot.html, doc/Doxyhead.html,
+	  doc/doxygen.css, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/doxygen.css, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_defs.html,
+	  doc/html/globals_enum.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html: Updated
+	  doxygen-related files so that the generated content fits with
+	  the new tools site.
+
+2006-08-28 16:01  bht
+
+	* [r4695] doc/Doxyfoot.html: how long has _this_ been missing from
+	  SVN?
+
+2006-08-23 18:01  bht
+
+	* [r4626] src/mio_config.c: fix valgrind-discovered null filename
+	  stat.
+
+2006-08-18 19:39  bht
+
+	* [r4552] src/mio_source_pcap.c: Shut down application if not able
+	  to open live pcap.
+
+2006-08-18 19:18  bht
+
+	* [r4549] Doxyfile: add Doxyfile. Oops.
+
+2006-08-18 19:17  bht
+
+	* [r4548] configure.in, libairframe.spec: Version bump
+
+2006-08-18 19:16  bht
+
+	* [r4547] src/mio.c: Typofix to application specific sources and
+	  sinks...
+
+2006-06-20 13:45  bht
+
+	* [r4033] doc/Makefile.am: Airframe build system fixes - remove
+	  last traces of ioconfig.
+
+2006-06-16 19:13  bht
+
+	* [r4001] configure.in, src/logconfig.c, src/mio_config.c,
+	  src/mio_source_tcp.c: Fix MIO bugs for IPFIX over TCP - shouldn't
+	  set the poll flag, and should default to cwd output.
+
+2006-06-15 14:13  bht
+
+	* [r3992] ChangeLog, NEWS, README, configure.in,
+	  doc/html/airutil_8h-source.html, doc/html/airutil_8h.html,
+	  doc/html/annotated.html, doc/html/daeconfig_8h-source.html,
+	  doc/html/daeconfig_8h.html, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_defs.html,
+	  doc/html/globals_enum.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/ioconfig_8h-source.html,
+	  doc/html/ioconfig_8h.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html,
+	  doc/html/structioc__file__st.html, include/Makefile.am,
+	  include/airframe/airutil.h, include/airframe/ioconfig.h,
+	  libairframe.spec, src/Makefile.am, src/ioconfig.c: 0.6.2 release
+	  documentation prep.
+
+2006-05-31 22:12  bht
+
+	* [r3897] include/airframe/airutil.h, src/ioconfig.c: Documentation
+	  for upcoming release
+
+2006-05-31 21:27  bht
+
+	* [r3896] src/airutil.c: nuke spurious debug print.
+
+2006-05-31 21:26  bht
+
+	* [r3895] src/airutil.c: Fix logic error in leap year calculation.
+
+2006-05-19 15:11  bht
+
+	* [r3806] include/airframe/airutil.h, src/airutil.c: add portable
+	  timegm() replacement.
+
+2006-05-05 17:35  bht
+
+	* [r3665] src/mio_config.c: Rewrite severely broken multifile sink
+	  config for NAF.
+
+2006-05-03 20:50  bht
+
+	* [r3649] src/mio_config.c, src/mio_sink_file.c: Default with no
+	  output specifier should be to place output in same dir
+	  as input, not cwd.
+
+2006-04-26 15:26  bht
+
+	* [r3571] AUTHORS: Boilerplate changes - suggested by ldcap
+	  boilerplate.
+
+2006-04-21 14:09  bht
+
+	* [r3509] Makefile.am, configure.in, doc/Makefile.am,
+	  include/Makefile.am, include/airframe/airutil.h,
+	  include/airframe/daeconfig.h, include/airframe/ioconfig.h,
+	  include/airframe/logconfig.h, include/airframe/mio.h,
+	  include/airframe/mio_config.h, include/airframe/mio_sink_file.h,
+	  include/airframe/mio_sink_multi.h,
+	  include/airframe/mio_sink_tcp.h, include/airframe/mio_sink_udp.h,
+	  include/airframe/mio_source_file.h,
+	  include/airframe/mio_source_pcap.h,
+	  include/airframe/mio_source_tcp.h,
+	  include/airframe/mio_source_udp.h, include/airframe/mio_stdio.h,
+	  src/Makefile.am, src/airutil.c, src/daeconfig.c, src/ioconfig.c,
+	  src/logconfig.c, src/mio.c, src/mio_common_net.c,
+	  src/mio_common_net.h, src/mio_config.c, src/mio_internal.h,
+	  src/mio_sink_file.c, src/mio_sink_multi.c, src/mio_sink_tcp.c,
+	  src/mio_sink_udp.c, src/mio_source_file.c, src/mio_source_pcap.c,
+	  src/mio_source_tcp.c, src/mio_source_udp.c, src/mio_stdio.c:
+	  Relicense NAF suite library (airframe, airdbc, fixbuf) source
+	  code to
+	  a license that _actually exists_. (There is no v2 of the LGPL
+	  dated
+	  June 1991; the proper license is v2.1 of February 1999).
+
+2006-04-17 14:56  bht
+
+	* [r3440] include/airframe/mio.h, src/mio.c: Another day, another
+	  MIO type. Add MIO_T_APP, a null sink/source that
+	  allows mio_dispatch to work with single-stage sink and source
+	  management. This is for nafload, which will mingle high-level and
+	  low-level AirDBC sink I/O, so airframe won't require airdbc to
+	  build.
+
+2006-04-12 18:21  bht
+
+	* [r3420] include/airframe/mio_config.h, src/mio_config.c: Fix
+	  build errors in multisink config.
+
+2006-04-12 17:24  bht
+
+	* [r3414] configure.in, include/airframe/mio_config.h,
+	  src/mio_config.c: Begin airframe 0.6.1 bump. Move multisink
+	  configuration from naf to airframe.
+
+2006-04-07 21:06  bht
+
+	* [r3385] include/airframe/mio.h: doc tweak
+
+2006-04-05 20:56  bht
+
+	* [r3377] include/airframe/mio.h,
+	  include/airframe/mio_source_pcap.h: Move pcap convenience macro
+	  where it belongs.
+
+2006-04-03 21:18  bht
+
+	* [r3351] doc/Makefile.am, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_defs.html, doc/html/globals_enum.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/ioconfig_8h-source.html, doc/html/ioconfig_8h.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/mio_8h-source.html, doc/html/mio_8h.html,
+	  doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__multi_8h-source.html,
+	  doc/html/mio__sink__multi_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html,
+	  doc/html/structioc__file__st.html, include/Makefile.am,
+	  include/airframe/mio_sink_multi.h, src/Makefile.am,
+	  src/mio_sink_multi.c: Doc changes for multisink. Add multisink to
+	  autotools.
+
+2006-04-03 15:36  bht
+
+	* [r3342] include/airframe/mio.h,
+	  include/airframe/mio_sink_multi.h, src/mio_sink_multi.c: MIO
+	  multiple sink complete and builds in xcode.
+
+2006-03-30 21:55  bht
+
+	* [r3324] src/mio_sink_multi.c: Oops - fix build errors in previous
+	  commit.
+
+2006-03-30 21:52  bht
+
+	* [r3323] include/airframe/mio.h,
+	  include/airframe/mio_sink_multi.h, src/mio_sink_multi.c: Stub out
+	  MIO multiple sink support for NAF fanout.
+
+2006-03-14 23:06  bht
+
+	* [r3205] libairframe.spec: Bump version in specfile.
+
+2006-03-14 22:30  bht
+
+	* [r3204] include/airframe/mio.h: newline fixes. ugh.
+
+2006-03-14 22:25  bht
+
+	* [r3203] AUTHORS, ChangeLog, NEWS, README,
+	  include/airframe/airutil.h: time to make the changelogs. other
+	  minor doc changes.
+
+2006-03-14 21:43  bht
+
+	* [r3202] doc/Makefile.am, doc/html/mio_8h-source.html,
+	  doc/html/mio_8h.html, doc/html/mio__config_8h-source.html,
+	  doc/html/mio__config_8h.html,
+	  doc/html/mio__sink__file_8h-source.html,
+	  doc/html/mio__sink__file_8h.html,
+	  doc/html/mio__sink__tcp_8h-source.html,
+	  doc/html/mio__sink__tcp_8h.html,
+	  doc/html/mio__sink__udp_8h-source.html,
+	  doc/html/mio__sink__udp_8h.html,
+	  doc/html/mio__source__file_8h-source.html,
+	  doc/html/mio__source__file_8h.html,
+	  doc/html/mio__source__pcap_8h-source.html,
+	  doc/html/mio__source__pcap_8h.html,
+	  doc/html/mio__source__tcp_8h-source.html,
+	  doc/html/mio__source__tcp_8h.html,
+	  doc/html/mio__source__udp_8h-source.html,
+	  doc/html/mio__source__udp_8h.html,
+	  doc/html/mio__stdio_8h-source.html, doc/html/mio__stdio_8h.html,
+	  doc/html/struct___m_i_o_app_driver.html,
+	  doc/html/struct___m_i_o_sink.html,
+	  doc/html/struct___m_i_o_sink_file_config.html,
+	  doc/html/struct___m_i_o_source.html,
+	  doc/html/struct___m_i_o_source_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_file_config.html,
+	  doc/html/struct___m_i_o_source_p_cap_live_config.html,
+	  doc/html/struct___m_i_o_source_t_c_p_config.html: Add new MIO
+	  documentation HTML files.
+
+2006-03-14 21:34  bht
+
+	* [r3201] doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_defs.html, doc/html/globals_enum.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/ioconfig_8h-source.html, doc/html/ioconfig_8h.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/structioc__file__st.html, include/airframe/mio.h,
+	  include/airframe/mio_sink_tcp.h, include/airframe/mio_sink_udp.h:
+	  Doxygen fixes and regeneration.
+
+2006-03-14 21:29  bht
+
+	* [r3200] include/airframe/mio_config.h,
+	  include/airframe/mio_sink_file.h,
+	  include/airframe/mio_sink_tcp.h, include/airframe/mio_sink_udp.h,
+	  include/airframe/mio_source_pcap.h,
+	  include/airframe/mio_source_tcp.h: Documentation complete for
+	  airframe 0.6.0.
+
+2006-03-14 20:01  bht
+
+	* [r3198] include/airframe/mio.h, include/airframe/mio_config.h,
+	  include/airframe/mio_source_file.h,
+	  include/airframe/mio_source_pcap.h,
+	  include/airframe/mio_source_tcp.h,
+	  include/airframe/mio_source_udp.h, include/airframe/mio_stdio.h,
+	  src/mio_config.c: MIO is reasonably stable now, so it's time to
+	  finish the
+	  documentation. Doxidize MIO, config, and all sources except pcap.
+	  In
+	  progress. Next - pcap and sinks.
+
+2006-03-13 23:51  bht
+
+	* [r3191] include/airframe/mio.h, src/mio_common_net.c,
+	  src/mio_config.c, src/mio_sink_file.c, src/mio_sink_tcp.c,
+	  src/mio_sink_udp.c, src/mio_stdio.c: Add iterative flag to sink,
+	  to allow applications to determine whether
+	  autorotation and other sink-closing behavior makes sense. Fix
+	  standard
+	  input default bug. Minor doc and debug message fixes.
+
+2006-03-13 19:11  bht
+
+	* [r3184] src/mio_config.c, src/mio_source_file.c: turns out we
+	  need to detect end of queue separately from end of
+	  input... also, some cosmetic changes to MIO config...
+
+2006-03-10 22:24  bht
+
+	* [r3173] include/airframe/airutil.h, include/airframe/ioconfig.h,
+	  include/airframe/mio.h, src/mio.c: Testing continues. MIO
+	  Documentation.
+
+2006-03-10 16:27  bht
+
+	* [r3172] src/mio_source_pcap.c: fix pcap file open failure bug -
+	  if the pcap file doesn't open, it
+	  should move to the fail directory, not the pass one. This works
+	  now.
+
+2006-03-09 22:45  bht
+
+	* [r3171] src/mio.c, src/mio_config.c, src/mio_source_file.c:
+	  Testing the Green Matrix of Doom continues. Fix missing MIO
+	  configuration logic with respect to daemons. Replace file context
+	  based terminate on no input with MIO core terminate on no input
+	  to fix
+	  buf wherein YAF would terminate after processing the input glob
+	  once
+	  through _unless there was no file there to begin with_.
+
+2006-03-07 19:35  bht
+
+	* [r3163] include/airframe/mio_source_pcap.h, src/mio_config.c,
+	  src/mio_internal.h, src/mio_source_pcap.c, src/mio_stdio.c: Build
+	  checkpoint. Add pcap stdin and single file support.
+
+2006-03-03 03:10  bht
+
+	* [r3137] include/airframe/mio.h, src/mio.c, src/mio_sink_file.c,
+	  src/mio_source_file.c, src/mio_source_pcap.c,
+	  src/mio_source_tcp.c, src/mio_source_udp.c: MIO control flow
+	  bugfixes and API change to reflect what the error
+	  control flags really mean, as compared to what I thought they
+	  might
+	  have meant when I originally specified them.
+
+2006-03-01 18:31  bht
+
+	* [r3126] include/airframe/mio_source_tcp.h, src/mio_common_net.c,
+	  src/mio_sink_file.c, src/mio_source_tcp.c: Add missing TCP
+	  MIOSource implementation. Fix source/sink confusion in file sink.
+	  Hack network address parser to separate address and port with
+	  comma, instead of colon, which was causing no end of pain with
+	  IPv6 addressing.
+
+2006-02-28 16:59  bht
+
+	* [r3117] include/Makefile.am, include/airframe/mio_config.h,
+	  include/airframe/mio_sink_tcp.h, src/Makefile.am, src/mio.c,
+	  src/mio_common_net.c, src/mio_common_net.h, src/mio_config.c,
+	  src/mio_sink_file.c, src/mio_sink_tcp.c, src/mio_sink_udp.c: Add
+	  TCP sink. Move more tcp/udp generic code into common net
+	  module. Modify MIO runloop to fix bugs exposed by TCP source
+	  addition. MIO IS STILL NOT READY FOR PRODUCTION USE - the state
+	  machine should be reviewed, as it hides some rather tricky
+	  corners. Filter mode is in particular a little twitchy, and glob
+	  input
+	  to directory output by default segv's.
+	  
+	  However, YAF works for TCP now; this is what goes into test
+	  tomorrow.
+
+2006-02-28 00:08  bht
+
+	* [r3114] src/Makefile.am: install target typofix in automake.
+
+2006-02-28 00:07  bht
+
+	* [r3113] include/Makefile.am, include/airframe/mio.h,
+	  src/Makefile.am, src/mio_common_net.c, src/mio_common_net.h,
+	  src/mio_common_udp.c, src/mio_common_udp.h, src/mio_config.c,
+	  src/mio_sink_udp.c, src/mio_source_udp.c: Add (build checkpoint,
+	  untested) TCP source support. This provides
+	  only a server that can handle a single client; multiple-client
+	  select() server support will require a multiple-channel source
+	  and
+	  sink concept (which we need for NAF anyway) [multiple client
+	  preforking or prethreaded server support is probably well outside
+	  the
+	  scope of MIO as designed].
+	  
+	  Refactor other networking code to share common code between TCP
+	  and UDP.
+
+2006-02-26 16:52  bht
+
+	* [r3101] src/mio_stdio.c: Robustification for interop -- pipe-mode
+	  termination and (as yet
+	  untested) bad UDP packet rejection/restart fixes.
+
+2006-02-25 16:06  bht
+
+	* [r3098] src/mio_sink_udp.c, src/mio_source_udp.c: Name generation
+	  fixes for UDP. Source name and sink name are now
+	  guaranteed to hold something, as they should be.
+
+2006-02-25 15:36  bht
+
+	* [r3097] src/mio_sink_file.c: File sink pattern-based name
+	  generator init fixes. The pattern-based
+	  name generator still has at least one logic error in it.
+
+2006-02-24 22:53  bht
+
+	* [r3096] include/Makefile.am, src/Makefile.am: yafcollect
+	  debugging continues - there's still a double free in there
+	  somewhere. Add mio_config to autotools (oops).
+
+2006-02-24 21:59  bht
+
+	* [r3095] src/mio_source_udp.c: fix missing MIO udp source return.
+	  yafcollect testing begins.
+
+2006-02-24 21:57  bht
+
+	* [r3094] src/mio_sink_udp.c: Fix missing return in UDP sink code.
+	  YAF file to UDP dispatch flow works in non-daemon mode now.
+
+2006-02-24 21:22  bht
+
+	* [r3093] src/mio_source_file.c, src/mio_stdio.c: Continued MIO
+	  bugfixing. MIO file-to-file dispatch now tested in
+	  non-daemon mode.
+
+2006-02-24 19:33  bht
+
+	* [r3092] src/mio_config.c: YAF and MIO debugging in progress.
+
+2006-02-23 21:02  bht
+
+	* [r3082] include/airframe/mio.h, src/mio.c: Various MIO cleanup.
+	  Force clean source/sink close on terminate.
+	  Port YAF to MIO. BUILD CHECKPOINT. Not yet tested.
+
+2006-02-23 20:39  tonyc
+
+	* [r3080] airframe.xcodeproj: Purging old project files.
+
+2006-02-22 13:48  bht
+
+	* [r3066] include/airframe/mio.h, src/mio_source_file.c:
+	  Portability fix fix.
+
+2006-02-22 13:47  bht
+
+	* [r3065] src/mio_source_file.c: Portability fix for struct dirent.
+
+2006-02-22 13:41  bht
+
+	* [r3064] include/airframe/mio_stdio.h: add missing mio_stdio.h.
+	  oops.
+
+2006-02-22 02:42  bht
+
+	* [r3063] include/airframe/mio.h, include/airframe/mio_config.h,
+	  src/mio_config.c, src/mio_sink_file.c, src/mio_stdio.c: Add MIO
+	  dispatch flag management to MIO config. Remove sinklink hack,
+	  replace it with sinklink flag override in sink config.
+	  
+	  This is the final MIO checkin for a while; work will continue on
+	  YAF
+	  testing for Salzburg and YAF/MIO integration in trunk.
+
+2006-02-22 01:47  bht
+
+	* [r3062] include/airframe/mio.h, src/mio_sink_file.c,
+	  src/mio_source_file.c, src/mio_stdio.c: Declare sinklink
+	  overridable for single output sinks. Override
+	  sinklink as appropriate for file and stdout sinks.
+
+2006-02-21 22:00  bht
+
+	* [r3060] include/airframe/mio_config.h, src/mio_config.c: Add
+	  missing sink config and mio_config.h. Still to do is figure out
+	  how to get point out that a sink is multiple (and therefore
+	  should
+	  honor sinklink) or single (and therefore should override it).
+
+2006-02-21 21:17  bht
+
+	* [r3058] include/airframe/mio_source_file.h, src/mio_common_udp.c,
+	  src/mio_config.c, src/mio_sink_file.c, src/mio_source_file.c: MIO
+	  configuration for source. Add automatic failover to initializers
+	  as appropriate.
+
+2006-02-20 23:04  bht
+
+	* [r3052] include/airframe/mio.h, src/mio.c, src/mio_config.c,
+	  src/mio_sink_file.c, src/mio_sink_udp.c, src/mio_source_file.c,
+	  src/mio_source_udp.c: MIO work continues. Oops. Second, add
+	  mio_config, which we need after all.
+
+2006-02-20 21:47  bht
+
+	* [r3048] configure.in: Minor version bump for MIO inclusion.
+
+2006-02-20 21:38  bht
+
+	* [r3046] include/Makefile.am, src/Makefile.am: MIO autotools
+	  integration. MIO is now ready for application
+	  testing. Note the lack of debugging (except on the mio_dispatch
+	  control flags, which I wrote to clarify things for myself). This
+	  will
+	  likely remain undocumented until after Salzburg or IETF because
+	  I'll
+	  be focusing on making things work with YAF in time for the
+	  interop....
+
+2006-02-20 21:28  bht
+
+	* [r3045] configure.in, include/airframe/autoinc.h,
+	  include/airframe/mio.h, include/airframe/mio_sink_file.h,
+	  include/airframe/mio_sink_udp.h,
+	  include/airframe/mio_source_file.h,
+	  include/airframe/mio_source_pcap.h,
+	  include/airframe/mio_source_udp.h, src/mio.c,
+	  src/mio_common_udp.c, src/mio_common_udp.h, src/mio_sink_file.c,
+	  src/mio_sink_udp.c, src/mio_source_file.c, src/mio_source_pcap.c,
+	  src/mio_source_udp.c, src/mio_stdio.c: Build checkpoint. Fix all
+	  (XCode) MIO build errors.
+
+2006-02-20 19:35  bht
+
+	* [r3041] include/airframe/mio_config.h, src/mio_config.c: remove
+	  mio_config, since we're not using it.
+
+2006-02-20 19:31  bht
+
+	* [r3040] include/airframe/mio.h, include/airframe/mio_sink_udp.h,
+	  include/airframe/mio_source_udp.h, src/mio_common_udp.c,
+	  src/mio_common_udp.h, src/mio_internal.h, src/mio_sink_file.c,
+	  src/mio_sink_udp.c, src/mio_source_pcap.c, src/mio_source_udp.c:
+	  Add UDP support to MIO. Minor fixes elsewhere. MIO now
+	  functionally complete (but not build tested) for YAF integration.
+
+2006-02-17 20:11  bht
+
+	* [r3036] include/airframe/mio_source_pcap.h, src/mio.c,
+	  src/mio_source_pcap.c: pcap functionally complete. fix error
+	  collision in dispatch.
+
+2006-02-16 23:25  bht
+
+	* [r3030] src/mio_source_pcap.c: add fake open logic. still working
+	  on file/pcap open.
+
+2006-02-16 17:01  bht
+
+	* [r3024] src/mio_internal.h, src/mio_source_file.c,
+	  src/mio_source_pcap.c: Continued incremental progress for MIO
+	  PCAP support.
+
+2006-02-16 15:03  bht
+
+	* [r3019] include/airframe/mio.h, include/airframe/mio_sink_file.h,
+	  include/airframe/mio_source_file.h, src/mio_sink_file.c,
+	  src/mio_source_file.c, src/mio_stdio.c: add input/output
+	  specifier "veto" pattern - allows applications to do
+	  their own option parsing, prioritizing and selecting source and
+	  sink
+	  types, but leave actual specifier parsing up to the sources and
+	  sinks
+	  themselves. This may lead to the removal of mio_source.[ch]
+
+2006-02-16 05:10  bht
+
+	* [r3017] include/airframe/mio.h, include/airframe/mio_config.h,
+	  include/airframe/mio_sink_file.h, src/mio.c, src/mio_config.c,
+	  src/mio_source_file.c: MIO incremental progress. Add stub config
+	  (not done designing this
+	  yet). Add mio_dispatch_loop, which is the MIO full-lifecycle
+	  dispatch
+	  routine.
+
+2006-02-15 20:45  bht
+
+	* [r3014] include/airframe/mio.h, include/airframe/mio_sink_file.h,
+	  include/airframe/mio_source_file.h, src/mio.c,
+	  src/mio_sink_file.c, src/mio_source_file.c, src/mio_stdio.c:
+	  Incremental progress. Complete work on file source. Add NULL type
+	  for
+	  interface to external libraries that require filenames instead of
+	  fd/fp. Make virtual source type application-selectable (may want
+	  to
+	  add GIOChannel support here later). Add sink file. Save
+	  command-line
+	  processing (and documentation) MIO is now a feature-complete
+	  replacement for IOConfig that is 1. extendable to do everything
+	  we
+	  need it to and 2. debuggable/modifiable without support from
+	  mental
+	  health professionals, but 3. not yet build tested.
+
+2006-02-15 06:04  bht
+
+	* [r3009] include/airframe/mio.h,
+	  include/airframe/mio_source_file.h, src/mio.c: MIO sink handling
+	  change - all sink management functions are now
+	  called with an active available source.
+
+2006-02-15 05:43  bht
+
+	* [r3008] include/airframe/mio.h, src/mio_source_file.c,
+	  src/mio_stdio.c: MIO file source logic complete. Add
+	  close/move/delete code. No build test yet.
+
+2006-02-14 22:12  bht
+
+	* [r3007] include/airframe/autoinc.h, include/airframe/mio.h,
+	  include/airframe/mio_source_file.h, src/mio.c,
+	  src/mio_source_file.c, src/mio_stdio.c: Incremental MIO progress.
+	  Mostly done with filerouter/ioconfig
+	  replacement dispatch routines for input. Still need
+	  nextdir/faildir,
+	  some refactoring for better lock path handling.
+
+2006-02-13 22:51  bht
+
+	* [r3000] include/airframe/mio.h, src/mio.c, src/mio_stdio.c: mio
+	  incremental progress. re-add mio.h after svn checksum error.
+	  add stdio support.
+
+2006-02-13 22:51  bht
+
+	* [r2999] include/airframe/mio.h: DO NOT CHECK OUT THIS REVISION.
+	  BREAKING TRUNK to fix subversion...
+
+2006-02-10 22:17  bht
+
+	* [r2991] include/airframe/mio.h, src/mio.c: continue MIO work.
+	  sketch out dispatch workflow and interface.
+
+2006-02-10 21:48  tonyc
+
+	* [r2990] libairframe.spec: Make version numbering in specfile more
+	  consistent.
+
+2006-02-10 21:47  tonyc
+
+	* [r2989] libairframe.spec: Fixed wildcarding to pick up missing
+	  .so symlink
+
+2006-02-08 23:12  bht
+
+	* [r2961] include/airframe/ioconfig.h, include/airframe/mio.h,
+	  src/ioconfig.c, src/mio.c: Prep for Multiple I/O interface -
+	  successor to iconfig that can properly
+	  handle dispatch over multiple lower-level I/O types.
+
+2006-02-08 19:44  bht
+
+	* [r2951] include/airframe/airutil.h, include/airframe/autoinc.h,
+	  include/airframe/ioconfig.h, src/airutil.c, src/ioconfig.c: Add
+	  utilities supporting portable socket buffer
+	  maximization. Shamelessly stolen from SiLK skj-bigsockbuf.c.
+
+2006-02-06 18:53  tonyc
+
+	* [r2923] libairframe.spec: Add specfile for libairframe RPM builds
+
+2006-02-06 17:23  bht
+
+	* [r2914] configure.in, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_defs.html, doc/html/globals_enum.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/ioconfig_8h-source.html, doc/html/ioconfig_8h.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/structioc__file__st.html, include/airframe/airutil.h:
+	  Doc typofixes. Change name of dist package to libairframe.
+
+2006-02-06 15:45  bht
+
+	* [r2910] AUTHORS, ChangeLog, NEWS,
+	  doc/html/airutil_8h-source.html, doc/html/airutil_8h.html,
+	  doc/html/annotated.html, doc/html/daeconfig_8h-source.html,
+	  doc/html/daeconfig_8h.html, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_defs.html,
+	  doc/html/globals_enum.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/ioconfig_8h-source.html,
+	  doc/html/ioconfig_8h.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/structioc__file__st.html,
+	  src/airutil.c: 0.5.2 release final prep.
+
+2006-02-03 16:59  bht
+
+	* [r2899] doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_defs.html, doc/html/globals_enum.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/ioconfig_8h-source.html, doc/html/ioconfig_8h.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/structioc__file__st.html, include/airframe/airutil.h:
+	  doc changes for mstime update
+
+2006-02-03 16:58  bht
+
+	* [r2898] include/airframe/airutil.h, src/airutil.c: add
+	  millisecond print to airutil.
+
+2006-02-01 19:58  bht
+
+	* [r2882] COPYING: Re-add LGPL.
+
+2006-02-01 19:57  bht
+
+	* [r2881] NEWS, configure.in, doc/Makefile.am,
+	  doc/html/airutil_8h-source.html, doc/html/airutil_8h.html,
+	  doc/html/annotated.html, doc/html/autoinc_8h-source.html,
+	  doc/html/autoinc_8h.html, doc/html/daeconfig_8h-source.html,
+	  doc/html/daeconfig_8h.html, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_defs.html,
+	  doc/html/globals_enum.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/ioconfig_8h-source.html,
+	  doc/html/ioconfig_8h.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/structioc__file__st.html,
+	  include/airframe/autoinc.h: Airframe 0.5.2 release prep. Doc
+	  changes.
+
+2006-01-30 19:34  bht
+
+	* [r2867] src/airutil.c: hexdump fixes. print spaces as spaces.
+	  don't print zero-length lines.
+
+2006-01-23 18:05  bht
+
+	* [r2831] configure.in, include/airframe/airutil.h,
+	  src/Makefile.am, src/airutil.c: fix bug in hexdump code. move to
+	  libtool versioning scheme. bump rev
+	  to 0.5.2. needs doc changes before release.
+
+2006-01-12 22:25  bht
+
+	* [r2781] configure.in, include/airframe/airutil.h, src/airutil.c,
+	  src/ioconfig.c: Add HMS time format (time only printing in
+	  yafscii) and hex dump to GString.
+
+2006-01-06 20:55  bht
+
+	* [r2771] doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/autoinc_8h-source.html, doc/html/autoinc_8h.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/files.html, doc/html/functions.html,
+	  doc/html/functions_vars.html, doc/html/globals.html,
+	  doc/html/globals_defs.html, doc/html/globals_enum.html,
+	  doc/html/globals_eval.html, doc/html/globals_func.html,
+	  doc/html/globals_type.html, doc/html/index.html,
+	  doc/html/ioconfig_8h-source.html, doc/html/ioconfig_8h.html,
+	  doc/html/logconfig_8h-source.html, doc/html/logconfig_8h.html,
+	  doc/html/structioc__file__st.html, include/airframe/airutil.h,
+	  include/airframe/ioconfig.h, src/airutil.c, src/ioconfig.c:
+	  Change Airframe API to conform to NetSA external API standards
+	  regarding types (the API's function naming was already
+	  compliant).
+
+2006-01-06 19:07  bht
+
+	* [r2768] doc/html, doc/html/airutil_8h-source.html,
+	  doc/html/airutil_8h.html, doc/html/annotated.html,
+	  doc/html/autoinc_8h-source.html, doc/html/autoinc_8h.html,
+	  doc/html/daeconfig_8h-source.html, doc/html/daeconfig_8h.html,
+	  doc/html/doxygen.css, doc/html/doxygen.png, doc/html/files.html,
+	  doc/html/functions.html, doc/html/functions_vars.html,
+	  doc/html/globals.html, doc/html/globals_defs.html,
+	  doc/html/globals_enum.html, doc/html/globals_eval.html,
+	  doc/html/globals_func.html, doc/html/globals_type.html,
+	  doc/html/index.html, doc/html/ioconfig_8h-source.html,
+	  doc/html/ioconfig_8h.html, doc/html/logconfig_8h-source.html,
+	  doc/html/logconfig_8h.html, doc/html/structioc__file__st.html,
+	  doc/html/tab_b.gif, doc/html/tab_l.gif, doc/html/tab_r.gif,
+	  doc/html/tabs.css: Airframe doxidation
+
+2006-01-06 19:04  bht
+
+	* [r2767] COPYING, ChangeLog, Makefile.am, src/Makefile.am: Build
+	  system works now. Fix (long standing) release naming bug in
+	  libtool automake rule. 0.5.0 is ready for testing.
+
+2006-01-06 16:59  bht
+
+	* [r2766] README, airframe.xcodeproj/project.pbxproj: XCode build
+	  system and README tweaks.
+
+2006-01-06 16:45  bht
+
+	* [r2765] AUTHORS, Makefile.am, NEWS, README, airframe.xcodeproj,
+	  airframe.xcodeproj/project.pbxproj, configure.in, doc,
+	  doc/Makefile.am, include/Makefile.am, include/airframe/airutil.h,
+	  libairframe.pc.in, src/Makefile.am: Add separate build system
+
+2006-01-06 14:10  bht
+
+	* [r2764] include/airframe/autoinc.h: Copying airframe headers to
+	  new module
+
+2006-01-06 14:09  bht
+
+	* [r2763] include/airframe/airutil.h: Copying airframe headers to
+	  new module
+
+2006-01-06 14:09  bht
+
+	* [r2762] include/airframe/logconfig.h: Copying airframe headers to
+	  new module
+
+2006-01-06 14:09  bht
+
+	* [r2761] include/airframe/daeconfig.h: Copying airframe headers to
+	  new module
+
+2006-01-06 14:09  bht
+
+	* [r2760] include/airframe/ioconfig.h: Copying airframe headers to
+	  new module
+
+2006-01-06 14:08  bht
+
+	* [r2759] src/airutil.c: Copying airframe sources to new module
+
+2006-01-06 14:07  bht
+
+	* [r2758] src/daeconfig.c: Copying airframe sources to new module
+
+2006-01-06 14:07  bht
+
+	* [r2757] src/logconfig.c: Copying airframe sources to new module
+
+2006-01-06 14:06  bht
+
+	* [r2756] src/ioconfig.c: Copying airframe sources to new module...
+
+2006-01-05 22:09  bht
+
+	* [r2755] include, include/airframe, src: continuing with airframe
+	  directory structure
+
+2006-01-05 21:49  bht
+
+	* [r2754] .: Add (empty) airframe directory
+

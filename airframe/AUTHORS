@@ -1,0 +1,11 @@
+Brian Trammell is the author.  libairframe is now maintened by the 
+Network Situational Awareness Team at CERT <netsa-help@cert.org>.
+The filedaemon and airdaemon utilities in filedaemon.c and
+options processing layer in airopt.c were written by Tony Cebzanov
+<tonyc@cert.org>.
+
+The filedaemon design pattern as provided by airframe's MIO module
+was designed by the AirCERT project team: Roman Danyliw, Sean Levy, and 
+Brian Trammell. Other library functions were written to replace functionality 
+in libair and libairutil, designed and implemented by Roman Danyliw, Sean Levy,
+and Brian Trammell.
