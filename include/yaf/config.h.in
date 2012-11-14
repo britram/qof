@@ -1,4 +1,4 @@
-/* include/yaf/config.h.in.  Generated from configure.in by autoheader.  */
+/* include/yaf/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define if pointers to integers require aligned access */
 #undef HAVE_ALIGNED_ACCESS_REQUIRED

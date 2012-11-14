@@ -123,7 +123,7 @@ typedef struct yfL2Info_st {
 
 /** IP additional information structure */
 typedef struct yfIPInfo_st {
-    /** ECT(1) and ECT(0) in low-order 
+    /** ECT(1) and ECT(0) in low-order bits */
     uint8_t         ecn;
 } yfIPInfo_t;
 
@@ -165,7 +165,7 @@ typedef struct yfPBuf_st {
     /** Interface number packet was decoded from. Currently unused. */
     uint16_t        ifnum;
     /** IP information structure. */
-    yfIPInfo_t     tcpinfo;
+    yfIPInfo_t      ipinfo;
     /** TCP information structure. */
     yfTCPInfo_t     tcpinfo;
     /** Decoded layer 2 information. */

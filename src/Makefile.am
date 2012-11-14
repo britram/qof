@@ -58,13 +58,13 @@ libyaf_la_SOURCES += yafcygwin.c
 endif
 
 libyaf_la_LIBADD = @GLIB_LDADD@ 
-libyaf_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@ @libp0f_LIBS@ @SPREAD_LDFLAGS@ @SPREAD_LIBS@ -version-info @LIBCOMPAT@ -release ${VERSION}
-libyaf_la_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ @libp0f_CFLAGS@ @SPREAD_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
+libyaf_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@-version-info @LIBCOMPAT@ -release ${VERSION}
+libyaf_la_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
 yaf_SOURCES = yaf.c yafstat.c yafdag.c yafcap.c yafout.c yaflush.c yafpcapx.c
 yaf_LDADD   =  libyaf.la @GLIB_LDADD@
-yaf_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ @libp0f_LIBS@ @SPREAD_LDFLAGS@ @SPREAD_LIBS@ -export-dynamic
-yaf_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ @SPREAD_CFLAGS@ @libp0f_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
+yaf_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ -export-dynamic
+yaf_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@  -DYAF_CONF_DIR='"$(sysconfdir)"'
 
 yafscii_SOURCES = yafscii.c
 yafscii_LDADD = libyaf.la @GLIB_LDADD@ 

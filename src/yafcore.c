@@ -164,7 +164,6 @@ static fbInfoElementSpec_t yaf_flow_spec[] = {
     { "protocolIdentifier",                 0, 0 },
     { "flowEndReason",                      0, 0 },
     { "paddingOctets",                      2, YTF_INTERNAL },
-#endif
     /* Round-trip time */
     { "reverseFlowDeltaMilliseconds",       0, YTF_BIF }, // 32-bit
     /*TCP Info would need to go here 4 SiLK & 4b padding*/
@@ -328,7 +327,6 @@ typedef struct yfIpfixFlow_st {
     uint8_t     protocolIdentifier;
     uint8_t     flowEndReason;
     uint8_t     paddingOctets[2];
-#endif
     int32_t     reverseFlowDeltaMilliseconds;
     /* TCP stuff for SiLK */
     uint32_t    tcpSequenceNumber;
