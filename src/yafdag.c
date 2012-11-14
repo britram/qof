@@ -305,7 +305,7 @@ gboolean yfDagMain(
             if (!yfDecodeToPBuf(ctx->dectx,
                                 yfDecodeTimeNTP(rec->ts),
                                 caplen, fpp,
-                                fraginfo, ctx->pbuflen, pbuf))
+                                fraginfo, pbuf))
             {
                 /* No packet available. Skip. */
                 continue;
@@ -314,7 +314,7 @@ gboolean yfDagMain(
             /* Handle fragmentation if necessary */
             if (fraginfo && fraginfo->frag) {
                 if (!yfDefragPBuf(ctx->fragtab, fraginfo,
-                                  ctx->pbuflen, pbuf, fpp, caplen)) {
+                                  pbuf, fpp, caplen)) {
                     /* No complete defragmented packet available. Skip. */
                     continue;
                 }

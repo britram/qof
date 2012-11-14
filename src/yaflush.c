@@ -96,7 +96,7 @@ gboolean yfProcessPBufRing(
         }
 
         /* Add the packet to the flow table */
-        yfFlowPBuf(ctx->flowtab, ctx->pbuflen, pbuf);
+        yfFlowPBuf(ctx->flowtab, pbuf);
     }
 
     /* Flush the flow table */

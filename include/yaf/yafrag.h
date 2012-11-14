@@ -115,7 +115,6 @@ void yfFragTabFree(
  *
  * @param fragtab   fragment table to add fragment to
  * @param fraginfo  fragment information structure filled in by yfDecodeToPBuf()
- * @param pbuflen   size of the packet buffer pbuf
  * @param pbuf      packet buffer. On call, contains decoded fragmented packet
  *                  to add to the fragment table. If this call returns TRUE,
  *                  on return, contains assembled packet.
@@ -129,7 +128,6 @@ void yfFragTabFree(
 gboolean yfDefragPBuf(
     yfFragTab_t         *fragtab,
     yfIPFragInfo_t      *fraginfo,
-    size_t              pbuflen,
     yfPBuf_t            *pbuf,
     const uint8_t       *pkt,
     size_t              hdr_len);

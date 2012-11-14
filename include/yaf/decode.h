@@ -274,14 +274,6 @@ void yfDecodeCtxFree(
  *                 decoded IP headers. MAY be NULL if the caller does not
  *                 require fragment information; in this case, all fragmented
  *                 packets will be dropped.
- * @param pbuflen  Total length of the packet buffer pbuf. Use the YF_PBUFLEN_
- *                 macros to set this value. YF_PUBFLEN_NOFRAG disables
- *                 fragment decode, layer 2 decode, and payload capture.
- *                 YF_PBUFLEN_NOL2INFO disables layer 2 decode and payload
- *                 capture. YF_PBUFLEN_NOPAYLOAD disables payload capture only.
- *                 To enable full decode including payload, use YF_PBUFLEN_BASE
- *                 plus the payload length. The buffer at pbuf MUST be able
- *                 to contain pbuflen bytes.
  * @param pbuf     Packet buffer to decode packet into. Will contain copies of
  *                 all packet data and payload; this buffer is durable.
  * @return TRUE on success (a packet of the required type was decoded and
@@ -296,7 +288,6 @@ gboolean yfDecodeToPBuf(
     size_t                  caplen,
     const uint8_t           *pkt,
     yfIPFragInfo_t          *fraginfo,
-    size_t                  pbuflen,
     yfPBuf_t                *pbuf);
 
 /**

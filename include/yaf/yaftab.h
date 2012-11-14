@@ -223,13 +223,11 @@ void yfGetFlowTabStats(
  * four-way teardown) are met.
  *
  * @param flowtab   flow table to add the packet to
- * @param pbuflen   size of the packet buffer pbuf
  * @param pbuf      packet buffer containing decoded packet to add.
  */
 
 void yfFlowPBuf(
     yfFlowTab_t                 *flowtab,
-    size_t                      pbuflen,
     yfPBuf_t                    *pbuf);
 
 /**

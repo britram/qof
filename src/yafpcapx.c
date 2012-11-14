@@ -178,7 +178,7 @@ gboolean yfPcapxMain(
         if (!yfDecodeToPBuf(ctx->dectx,
                             yfDecodeTimeval((struct timeval *)&descriptor->ts),
                             descriptor->storelen, frame,
-                            fraginfo, ctx->pbuflen, pbuf))
+                            fraginfo, pbuf))
         {
             /* No packet available. Skip. */
             continue;
@@ -186,7 +186,7 @@ gboolean yfPcapxMain(
 
         /* Handle fragmentation if necessary */
         if (fraginfo && fraginfo->frag) {
-            if (!yfDefragPBuf(ctx->fragtab, fraginfo, ctx->pbuflen,
+            if (!yfDefragPBuf(ctx->fragtab, fraginfo,
                               pbuf, frame, descriptor->storelen))
             {
                 /* No complete defragmented packet available. Skip. */

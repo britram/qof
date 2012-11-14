@@ -1336,19 +1336,16 @@ gboolean yfDecodeToPBuf(
     size_t                  caplen,
     const uint8_t           *pkt,
     yfIPFragInfo_t          *fraginfo,
-    size_t                  pbuflen,
     yfPBuf_t                *pbuf)
 {
     uint16_t                type;
     yfFlowKey_t             *key = &(pbuf->key);
     uint16_t                *iplen = &(pbuf->iplen);
     yfTCPInfo_t             *tcpinfo = &(pbuf->tcpinfo);
-/*    yfL2Info_t              *l2info = (pbuflen >= YF_PBUFLEN_NOPAYLOAD) ?
-      &(pbuf->l2info) : NULL;*/
     yfL2Info_t              *l2info = &(pbuf->l2info);
     const uint8_t           *ipTcpHeaderStart = NULL;
     size_t                  capb4l2 = caplen;
-
+    
     /* Zero packet buffer time (mark it not yet valid) */
     pbuf->ptime = 0;
 
@@ -1359,14 +1356,6 @@ gboolean yfDecodeToPBuf(
     pbuf->pcap_offset = ctx->pcap_offset;
     pbuf->pcap_caplist = ctx->pcap_caplist;
     ctx->pcap_offset += (16 + pbuf->pcap_hdr.caplen);
-
-    /* Verify enough bytes are available in the buffer. Die hard for now
-       if not; this is not a valid runtime error. */
-    if (pbuflen < YF_PBUFLEN_NOL2INFO) {
-        g_error("YAF internal error: packet buffer too small (%"
-                SIZE_T_FORMAT", need %"SIZE_T_FORMAT")",
-                (SIZE_T_CAST)pbuflen, (SIZE_T_CAST)YF_PBUFLEN_NOL2INFO);
-    }
 
     /* Unwrap layer 2 headers */
     if (!(pkt = yfDecodeL2(ctx, &caplen, pkt, &type, l2info))) {

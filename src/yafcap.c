@@ -420,53 +420,6 @@ void yfCapDumpStats() {
     }
 }
 
-static pcap_dumper_t *yfCapPcapRotate(
-    yfContext_t        *ctx)
-{
-    pcap_dumper_t      *pcap_ret = NULL;
-    GString            *namebuf = g_string_new("");
-    AirLock            *lock = &(ctx->pcap_lock);
-    GError             *err = NULL;
-    static uint32_t    serial = 0;
-
-    if (ctx->pcap) {
-        pcap_dump_flush(ctx->pcap);
-        pcap_dump_close(ctx->pcap);
-        air_lock_release(lock);
-    }
-
-    ctx->pcap_offset = 24;
-
-    g_string_append_printf(namebuf, "%s/yaf_", ctx->cfg->pcapdir);
-    air_time_g_string_append(namebuf, time(NULL), AIR_TIME_SQUISHED);
-    g_string_append_printf(namebuf, "_%05u.pcap", serial++);
-
-    air_lock_acquire(lock, namebuf->str, &err);
-
-    yfUpdateRollingPcapFile(ctx->flowtab, namebuf);
-
-    pcap_ret = pcap_dump_open(yaf_pcap, namebuf->str);
-
-    if (pcap_ret == NULL) {
-        g_warning("Could not open new rolling pcap file: %s",
-                  pcap_geterr(yaf_pcap));
-        g_warning("Turning off pcap export...");
-        ctx->cfg->pcapdir = NULL;
-    }
-
-    g_string_free(namebuf, TRUE);
-
-    if (ctx->cfg->pcap_timer) {
-        if ( !timer_pcap_file ) {
-            timer_pcap_file = g_timer_new();
-        }
-        g_timer_start(timer_pcap_file);
-    }
-
-    return pcap_ret;
-}
-
-
 /**
  * yfCapHandle
  *
@@ -520,7 +473,7 @@ static void yfCapHandle(
     if (!yfDecodeToPBuf(ctx->dectx,
                         yfDecodeTimeval(&(hdr->ts)),
                         hdr->caplen, pkt,
-                        fraginfo, ctx->pbuflen, pbuf))
+                        fraginfo, pbuf))
     {
         /* Couldn't decode packet; counted in dectx. Skip. */
         return;
@@ -534,13 +487,14 @@ static void yfCapHandle(
     /* Handle fragmentation if necessary */
     if (fraginfo && fraginfo->frag) {
         if (!yfDefragPBuf(ctx->fragtab, fraginfo,
-                          ctx->pbuflen, pbuf, pkt, hdr->caplen))
+                          pbuf, pkt, hdr->caplen))
         {
             /* No complete defragmented packet available. Skip. */
             return;
         }
     }
-
+    
+    // FIXME does something else go here?
 }
 
 /**
@@ -570,25 +524,11 @@ gboolean yfCapMain(
         stimer = g_timer_new();
     }
 
-    if (ctx->cfg->pcapdir) {
-        if (!yfTimeOutFlush(ctx, yaf_pcap_drop, &yaf_stats_out,
-                            yfStatGetTimer(), stimer,
-                            &(ctx->err)))
-        {
-            yaf_quit = TRUE;
-        }
-    }
-
 #ifdef YAF_ENABLE_BIVIO
     if (pcap_zcopy_add_all_interfaces(cs->pcap) == -1) {
         g_warning("Error adding zcopy interfaces %s", pcap_geterr(cs->pcap));
     }
 #endif
-
-    if (ctx->cfg->pcapdir && !ctx->cfg->pcap_per_flow) {
-        yaf_pcap = cs->pcap;
-        ctx->pcap = yfCapPcapRotate(ctx);
-    }
 
     /* process input until we're done */
     while (!yaf_quit) {
@@ -684,15 +624,6 @@ gboolean yfCapMain(
             }
         }
 
-        if (ok && ctx->cfg->pcapdir && !ctx->cfg->pcap_per_flow) {
-            if (!ctx->pcap || (ftell(pcap_dump_file(ctx->pcap)) >
-                               ctx->cfg->max_pcap) || (timer_pcap_file &&
-                               (g_timer_elapsed(timer_pcap_file, NULL) >
-                                ctx->cfg->pcap_timer)))
-            {
-                ctx->pcap = yfCapPcapRotate(ctx);
-            }
-        }
     }
 
     /* Process any excess in packet buffer */

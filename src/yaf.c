@@ -394,9 +394,6 @@ static void yfParseOptions(
     air_option_context_add_group(aoctx, "ipfix", "IPFIX Options:",
                                  THE_LAME_80COL_FORMATTER_STRING"Show help "
                                  "for IPFIX export options", yaf_optent_ipfix);
-    air_option_context_add_group(aoctx, "pcap", "PCAP Options:",
-                                 THE_LAME_80COL_FORMATTER_STRING"Show help "
-                                 "for PCAP Export Options", yaf_optent_pcap);
 
     privc_add_option_group(aoctx);
 
@@ -460,10 +457,6 @@ static void yfParseOptions(
             yaf_liveopen_fn = (yfLiveOpen_fn)yfDagOpenLive;
             yaf_loop_fn = (yfLoop_fn)yfDagMain;
             yaf_close_fn = (yfClose_fn)yfDagClose;
-            if (yaf_config.pcapdir) {
-                g_warning("--pcap not valid for --live dag");
-                yaf_config.pcapdir = NULL;
-            }
 #endif
 #if YAF_ENABLE_NAPATECH
         } else if (strncmp(yaf_config.livetype, "napatech", 8) == 0) {
@@ -471,10 +464,6 @@ static void yfParseOptions(
             yaf_liveopen_fn = (yfLiveOpen_fn)yfPcapxOpenLive;
             yaf_loop_fn = (yfLoop_fn)yfPcapxMain;
             yaf_close_fn = (yfClose_fn)yfPcapxClose;
-            if (yaf_config.pcapdir) {
-                g_warning("--pcap not valid for --live napatech");
-                yaf_config.pcapdir = NULL;
-            }
 #endif
         } else {
             /* unsupported live capture type */
@@ -713,11 +702,8 @@ int main (
         yaf_config.silkmode = TRUE;
     }
 
-    /* Calculate packet buffer size */
-    ctx.pbuflen = YF_PBUFLEN_NOPAYLOAD;
-
     /* Allocate a packet ring. */
-    ctx.pbufring = rgaAlloc(ctx.pbuflen, 128);
+    ctx.pbufring = rgaAlloc(sizeof(yfPBuf_t), 128);
 
     /* Set up decode context */
     ctx.dectx = yfDecodeCtxAlloc(datalink, yaf_reqtype, yaf_opt_gre_mode);

@@ -1015,7 +1015,6 @@ yfAddOutOfSequence(
  */
 void yfFlowPBuf(
     yfFlowTab_t                 *flowtab,
-    size_t                      pbuflen,
     yfPBuf_t                    *pbuf)
 {
     yfFlowKey_t                 *key = &(pbuf->key);

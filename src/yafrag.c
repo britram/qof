@@ -458,7 +458,6 @@ void yfFragTabFree(
 gboolean yfDefragPBuf(
     yfFragTab_t         *fragtab,
     yfIPFragInfo_t      *fraginfo,
-    size_t              pbuflen,
     yfPBuf_t            *pbuf,
     const uint8_t       *pkt,
     size_t              hdrlen)

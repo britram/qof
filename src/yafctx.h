@@ -71,8 +71,6 @@ typedef struct yfConfig_st {
     char            *livetype;
     char            *outspec;
     char            *bpf_expr;
-    char            *pcapdir;
-    gboolean        pcap_per_flow;
     gboolean        lockmode;
     gboolean        ipfixNetTrans;
     gboolean        noerror;
@@ -93,7 +91,7 @@ typedef struct yfConfig_st {
     fbConnSpec_t    connspec;
     } yfConfig_t;
 
-#define YF_CONFIG_INIT {NULL, NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, 0, 0, 300, 0, 600, 5, 0, 0, FB_CONNSPEC_INIT}
+#define YF_CONFIG_INIT {NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, 0, 0, 300, 0, 600, 0, FB_CONNSPEC_INIT}
 
 typedef struct yfContext_st {
     /** Configuration */
@@ -101,7 +99,6 @@ typedef struct yfContext_st {
     /** Packet source */
     void                *pktsrc;
     /** Packet ring buffer */
-    size_t              pbuflen;
     rgaRing_t           *pbufring;
     /** Decoder */
     yfDecodeCtx_t       *dectx;
