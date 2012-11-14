@@ -205,35 +205,28 @@ static void yfFragAdd(
     yfIPFragInfo_t      *fraginfo,
     uint16_t            iplen,
     const uint8_t       *pkt,
-    size_t              caplen,
-    const uint8_t       *pkt_hdr,
     size_t              hdr_len)
 {
     yfFragRec_t         fr;
     ssize_t             frag_payoff = 0;
-    ssize_t             frag_paylen, frag_payover;
     ssize_t             pay_offset;
+
+    /* FIXME figure out what of the stuff here is payload-only */
 
     /* append a fragment record */
     fr.off = fraginfo->offset;
     fr.len = iplen - fraginfo->iphlen;
 
     g_array_append_vals(fn->records, &fr, 1);
+
     /* changed this to accomodate rolling pcap so account for it here */
     pay_offset = fraginfo->iphlen + fn->l2info.l2hlen + fraginfo->l4hlen;
-
-    /* we don't want to include headers in caplen  */
-    if (caplen >= pay_offset) {
-        caplen -= pay_offset;
-    }
 
     /* set first and last flag on the fragment node */
     if (fraginfo->offset == 0) {
         fn->have_first = TRUE;
         /* first one needs to copy l2, l3, l4 (if avail) */
         frag_payoff = hdr_len > YF_FRAG_L4H_MAX?YF_FRAG_L4H_MAX :hdr_len;
-        memcpy(fn->payload, pkt_hdr, frag_payoff);
-        fn->paylen = frag_payoff;
     } else {
         frag_payoff = fraginfo->offset + pay_offset;
     }
@@ -472,12 +465,7 @@ gboolean yfDefragPBuf(
 {
     yfFragNode_t        *fn;
     yfTCPInfo_t         *tcpinfo = &(pbuf->tcpinfo);
-    yfL2Info_t          *l2info = (pbuflen >= YF_PBUFLEN_NOPAYLOAD) ?
-                                    &(pbuf->l2info) : NULL;
-    uint8_t             *payload = (pbuflen >= YF_PBUFLEN_BASE) ?
-                                    pbuf->payload : NULL;
-    size_t              paylen = (pbuflen >= YF_PBUFLEN_BASE) ?
-                                    pbuf->paylen : 0;
+    yfL2Info_t          *l2info =  &(pbuf->l2info);
     size_t              calc_l4;
 
     /* short-circuit unfragmented packets */
@@ -526,8 +514,7 @@ gboolean yfDefragPBuf(
     }
 
     /* add the fragment to the fragment node */
-    yfFragAdd(fragtab, fn, fraginfo, pbuf->iplen, payload, paylen,
-              pkt, hdrlen);
+    yfFragAdd(fragtab, fn, fraginfo, pbuf->iplen, pkt, hdrlen);
     ++(fragtab->stats.stat_frags);
 
     calc_l4 = fn->payoff;
@@ -554,27 +541,11 @@ gboolean yfDefragPBuf(
     fn = fragtab->assembled;
     fragtab->assembled = NULL;
 
-    /* Copy out pointers to stored fragment information */
-    if (pbuflen >= YF_PBUFLEN_BASE && fn->payload) {
-        /* Payload is stored at an offset into the payload buffer */
-        paylen = fn->paylen - fn->payoff;
-        payload = fn->payload + fn->payoff;
-        /* Cap payload length to space available in pbuf */
-        if (paylen > pbuflen - YF_PBUFLEN_BASE) {
-            paylen = pbuflen - YF_PBUFLEN_BASE;
-        }
-        /* Now stuff it in the packet buffer. */
-        pbuf->paylen = paylen;
-        memcpy(pbuf->payload, payload, paylen);
-    }
-
     /* Copy other values from fragment node to packet buffer */
     memcpy(&(pbuf->key), &(fn->key.f), sizeof(yfFlowKey_t));
     pbuf->iplen = fn->iplen;
     memcpy(tcpinfo, &(fn->tcpinfo), sizeof(yfTCPInfo_t));
-    if (l2info) {
-        memcpy(l2info, &(fn->l2info), sizeof(yfL2Info_t));
-    }
+    memcpy(l2info, &(fn->l2info), sizeof(yfL2Info_t));
 
     /* Free the fragment node */
     yfFragNodeFree(fragtab, fn);
