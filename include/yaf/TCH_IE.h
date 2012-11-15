@@ -18,7 +18,7 @@
 
 #define TCH_PEN 35566
      
-static fbInfoElement_t yaf_info_elements[] = {
+static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("deltaTcpOctetCount", TCH_PEN, 1024, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("deltaTcpSequenceCount", TCH_PEN, 1025, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("meanTcpFlightSize", TCH_PEN, 1026, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),

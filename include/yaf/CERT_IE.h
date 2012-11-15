@@ -68,7 +68,7 @@
  * primarily, but may be used within other CERT software as
  * well
  */
-static fbInfoElement_t yaf_info_elements[] = {
+static fbInfoElement_t yaf_cert_info_elements[] = {
     FB_IE_INIT("initialTCPFlags", CERT_PEN, 14, 1, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
     FB_IE_INIT("unionTCPFlags", CERT_PEN, 15, 1, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
     FB_IE_INIT("payload", CERT_PEN, 18, FB_IE_VARLEN, FB_IE_F_REVERSIBLE),
