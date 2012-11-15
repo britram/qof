@@ -19,8 +19,12 @@
 #define TCH_PEN 35566
      
 static fbInfoElement_t yaf_info_elements[] = {
-     FB_IE_INIT("deltaTCPOctetCount", TCH_PEN, 300, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
-     FB_IE_INIT("deltaTCPSequenceCount", TCH_PEN, 301, 1, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("deltaTcpOctetCount", TCH_PEN, 1024, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("deltaTcpSequenceCount", TCH_PEN, 1025, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("meanTcpFlightSize", TCH_PEN, 1026, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("maxTcpFlightSize", TCH_PEN, 1027, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("meanTcpRTTMilliseconds", TCH_PEN, 1028, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("maxTcpRTTMilliseconds", TCH_PEN, 1029, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_NULL
 }
 
