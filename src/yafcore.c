@@ -75,7 +75,7 @@
     WARNING: these need to be adjusted according to changes in the
     general & special dimensions */
 #define YAF_FLOW_BASE_TID      0xB000 /* no general or special definitions */
-#define YAF_FLOW_FULL_TID      0xB800 /* base no internal*/
+#define YAF_FLOW_FULL_TID      0xB800 /* base no internal */
 #define YAF_FLOW_EXT_TID       0xB7FF /* everything except internal */
                                
 #define YAF_OPTIONS_TID        0xD000
@@ -91,20 +91,23 @@
     is set to 0x06. */
 
 /** General dimensions -- these are either present or not */
-#define YTF_BIF         0x0001
-#define YTF_TCP         0x0002
-#define YTF_MAC         0x0004
-#define YTF_PHY         0x0008
+#define YTF_BIF         0x0001  /* Biflow */
+#define YTF_TCP         0x0002  /* TCP and extended TCP */
+#define YTF_MAC         0x0004  /* MAC layer information */
+#define YTF_PHY         0x0008  /* PHY layer information */
 
 /* Special dimensions -- one of each group must be present */
-#define YTF_IP4         0x0010
-#define YTF_IP6         0x0020
-#define YTF_FLE         0x0040
-#define YTF_RLE         0x0080
+#define YTF_IP4         0x0010  /* IPv4 addresses */
+#define YTF_IP6         0x0020  /* IPv6 addresses */
+#define YTF_KEY         0x0040  /* Remainder of primary flow key */
+#define YTF_ANON        0x0080  /* Flow ID; implies ^0x70 */
+#define YTF_FLE         0x0100
+#define YTF_RLE         0x0200
 
-#define YTF_INTERNAL    0x0800
-#define YTF_ALL         0x007F /* this has to be everything _except_ RLE enabled */
-#define YTF_REV         0xFF0F
+#define YTF_INTERNAL    0x0800 /* internal (padding) IEs */
+#define YTF_ALL         0x01FF /* this has to be everything _except_ RLE enabled */
+
+#define YTF_REV         0xFF0F /* FIXME what is this? */
 
 /** If any of the FLE/RLE values are larger than this constant
     then we have to use FLE, otherwise, we choose RLE to
@@ -119,13 +122,9 @@
 
 static uint64_t yaf_start_time = 0;
 
-static fbInfoElementSpec_t yaf_flowid0_spec[] = {
+static fbInfoElementSpec_t yaf_idtime_spec[] = {
     /* FlowID (always 64 bit) */
-    { "flowId",                             0, 0 },
-    FB_IESPEC_NULL
-}
-
-static fbInfoElementSpec_t yaf_mstime_spec[] = {
+    { "flowId",                             0, YTF_ANON },
     /* Millisecond start and end (epoch) (native time) */
     { "flowStartMilliseconds",              0, 0 },
     { "flowEndMilliseconds",                0, 0 },
@@ -143,8 +142,6 @@ static fbInfoElementSpec_t yaf_totalcounter_spec[] = {
     { "reverseOctetTotalCount",             4, YTF_RLE | YTF_BIF },
     { "packetTotalCount",                   4, YTF_RLE },
     { "reversePacketTotalCount",            4, YTF_RLE | YTF_BIF },
-    /* First packet RTT */
-    { "reverseFlowDeltaMilliseconds",       0, YTF_BIF }, // 32-bit
     FB_IESPEC_NULL
 }
 
@@ -159,67 +156,60 @@ static fbInfoElementSpec_t yaf_deltacounter_spec[] = {
     { "reverseOctetDeltaCount",             4, YTF_RLE | YTF_BIF },
     { "packetDeltaCount",                   4, YTF_RLE },
     { "reversePacketDeltaCount",            4, YTF_RLE | YTF_BIF },
+    FB_IESPEC_NULL
+}
+
+static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
+    /* TCP octet counts */
+    { "tcpOctetCount",                      8, YTF_TCP | YTF_FLE },
+    { "reverseTcpOctetCount",               8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "tcpSequenceCount",                   8, YTF_TCP | YTF_FLE },
+    { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
+    /* reduced-length TCP octet counts */
+    { "tcpOctetCount",                      4, YTF_TCP | YTF_RLE },
+    { "reverseTcpOctetCount",               4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
+    { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
+    /* inflight */
+    { "meanTcpFlightSize",                  0, YTF_TCP },
+    { "reverseMeanTcpFlightSize",           0, YTF_TCP | YTF_BIF },
+    { "maxTcpFlightSize",                   0, YTF_TCP },
+    { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF },
     /* First packet RTT */
     { "reverseFlowDeltaMilliseconds",       0, YTF_BIF }, // 32-bit
     FB_IESPEC_NULL
-}
+};
+
 
 static fpInfoElementSpec_t yaf_flowkey_spec[] = {
     /* 5-tuple, flow status, interfaces */
-    { "sourceIPv6Address",                  0, YTF_IP6 },
-    { "destinationIPv6Address",             0, YTF_IP6 },
-    { "sourceIPv4Address",                  0, YTF_IP4 },
-    { "destinationIPv4Address",             0, YTF_IP4 },
-    { "sourceTransportPort",                0, 0 },
-    { "destinationTransportPort",           0, 0 },
-    { "protocolIdentifier",                 0, 0 },
+    { "sourceIPv6Address",                  0, YTF_IP6 | YTF_KEY },
+    { "destinationIPv6Address",             0, YTF_IP6 | YTF_KEY },
+    { "sourceIPv4Address",                  0, YTF_IP4 | YTF_KEY },
+    { "destinationIPv4Address",             0, YTF_IP4 | YTF_KEY },
+    { "sourceTransportPort",                0, YTF_KEY },
+    { "destinationTransportPort",           0, YTF_KEY },
+    { "protocolIdentifier",                 0, YTF_KEY },
     { "flowEndReason",                      0, 0 },
-    { "ingressInterface",                   1, 0 },
-    { "egressInterface",                    1, 0 },
-    FB_IESPEC_NULL
-}
-
-static fpInfoElementSpec_t yaf_flowid1_spec[] = {
-    /* 5-tuple and flow status */
-    { "flowEndReason",                      1, 0 },
-    { "ingressInterface",                   1, 0 },
-    { "egressInterface",                    1, 0 },    
-    { "paddingOctets",                      1, YTF_INTERNAL },
+    { "ingressInterface",                   1, YTF_PHY },
+    { "egressInterface",                    1, YTF_PHY },
     FB_IESPEC_NULL
 }
 
 static fbInfoElementSpec_t yaf_layer24_spec[] = {
+    { "sourceMacAddress",                   0, YTF_MAC },
+    { "destinationMacAddress",              0, YTF_MAC },
+    { "vlanId",                             0, YTF_MAC },
+    { "reverseVlanId",                      0, YTF_MAC | YTF_BIF },
     { "tcpSequenceNumber",                  0, YTF_TCP },
     { "reverseTcpSequenceNumber",           0, YTF_TCP | YTF_BIF },
     { "initialTCPFlags",                    0, YTF_TCP },
-    { "unionTCPFlags",                      0, YTF_TCP },
     { "reverseInitialTCPFlags",             0, YTF_TCP | YTF_BIF },
+    { "unionTCPFlags",                      0, YTF_TCP },
     { "reverseUnionTCPFlags",               0, YTF_TCP | YTF_BIF },
-    { "vlanId",                             0, YTF_MAC },
-    { "reverseVlanId",                      0, YTF_MAC | YTF_BIF },
-    { "sourceMacAddress",                   0, YTF_MAC },
-    { "destinationMacAddress",              0, YTF_MAC },
     FB_IESPEC_NULL
 };
 
-static fbInfoElementSpec_t yaf_tcpext_spec[] = {
-    /* TCP octet counts */
-    { "deltaTcpOctetCount",                 8, YTF_TCP | YTF_FLE },
-    { "deltaTcpSequenceCount",              8, YTF_TCP | YTF_FLE },
-    { "reverseTcpOctetCount",               8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
-    /* reduced-length TCP octet counts */
-    { "deltaTcpOctetCount",                 4, YTF_TCP | YTF_RLE },
-    { "deltaTcpSequenceCount",              4, YTF_TCP | YTF_RLE },
-    { "reverseTcpOctetCount",               4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
-    /* inflight */
-    { "meanTcpFlightSize",                  0, YTF_TCP },
-    { "maxTcpFlightSize",                   0, YTF_TCP },
-    { "reverseMeanTcpFlightSize",           0, YTF_TCP | YTF_BIF },
-    { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF },
-    FB_IESPEC_NULL
-};
 
 #if 0
 static fbInfoElementSpec_t yaf_flow_stats_spec[] = {
@@ -303,6 +293,8 @@ static uint8_t yaf_ip6map_pfx[12] =
 
 /* Full YAF flow record. */
 typedef struct yfIpfixFlow_st {
+    /* Flow ID (anon) */
+    uint64_t    flowId;
     /* Timers and counters */
     uint64_t    flowStartMilliseconds;
     uint64_t    flowEndMilliseconds;
@@ -310,6 +302,16 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseOctetCount;
     uint64_t    packetCount;
     uint64_t    reversePacketCount;
+    /* Extended TCP counters and performance info */
+    uint64_t    tcpOctetCount;
+    uint64_t    reverseTcpOctetCount;
+    uint64_t    tcpSequenceCount;
+    uint64_t    reverseTcpSequenceCount;
+    uint32_t    meanTcpFlightSize;
+    uint32_t    reverseMeanTcpFlightSize;
+    uint32_t    maxTcpFlightSize;
+    uint32_t    reverseMaxTcpFlightSize;
+    /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
     uint8_t     sourceIPv6Address[16];
@@ -323,65 +325,17 @@ typedef struct yfIpfixFlow_st {
     uint8_t     ingressInterface;
     uint8_t     egressInterface;
     /* Layer 2/4 Information */
+    uint8_t     sourceMacAddress[6];
+    uint8_t     destinationMacAddress[6];
+    uint16_t    vlanId;
+    uint16_t    reverseVlanId;
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
     uint8_t     initialTCPFlags;
-    uint8_t     unionTCPFlags;
     uint8_t     reverseInitialTCPFlags;
+    uint8_t     unionTCPFlags;
     uint8_t     reverseUnionTCPFlags;
-    uint16_t    vlanId;
-    uint16_t    reverseVlanId;
-    uint8_t     sourceMacAddress[6];
-    uint8_t     destinationMacAddress[6];
-    /* TCP performance information */
-    uint64_t    deltaTcpOctetCount;
-    uint64_t    deltaTcpSequenceCount;
-    uint64_t    reverseTcpOctetCount;
-    uint64_t    reverseTcpSequenceCount;
-    uint32_t    meanTcpFlightSize;
-    uint32_t    maxTcpFlightSize;
-    uint32_t    reverseMeanTcpFlightSize;
-    uint32_t    reverseMaxTcpFlightSize;
 } yfIpfixFlow_t;
-
-/* Anonymized YAF flow record. */
-typedef struct yfIpfixAnonFlow_st {
-    /* Flow serial number */
-    uint64_t    flowId;
-    /* Timers and counters */
-    uint64_t    flowStartMilliseconds;
-    uint64_t    flowEndMilliseconds;
-    uint64_t    octetCount;
-    uint64_t    reverseOctetCount;
-    uint64_t    packetCount;
-    uint64_t    reversePacketCount;
-    int32_t     reverseFlowDeltaMilliseconds;
-    /* Stub key */
-    uint8_t     flowEndReason;
-    uint8_t     ingressInterface;
-    uint8_t     egressInterface;    
-    uint8_t     pad0;
-    /* Layer 2/4 Information */
-    uint32_t    tcpSequenceNumber;
-    uint32_t    reverseTcpSequenceNumber;
-    uint8_t     initialTCPFlags;
-    uint8_t     unionTCPFlags;
-    uint8_t     reverseInitialTCPFlags;
-    uint8_t     reverseUnionTCPFlags;
-    uint16_t    vlanId;
-    uint16_t    reverseVlanId;
-    uint8_t     sourceMacAddress[6];
-    uint8_t     destinationMacAddress[6];
-    /* TCP performance information */
-    uint64_t    deltaTcpOctetCount;
-    uint64_t    deltaTcpSequenceCount;
-    uint64_t    reverseTcpOctetCount;
-    uint64_t    reverseTcpSequenceCount;
-    uint32_t    meanTcpFlightSize;
-    uint32_t    maxTcpFlightSize;
-    uint32_t    reverseMeanTcpFlightSize;
-    uint32_t    reverseMaxTcpFlightSize;
-} yfIpfixAnonFlow_t;
 
 typedef struct yfIpfixStats_st {
     uint64_t    systemInitTimeMilliseconds;
@@ -402,7 +356,7 @@ typedef struct yfIpfixStats_st {
 
 /* Core library configuration variables */
 static gboolean yaf_core_map_ipv6 = FALSE;
-static gboolean yaf_core_export_as_total = FALSE;
+static gboolean yaf_core_export_total = FALSE;
 static gboolean yaf_core_export_anon = FALSE;
 
 /**
@@ -473,8 +427,6 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,flowEndReason,1);
     RUN_CHECKS(yfIpfixFlow_t,paddingOctets,0);
     RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
-
-    /* TCP stuff for SiLK only! */
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,initialTCPFlags,1);
@@ -558,10 +510,10 @@ void yfWriterExportMappedV6(
     yaf_core_map_ipv6 = map_mode;
 }
 
-void yfWriterExportAsTotals(
+void yfWriterExportTotals(
     gboolean            total_mode)
 {
-    yaf_core_export_as_total = total_mode;
+    yaf_core_export_total = total_mode;
 }
 
 void yfWriterExportAnon(
@@ -623,10 +575,56 @@ static fbInfoModel_t *yfInfoModel()
 /* FIXME work pointer */
 
 /**
- * yfInitExporterSession
+ * yfAllocTemplateFor
  *
  *
  */
+     
+static fbTemplate_t *yfAllocTemplateFor(
+    uint32_t        flags,
+    GError          **err)
+{
+    fbInfoModel_t   *model = yfInfoModel();
+    
+    tmpl = fbTemplateAlloc(model);
+    
+    if (!fbTemplateAppendSpecArray(tmpl, yaf_idtime_spec, flags, err)) {
+        goto err;
+    }
+    
+    if (yaf_core_export_total) {
+        if (!fbTemplateAppendSpecArray(tmpl, yaf_totalcounter_spec, flags, err)) {
+            goto err;
+        }
+    } else {
+        if (!fbTemplateAppendSpecArray(tmpl, yaf_deltacounter_spec, flags, err)) {
+            goto err;
+        }
+    }
+    
+    if (!fbTemplateAppendSpecArray(tmpl, yaf_perfcounter_spec, flags, err)) {
+        goto err;
+    }
+    if (!fbTemplateAppendSpecArray(tmpl, yaf_flowkey_spec, flags, err)) {
+        goto err;
+    }
+    if (!fbTemplateAppendSpecArray(tmpl, yaf_layer24_spec, flags, err)) {
+        goto err;
+    }
+    
+    return tmpl;
+err:    
+    fbTemplateFree(tmpl);
+    return NULL;
+}
+
+/**
+ * yfInitExporterSession
+ *
+ * Initializes base templates 
+ * (others are created on demand by yfSetExportTemplate)
+ */
+
 static fbSession_t *yfInitExporterSession(
     uint32_t        domain,
     GError          **err)
@@ -634,7 +632,7 @@ static fbSession_t *yfInitExporterSession(
     fbInfoModel_t   *model = yfInfoModel();
     fbTemplate_t    *tmpl = NULL;
     fbSession_t     *session = NULL;
-    time_t           cur_time = time(NULL);
+    time_t          cur_time = time(NULL);
 
     yaf_start_time = cur_time * 1000;
 
@@ -643,14 +641,14 @@ static fbSession_t *yfInitExporterSession(
     /* Allocate the session */
     session = fbSessionAlloc(model);
 
-   /* set observation domain */
+    /* set observation domain */
     fbSessionSetDomain(session, domain);
 
-   /* Create the full record template */
+    /* create the (internal) full record template */
     tmpl = fbTemplateAlloc(model);
-    if (!fbTemplateAppendSpecArray(tmpl, yaf_flow_spec, YTF_ALL, err))
-        return NULL;
-
+    
+    if (!(tmpl = yfAllocTemplateFor(YTF_ALL, err)) return NULL;
+    
     /* Add the full record template to the session */
     if (!fbSessionAddTemplate(session, TRUE, YAF_FLOW_FULL_TID, tmpl, err)) {
         return NULL;
@@ -659,28 +657,27 @@ static fbSession_t *yfInitExporterSession(
         return NULL;
     }
 
-    /* Create the Options Template */
-    yaf_tmpl.ipfixStatsTemplate = fbTemplateAlloc(model);
-    if (!fbTemplateAppendSpecArray(yaf_tmpl.ipfixStatsTemplate,
-                                   yaf_stats_option_spec, 0, err))
+    /* Create the Statistics Template */
+    /* FIXME check that the template looks like the structure */
+    tmpl = fbTemplateAlloc(model);
+    if (!fbTemplateAppendSpecArray(tmpl, yaf_stats_option_spec, 0, err))
     {
         return NULL;
     }
 
     /* Scope fields are exporterIPv4Address and exportingProcessID */
-    fbTemplateSetOptionsScope(yaf_tmpl.ipfixStatsTemplate, 2);
-    if (!fbSessionAddTemplate(session, TRUE, YAF_OPTIONS_TID,
-                              yaf_tmpl.ipfixStatsTemplate, err))
+    fbTemplateSetOptionsScope(tmpl, 2);
+    if (!fbSessionAddTemplate(session, TRUE, YAF_OPTIONS_TID, tmpl, err))
+    {
+        return NULL;
+    }
+    if (!fbSessionAddTemplate(session, FALSE, YAF_OPTIONS_TID, tmpl, err))
     {
         return NULL;
     }
 
-    if (!fbSessionAddTemplate(session, FALSE, YAF_OPTIONS_TID,
-                              yaf_tmpl.ipfixStatsTemplate, err))
-    {
-        return NULL;
-    }
-
+    /* all of this is for the 6313 stuff, which we've pulled out */
+#if 0
     /* Flow Stats Template */
     yaf_tmpl.fstatsTemplate = fbTemplateAlloc(model);
     if (!fbTemplateAppendSpecArray(yaf_tmpl.fstatsTemplate,
@@ -743,7 +740,8 @@ static fbSession_t *yfInitExporterSession(
     if (!fbSessionAddTemplate(session, TRUE, YAF_MAC_FLOW_TID, yaf_tmpl.macTemplate, err)) {
         return NULL;
     }
-
+#endif
+    
     /* Done. Return the session. */
     return session;
 }
@@ -889,13 +887,11 @@ static gboolean yfSetExportTemplate(
     /* Okay. We have a missing template. Clear the error and try to load it. */
     g_clear_error(err);
     session = fBufGetSession(fbuf);
-    tmpl = fbTemplateAlloc(yfInfoModel());
-
-    if (!fbTemplateAppendSpecArray(tmpl, yaf_flow_spec,
-                                   (tid & (~YAF_FLOW_BASE_TID)), err))    {
+    
+    if (!(tmpl = yfAllocTemplateFor(tid & (~YAF_FLOW_BASE_TID), err)) {
         return FALSE;
     }
-
+    
     if (!fbSessionAddTemplate(session, FALSE, tid, tmpl, err)) {
         return FALSE;
     }
@@ -904,6 +900,7 @@ static gboolean yfSetExportTemplate(
     return fBufSetExportTemplate(fbuf, tid, err);
 }
 
+#if 0
 /**
  *yfWriteStatsFlow
  *
@@ -988,6 +985,7 @@ gboolean yfWriteStatsFlow(
 
     return TRUE;
 }
+#endif 
 
 /**
  *yfWriteFlow
@@ -1042,7 +1040,6 @@ gboolean yfWriteFlow(
                     "Illegal IP version %u", flow->key.version);
     }
 
-
     /* choose options for basic template */
     wtid = YAF_FLOW_BASE_TID;
 
@@ -1057,23 +1054,23 @@ gboolean yfWriteFlow(
     rec.reverseFlowAttributes = flow->rval.attributes;
     rec.protocolIdentifier = flow->key.proto;
     rec.flowEndReason = flow->reason;
+    rec.octetCount = flow->val.oct;
+    rec.reverseOctetCount = flow->rval.oct;
+    rec.packetCount = flow->val.pkt;
+    rec.reversePacketCount = flow->rval.pkt;
 
-    if (ctx->cfg->deltamode) {
-        rec.octetDeltaCount = flow->val.oct;
-        rec.reverseOctetDeltaCount = flow->rval.oct;
-        rec.packetDeltaCount = flow->val.pkt;
-        rec.reversePacketDeltaCount = flow->rval.pkt;
-        wtid |= YTF_DELTA;
-    } else {
-        rec.octetTotalCount = flow->val.oct;
-        rec.reverseOctetTotalCount = flow->rval.oct;
-        rec.packetTotalCount = flow->val.pkt;
-        rec.reversePacketTotalCount = flow->rval.pkt;
-        wtid |= YTF_TOTAL;
-    }
+    /* TCP counters (FIXME actually export these) */
+    rec.tcpOctetCount = 0;
+    rec.reverseTcpOctetCount = 0;
+    rec.tcpSequenceCount = 0;
+    rec.reverseTcpSequenceCount = 0;
 
-    rec.ingressInterface = ctx->cfg->ingressInt;
-    rec.egressInterface = ctx->cfg->egressInt;
+    /* Interface numbers (FIXME integrate mapping) */
+    rec.ingressInterface = 0;
+    rec.egressInterface = 0;
+    
+    /* Flow ID (FIXME integrate mapping) */
+    rec.flowID = 0;
 
 #if YAF_ENABLE_DAG_SEPARATE_INTERFACES || YAF_ENABLE_NAPATECH_SEPARATE_INTERFACES
     rec.ingressInterface = flow->key.netIf;
@@ -1088,7 +1085,11 @@ gboolean yfWriteFlow(
         rec.egressInterface = flow->val.netIf | 0x100;
     }
 #endif
+    
+    /* Select optional features */
 
+    /* FIXME select anonymization if enabled -- api change? */
+    
     if (rec.reversePacketTotalCount) {
         wtid |= YTF_BIF;
         etid = YTF_BIF;
