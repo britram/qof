@@ -274,7 +274,8 @@ static gboolean ycProcess(
 
     /* presume our buffer is ready and process a flow */
     yx->ibuf_ready = TRUE;
-    if (yfReadFlowExtended(yx->ibuf, &(yx->flow), err)) {
+    if (yfReadFlow(yx->ibuf, &(yx->flow), err)) {
+/*    if (yfReadFlowExtended(yx->ibuf, &(yx->flow), err)) { */
 
         /* Print it for debugging purposes */
         if (yx->pstr) {

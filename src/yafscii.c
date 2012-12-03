@@ -162,7 +162,8 @@ static gboolean ytProcess(
     }
 
     /* read a flow */
-    if ((ok = yfReadFlowExtended(yx->fbuf, &(yx->flow), err))) {
+/*    if ((ok = yfReadFlowExtended(yx->fbuf, &(yx->flow), err))) { */
+    if ((ok = yfReadFlow(yx->fbuf, &(yx->flow), err))) {
         ++yaft_flows;
         if (yaft_tabular) {
             ok = yfPrintDelimited(mio_fp(sink), &(yx->flow), yaft_mac, err);
