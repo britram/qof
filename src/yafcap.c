@@ -613,7 +613,7 @@ gboolean yfCapMain(
 
         if (ok && !ctx->cfg->nostats) {
             if (g_timer_elapsed(stimer, NULL) > ctx->cfg->stats) {
-                if (!yfWriteStatsFlow(ctx, yaf_pcap_drop, yfStatGetTimer(),
+                if (!yfWriteStatsRec(ctx, yaf_pcap_drop, yfStatGetTimer(),
                                       &(ctx->err)))
                 {
                     ok = FALSE;

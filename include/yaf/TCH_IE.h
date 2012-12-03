@@ -6,7 +6,7 @@
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2012 Brian Trammell. All Rights Reserved.
  ** ------------------------------------------------------------------------
- ** Author: Brian Trammell
+ ** Author: Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
  ** QoF is made available under the terms of the GNU Public License (GPL) 
  ** Version 2, June 1991
@@ -26,6 +26,6 @@ static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("meanTcpRTTMilliseconds", TCH_PEN, 1028, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("maxTcpRTTMilliseconds", TCH_PEN, 1029, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_NULL
-}
+};
 
 #endif

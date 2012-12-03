@@ -61,7 +61,6 @@
 #ifndef CERT_IE_H_
 #define CERT_IE_H_
 
-
 /**
  * IPFIX information elements in 6871/CERT_PEN space for YAF
  * these elements are included within the capabilities of YAF

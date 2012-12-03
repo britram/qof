@@ -163,7 +163,7 @@ gboolean yfTimeOutFlush(
             stats_timer = g_timer_new();
         }
         if (g_timer_elapsed(stats_timer, NULL) > ctx->cfg->stats) {
-            if (!yfWriteStatsFlow(ctx, pcap_drop, timer, err)) {
+            if (!yfWriteStatsRec(ctx, pcap_drop, timer, err)) {
                 return FALSE;
             }
             g_timer_start(stats_timer);
@@ -216,7 +216,7 @@ gboolean yfFinalFlush(
             /* Flush flow buffer and close output file on successful exit */
             frv = yfFlowTabFlush(ctx, TRUE, err);
             if (!ctx->cfg->nostats) {
-                srv = yfWriteStatsFlow(ctx, pcap_drop, timer, err);
+                srv = yfWriteStatsRec(ctx, pcap_drop, timer, err);
             }
             yfOutputClose(ctx->fbuf, lock, TRUE);
             if (!frv || !srv) {

@@ -329,7 +329,7 @@ gboolean yfDagMain(
 
         if (!ctx->cfg->nostats) {
             if (g_timer_elapsed(stimer, NULL) > ctx->cfg->stats) {
-                if (!yfWriteStatsFlow(ctx, yaf_dag_drop, yfStatGetTimer(),
+                if (!yfWriteStatsRec(ctx, yaf_dag_drop, yfStatGetTimer(),
                                       &(ctx->err)))
                 {
                     ok = FALSE;

@@ -5,8 +5,10 @@
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2006-2012 Carnegie Mellon University. All Rights Reserved.
+ ** Copyright (C) 2012      Brian Trammell.             All Rights Reserved.
  ** ------------------------------------------------------------------------
  ** Authors: Brian Trammell, Chris Inacio, Emily Ecoff <ecoff@cert.org>
+ ** QoF redesign by Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
  ** @OPENSOURCE_HEADER_START@
  ** Use of the YAF system and related source code is subject to the terms
@@ -129,7 +131,7 @@ static fbInfoElementSpec_t yaf_idtime_spec[] = {
     { "flowStartMilliseconds",              0, 0 },
     { "flowEndMilliseconds",                0, 0 },
     FB_IESPEC_NULL
-}
+};
 
 static fbInfoElementSpec_t yaf_totalcounter_spec[] = {
     /* Counters */
@@ -143,7 +145,7 @@ static fbInfoElementSpec_t yaf_totalcounter_spec[] = {
     { "packetTotalCount",                   4, YTF_RLE },
     { "reversePacketTotalCount",            4, YTF_RLE | YTF_BIF },
     FB_IESPEC_NULL
-}
+};
 
 static fbInfoElementSpec_t yaf_deltacounter_spec[] = {
     /* delta Counters */
@@ -157,7 +159,7 @@ static fbInfoElementSpec_t yaf_deltacounter_spec[] = {
     { "packetDeltaCount",                   4, YTF_RLE },
     { "reversePacketDeltaCount",            4, YTF_RLE | YTF_BIF },
     FB_IESPEC_NULL
-}
+};
 
 static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
     /* TCP octet counts */
@@ -180,8 +182,7 @@ static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
     FB_IESPEC_NULL
 };
 
-
-static fpInfoElementSpec_t yaf_flowkey_spec[] = {
+static fbInfoElementSpec_t yaf_flowkey_spec[] = {
     /* 5-tuple, flow status, interfaces */
     { "sourceIPv6Address",                  0, YTF_IP6 | YTF_KEY },
     { "destinationIPv6Address",             0, YTF_IP6 | YTF_KEY },
@@ -194,7 +195,7 @@ static fpInfoElementSpec_t yaf_flowkey_spec[] = {
     { "ingressInterface",                   1, YTF_PHY },
     { "egressInterface",                    1, YTF_PHY },
     FB_IESPEC_NULL
-}
+};
 
 static fbInfoElementSpec_t yaf_layer24_spec[] = {
     { "sourceMacAddress",                   0, YTF_MAC },
@@ -378,8 +379,6 @@ void yfAlignmentCheck()
     size_t prevOffset = 0;
     size_t prevSize = 0;
 
-    // FIXME need to make this check the current structures
-
 #define DO_SIZE(S_,F_) (SIZE_T_CAST)sizeof(((S_ *)(0))->F_)
 #define EA_STRING(S_,F_) "alignment error in struct " #S_ " for element "   \
                          #F_ " offset %#"SIZE_T_FORMATX" size %"            \
@@ -405,53 +404,44 @@ void yfAlignmentCheck()
                 offsetof(S_,F_)+DO_SIZE(S_,F_));*/                      \
     }
 
+    RUN_CHECKS(yfIpfixFlow_t,flowId,1);
     RUN_CHECKS(yfIpfixFlow_t,flowStartMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,flowEndMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,octetTotalCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseOctetTotalCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,packetTotalCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reversePacketTotalCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,octetDeltaCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseOctetDeltaCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,packetDeltaCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reversePacketDeltaCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,octetCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseOctetCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,packetCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reversePacketCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,tcpOctetCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTcpOctetCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,tcpSequenceCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,meanTcpFlightSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpFlightSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);    
+    RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceTransportPort,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationTransportPort,1);
-    RUN_CHECKS(yfIpfixFlow_t,flowAttributes,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseFlowAttributes,1);
     RUN_CHECKS(yfIpfixFlow_t,protocolIdentifier,1);
     RUN_CHECKS(yfIpfixFlow_t,flowEndReason,1);
-    RUN_CHECKS(yfIpfixFlow_t,paddingOctets,0);
-    RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
+    RUN_CHECKS(yfIpfixFlow_t,ingressInterface,1);
+    RUN_CHECKS(yfIpfixFlow_t,egressInterface,1);
+    RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceMacAddress[6],1);
+    RUN_CHECKS(yfIpfixFlow_t,destinationMacAddress[6],1);
+    RUN_CHECKS(yfIpfixFlow_t,vlanId,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseVlanId,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,initialTCPFlags,1);
-    RUN_CHECKS(yfIpfixFlow_t,unionTCPFlags,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseInitialTCPFlags,1);
+    RUN_CHECKS(yfIpfixFlow_t,unionTCPFlags,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseUnionTCPFlags,1);
 
-    RUN_CHECKS(yfIpfixFlow_t,vlanId,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseVlanId,1);
-
-    RUN_CHECKS(yfIpfixFlow_t,ingressInterface,1);
-    RUN_CHECKS(yfIpfixFlow_t,egressInterface,1);
-
-    prevOffset = 0;
-    prevSize = 0;
-
-    RUN_CHECKS(yfIpfixExtFlow_t,f,1);
-    RUN_CHECKS(yfIpfixExtFlow_t,flowStartMicroseconds,1);
-    RUN_CHECKS(yfIpfixExtFlow_t,flowEndMicroseconds,1);
-    RUN_CHECKS(yfIpfixExtFlow_t,flowStartSeconds,1);
-    RUN_CHECKS(yfIpfixExtFlow_t,flowEndSeconds,1);
-    RUN_CHECKS(yfIpfixExtFlow_t,flowDurationMicroseconds,1);
-    RUN_CHECKS(yfIpfixExtFlow_t,flowDurationMilliseconds,1);
-    RUN_CHECKS(yfIpfixExtFlow_t,flowStartDeltaMicroseconds,1);
-    RUN_CHECKS(yfIpfixExtFlow_t,flowEndDeltaMicroseconds,1);
     prevOffset = 0;
     prevSize = 0;
 
@@ -473,6 +463,7 @@ void yfAlignmentCheck()
     prevOffset = 0;
     prevSize = 0;
 
+#if 0
     RUN_CHECKS(yfFlowStatsRecord_t, dataByteCount, 1);
     RUN_CHECKS(yfFlowStatsRecord_t, averageInterarrivalTime, 1);
     RUN_CHECKS(yfFlowStatsRecord_t, standardDeviationInterarrivalTime, 1);
@@ -496,6 +487,7 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfFlowStatsRecord_t, reverseMaxPacketSize, 1);
     RUN_CHECKS(yfFlowStatsRecord_t, reverseStandardDeviationPayloadLength,1);
     RUN_CHECKS(yfFlowStatsRecord_t, padding2, 0);
+#endif
 
 #undef DO_SIZE
 #undef EA_STRING
@@ -572,8 +564,6 @@ static fbInfoModel_t *yfInfoModel()
     return yaf_model;
 }
 
-/* FIXME work pointer */
-
 /**
  * yfAllocTemplateFor
  *
@@ -585,8 +575,7 @@ static fbTemplate_t *yfAllocTemplateFor(
     GError          **err)
 {
     fbInfoModel_t   *model = yfInfoModel();
-    
-    tmpl = fbTemplateAlloc(model);
+    fbTemplate_t    *tmpl = fbTemplateAlloc(model);
     
     if (!fbTemplateAppendSpecArray(tmpl, yaf_idtime_spec, flags, err)) {
         goto err;
@@ -613,8 +602,9 @@ static fbTemplate_t *yfAllocTemplateFor(
     }
     
     return tmpl;
+
 err:    
-    fbTemplateFree(tmpl);
+    if (tmpl) fbTemplateFreeUnused(tmpl);
     return NULL;
 }
 
@@ -647,7 +637,7 @@ static fbSession_t *yfInitExporterSession(
     /* create the (internal) full record template */
     tmpl = fbTemplateAlloc(model);
     
-    if (!(tmpl = yfAllocTemplateFor(YTF_ALL, err)) return NULL;
+    if (!(tmpl = yfAllocTemplateFor(YTF_ALL, err))) return NULL;
     
     /* Add the full record template to the session */
     if (!fbSessionAddTemplate(session, TRUE, YAF_FLOW_FULL_TID, tmpl, err)) {
@@ -888,7 +878,7 @@ static gboolean yfSetExportTemplate(
     g_clear_error(err);
     session = fBufGetSession(fbuf);
     
-    if (!(tmpl = yfAllocTemplateFor(tid & (~YAF_FLOW_BASE_TID), err)) {
+    if (!(tmpl = yfAllocTemplateFor(tid & (~YAF_FLOW_BASE_TID), err))) {
         return FALSE;
     }
     
@@ -900,13 +890,12 @@ static gboolean yfSetExportTemplate(
     return fBufSetExportTemplate(fbuf, tid, err);
 }
 
-#if 0
 /**
- *yfWriteStatsFlow
+ *yfWriteStatsRec
  *
  *
  */
-gboolean yfWriteStatsFlow(
+gboolean yfWriteStatsRec(
     void *yfContext,
     uint32_t pcap_drop,
     GTimer *timer,
@@ -985,7 +974,36 @@ gboolean yfWriteStatsFlow(
 
     return TRUE;
 }
-#endif 
+ 
+
+static void yfTemplateRefresh(
+    yfContext_t         *ctx,
+    yfFlow_t            *flow)
+{
+    GError              *err = NULL;
+    gboolean            ok = TRUE;
+
+    /* this only matters for UDP */
+    if ((ctx->cfg->connspec.transport == FB_UDP) ||
+        (ctx->cfg->connspec.transport == FB_DTLS_UDP)) 
+    {
+        /* 3 is the factor from RFC 5101 as a recommendation of how often
+           between timeouts to resend FIXME follow 5101bis */
+        if ((flow->etime > ctx->lastUdpTempTime) &&
+            ((flow->etime - ctx->lastUdpTempTime) >
+             ((ctx->cfg->yaf_udp_template_timeout)/3)))
+        {
+            /* resend templates */
+            ok = fbSessionExportTemplates(fBufGetSession(ctx->fbuf), &err);
+            ctx->lastUdpTempTime = flow->etime;
+            if (!ok) {
+                g_warning("Failed to renew UDP Templates: %s",(err)->message);
+                g_clear_error(&err);
+            }
+        }
+    }
+}
+ 
 
 /**
  *yfWriteFlow
@@ -1002,76 +1020,100 @@ gboolean yfWriteFlow(
     uint16_t            wtid;
     uint16_t            etid = 0; /* extra templates */
 
-    yfTcpFlow_t         *tcprec = NULL;
-    yfMacFlow_t         *macrec = NULL;
-    int                 tmplcount = 0;
-    gboolean            ok;
-    int32_t             temp = 0;
-    int                 loop, count;
     yfContext_t         *ctx = (yfContext_t *)yfContext;
     fBuf_t              *fbuf = ctx->fbuf;
-    yfFlowStatsRecord_t *statsflow = NULL;
+
+    /* Refresh UDP templates if we should */
+    yfTemplateRefresh(ctx, flow);
 
     /* copy time */
     rec.flowStartMilliseconds = flow->stime;
     rec.flowEndMilliseconds = flow->etime;
     rec.reverseFlowDeltaMilliseconds = flow->rdtime;
 
-    /* copy addresses */
-    if (yaf_core_map_ipv6 && (flow->key.version == 4)) {
-        memcpy(rec.sourceIPv6Address, yaf_ip6map_pfx,
-               sizeof(yaf_ip6map_pfx));
-        *(uint32_t *)(&(rec.sourceIPv6Address[sizeof(yaf_ip6map_pfx)])) =
-            g_htonl(flow->key.addr.v4.sip);
-        memcpy(rec.destinationIPv6Address, yaf_ip6map_pfx,
-               sizeof(yaf_ip6map_pfx));
-        *(uint32_t *)(&(rec.destinationIPv6Address[sizeof(yaf_ip6map_pfx)])) =
-            g_htonl(flow->key.addr.v4.dip);
-    } else if (flow->key.version == 4) {
-        rec.sourceIPv4Address = flow->key.addr.v4.sip;
-        rec.destinationIPv4Address = flow->key.addr.v4.dip;
-    } else if (flow->key.version == 6) {
-        memcpy(rec.sourceIPv6Address, flow->key.addr.v6.sip,
-               sizeof(rec.sourceIPv6Address));
-        memcpy(rec.destinationIPv6Address, flow->key.addr.v6.dip,
-               sizeof(rec.destinationIPv6Address));
-    } else {
-        g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
-                    "Illegal IP version %u", flow->key.version);
-    }
-
     /* choose options for basic template */
     wtid = YAF_FLOW_BASE_TID;
 
-    rec.vlanId = flow->key.vlanId;
-    /* right? */
-    rec.reverseVlanId = flow->key.vlanId;
-
-    /* copy key and counters */
-    rec.sourceTransportPort = flow->key.sp;
-    rec.destinationTransportPort = flow->key.dp;
-    rec.flowAttributes = flow->val.attributes;
-    rec.reverseFlowAttributes = flow->rval.attributes;
-    rec.protocolIdentifier = flow->key.proto;
+    /* fill in fields that are always present FIXME check these */
     rec.flowEndReason = flow->reason;
     rec.octetCount = flow->val.oct;
     rec.reverseOctetCount = flow->rval.oct;
     rec.packetCount = flow->val.pkt;
     rec.reversePacketCount = flow->rval.pkt;
 
-    /* TCP counters (FIXME actually export these) */
-    rec.tcpOctetCount = 0;
-    rec.reverseTcpOctetCount = 0;
-    rec.tcpSequenceCount = 0;
-    rec.reverseTcpSequenceCount = 0;
-
-    /* Interface numbers (FIXME integrate mapping) */
-    rec.ingressInterface = 0;
-    rec.egressInterface = 0;
+    /* Select optional features based on flow properties and export mode */
     
-    /* Flow ID (FIXME integrate mapping) */
-    rec.flowID = 0;
+    /* Flow key selection */
+    if (yaf_core_export_anon) {
+        rec.flowId = 0; /* FIXME assign a flow ID */
+        /* enable ID export */
+        wtid |= YTF_ANON;
+    } else {
+        /* enable key export */
+        wtid |= YTF_KEY;
 
+        /* copy ports and protocol */
+        rec.sourceTransportPort = flow->key.sp;
+        rec.destinationTransportPort = flow->key.dp;
+        rec.protocolIdentifier = flow->key.proto;
+            
+        /* copy addresses */
+        if (yaf_core_map_ipv6 && (flow->key.version == 4)) {
+            memcpy(rec.sourceIPv6Address, yaf_ip6map_pfx,
+                   sizeof(yaf_ip6map_pfx));
+            *(uint32_t *)(&(rec.sourceIPv6Address[sizeof(yaf_ip6map_pfx)])) =
+                g_htonl(flow->key.addr.v4.sip);
+            memcpy(rec.destinationIPv6Address, yaf_ip6map_pfx,
+                   sizeof(yaf_ip6map_pfx));
+            *(uint32_t *)(&(rec.destinationIPv6Address[sizeof(yaf_ip6map_pfx)])) =
+                g_htonl(flow->key.addr.v4.dip);
+            wtid |= YTF_IP6;
+        } else if (flow->key.version == 4) {
+            rec.sourceIPv4Address = flow->key.addr.v4.sip;
+            rec.destinationIPv4Address = flow->key.addr.v4.dip;
+            wtid |= YTF_IP4;
+        } else if (flow->key.version == 6) {
+            memcpy(rec.sourceIPv6Address, flow->key.addr.v6.sip,
+                   sizeof(rec.sourceIPv6Address));
+            memcpy(rec.destinationIPv6Address, flow->key.addr.v6.dip,
+                   sizeof(rec.destinationIPv6Address));
+            wtid |= YTF_IP6;
+        } else {
+            g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                        "Illegal IP version %u", flow->key.version);
+        }
+        
+    }
+    
+    /* TCP flow; copy TCP data and enable export */
+    if (flow->key.proto == YF_PROTO_TCP) {
+        wtid |= YTF_TCP;
+        // FIXME actually get these counters from somewhere
+        rec.tcpOctetCount = 0;
+        rec.reverseTcpOctetCount = 0;
+        rec.tcpSequenceCount = 0;
+        rec.reverseTcpSequenceCount = 0;
+        rec.tcpSequenceNumber = flow->val.isn;
+        rec.reverseTcpSequenceNumber = flow->rval.isn;
+        rec.initialTCPFlags = flow->val.iflags;
+        rec.reverseInitialTCPFlags = flow->rval.iflags;
+        rec.unionTCPFlags = flow->val.uflags;
+        rec.reverseUnionTCPFlags = flow->rval.uflags;
+    }
+    
+    /* MAC layer information */
+    if (ctx->cfg->macmode) {
+        wtid |= YTF_MAC;
+        memcpy(rec.sourceMacAddress, flow->sourceMacAddr,
+               ETHERNET_MAC_ADDR_LENGTH);
+        memcpy(rec.destinationMacAddress, flow->destinationMacAddr,
+               ETHERNET_MAC_ADDR_LENGTH);
+        rec.vlanId = flow->key.vlanId;
+        /* always assign forward MAC -- FIXME why export this? */
+        rec.reverseVlanId = flow->key.vlanId; 
+    }
+    
+    /* Interfaces. FIXME add support for interface mapping here */
 #if YAF_ENABLE_DAG_SEPARATE_INTERFACES || YAF_ENABLE_NAPATECH_SEPARATE_INTERFACES
     rec.ingressInterface = flow->key.netIf;
     rec.egressInterface  = flow->key.netIf | 0x100;
@@ -1079,71 +1121,52 @@ gboolean yfWriteFlow(
 
 #if YAF_ENABLE_BIVIO
     rec.ingressInterface = flow->val.netIf;
-    if (rec.reversePacketTotalCount) {
+    if (rec.reversePacketCount) {
         rec.egressInterface = flow->rval.netIf;
     } else {
         rec.egressInterface = flow->val.netIf | 0x100;
     }
 #endif
-    
-    /* Select optional features */
 
-    /* FIXME select anonymization if enabled -- api change? */
+    if (rec.ingressInterface || rec.egressInterface) {
+        wtid |= YTF_PHY;    
+    }
+
+    /* Set flags based on exported record properties */
     
-    if (rec.reversePacketTotalCount) {
+    /* Set biflow flag */
+    if (rec.reversePacketCount) {
         wtid |= YTF_BIF;
         etid = YTF_BIF;
     }
-
-    if (rec.protocolIdentifier == YF_PROTO_TCP) {
-        rec.tcpSequenceNumber = flow->val.isn;
-        rec.reverseTcpSequenceNumber = flow->rval.isn;
-        rec.initialTCPFlags = flow->val.iflags;
-        rec.reverseInitialTCPFlags = flow->rval.iflags;
-        rec.unionTCPFlags = flow->val.uflags;
-        rec.reverseUnionTCPFlags = flow->rval.uflags;
-        wtid |= YTF_TCP;
-    }
-
-    if (rec.octetTotalCount < YAF_RLEMAX &&
-        rec.reverseOctetTotalCount < YAF_RLEMAX &&
-        rec.packetTotalCount < YAF_RLEMAX &&
-        rec.reversePacketTotalCount < YAF_RLEMAX) {
+    
+    /* Set RLE flag */
+    if (rec.octetCount < YAF_RLEMAX &&
+        rec.reverseOctetCount < YAF_RLEMAX &&
+        rec.packetCount < YAF_RLEMAX &&
+        rec.reversePacketCount < YAF_RLEMAX) {
         wtid |= YTF_RLE;
     } else {
         wtid |= YTF_FLE;
     }
 
-    if (yaf_core_map_ipv6 || (flow->key.version == 6)) {
-        wtid |= YTF_IP6;
-    } else {
-        wtid |= YTF_IP4;
-    }
-
-    if (rec.ingressInterface || rec.egressInterface) {
-        wtid |= YTF_DAGIF;
-    }
-
-#if YAF_ENABLE_DAG_SEPARATE_INTERFACES
-    if (ctx->cfg->dagInterface) {
-        wtid |= YTF_DAGIF;
-    }
-#endif
-
-#if YAF_ENABLE_BIVIO
-    wtid |= YTF_DAGIF
-#endif
-
-#if YAF_ENABLE_NAPATECH_SEPARATE_INTERFACES
-    if (ctx->cfg->pcapxInterface) {
-        wtid |= YTF_DAGIF;
-    }
-#endif
+    /* Select template and export */
 
     if (!yfSetExportTemplate(fbuf, wtid, err)) {
         return FALSE;
     }
 
+    if (!fBufAppend(fbuf, (uint8_t *)&rec, sizeof(rec), err)) {
+        return FALSE;
+    }
+
+    /* IF UDP - Check to see if we need to re-export templates */
+    /* We do not advise in using UDP (nicer than saying you're stupid) */
+ 
+    /* Now append the record to the buffer */
+
+    /* more 6313 stuff to throw out */
+#if 0
     if (ctx->cfg->macmode) {
         tmplcount++;
     }
@@ -1156,20 +1179,11 @@ gboolean yfWriteFlow(
             tmplcount++;
         }
     }
+#endif
 
 
-    /* Add MAC Addresses */
-    if (ctx->cfg->macmode) {
-        stml = FBSTMLNEXT(&(rec.subTemplateMultiList), stml);
-        macrec = (yfMacFlow_t *)FBSTMLINIT(stml, YAF_MAC_FLOW_TID,
-                                           yaf_tmpl.macTemplate);
-        memcpy(macrec->sourceMacAddress, flow->sourceMacAddr,
-               ETHERNET_MAC_ADDR_LENGTH);
-        memcpy(macrec->destinationMacAddress, flow->destinationMacAddr,
-               ETHERNET_MAC_ADDR_LENGTH);
-        tmplcount--;
-    }
-
+/* Flow statistics FIXME rework this into the main flow record if necessary */
+#if 0
     if (ctx->cfg->statsmode && (flow->val.stats.payoct ||
                                 flow->rval.stats.payoct ||
                                 (flow->val.stats.aitime > flow->val.pkt) ||
@@ -1250,34 +1264,8 @@ gboolean yfWriteFlow(
         }
         tmplcount--;
     }
-
-    /* IF UDP - Check to see if we need to re-export templates */
-    /* We do not advise in using UDP (nicer than saying you're stupid) */
-    if ((ctx->cfg->connspec.transport == FB_UDP) ||
-        (ctx->cfg->connspec.transport == FB_DTLS_UDP))
-    {
-        /* 3 is the factor from RFC 5101 as a recommendation of how often
-           between timeouts to resend */
-        if ((flow->etime > ctx->lastUdpTempTime) &&
-            ((flow->etime - ctx->lastUdpTempTime) >
-             ((ctx->cfg->yaf_udp_template_timeout)/3)))
-        {
-            /* resend templates */
-            ok = fbSessionExportTemplates(fBufGetSession(ctx->fbuf), err);
-            ctx->lastUdpTempTime = flow->etime;
-            if (!ok) {
-                g_warning("Failed to renew UDP Templates: %s",
-                          (*err)->message);
-                g_clear_error(err);
-            }
-        }
-    }
-
-    /* Now append the record to the buffer */
-    if (!fBufAppend(fbuf, (uint8_t *)&rec, sizeof(rec), err)) {
-        return FALSE;
-    }
-
+#endif
+    
     return TRUE;
 }
 
@@ -1303,6 +1291,7 @@ gboolean yfWriterClose(
     return ok;
 }
 
+#if 0
 /**
  * yfTemplateCallback
  *
@@ -1335,6 +1324,7 @@ static void yfTemplateCallback(
     }
 
 }
+#endif
 
 /**
  *yfInitCollectorSession
@@ -1353,13 +1343,13 @@ static fbSession_t *yfInitCollectorSession(
     session = fbSessionAlloc(model);
 
     /* Add the full record template */
-    tmpl = fbTemplateAlloc(model);
-
-    if (!fbTemplateAppendSpecArray(tmpl, yaf_flow_spec, YTF_ALL, err))
-        return NULL;
+    if (!(tmpl = yfAllocTemplateFor(YTF_ALL, err))) return NULL;
+    
     if (!fbSessionAddTemplate(session, TRUE, YAF_FLOW_FULL_TID, tmpl, err))
         return NULL;
 
+    /* throw away some more 6313 */
+#if 0
     yaf_tmpl.tcpTemplate = fbTemplateAlloc(model);
     if (!fbTemplateAppendSpecArray(yaf_tmpl.tcpTemplate, yaf_tcp_spec,
                                    0xffffffff, err))
@@ -1383,7 +1373,10 @@ static fbSession_t *yfInitCollectorSession(
     {
         return NULL;
     }
+#endif
 
+    /* extended record template disabled -- no gauntlet of time for now */
+#if 0
     /* Add the extended record template */
     tmpl = fbTemplateAlloc(model);
     if (!fbTemplateAppendSpecArray(tmpl, yaf_flow_spec, YTF_ALL, err))
@@ -1392,12 +1385,15 @@ static fbSession_t *yfInitCollectorSession(
         return NULL;
     if (!fbSessionAddTemplate(session, TRUE, YAF_FLOW_EXT_TID, tmpl, err))
         return NULL;
+#endif
 
-    /* Done. Return the session. */
-
+    /* think this is more 6313ism */
+#if 0
     /** Add the template callback so we don't try to decode DPI */
     fbSessionAddTemplateCallback(session, yfTemplateCallback);
+#endif
 
+    /* Done. Return the session. */
     return session;
 }
 
@@ -1462,6 +1458,9 @@ fbListener_t *yfListenerForSpec(
  * read an IPFIX record in, with respect to fields YAF cares about
  *
  */
+     
+/* FIXME review all this when we rewrite yafscii to support tcp hackery */
+
 gboolean yfReadFlow(
     fBuf_t          *fbuf,
     yfFlow_t        *flow,
@@ -1470,9 +1469,7 @@ gboolean yfReadFlow(
     yfIpfixFlow_t       rec;
     size_t              len;
 
-    yfTcpFlow_t         *tcprec = NULL;
     fbTemplate_t        *next_tmpl = NULL;
-    yfMacFlow_t         *macrec = NULL;
 
     len = sizeof(yfIpfixFlow_t);
 
@@ -1522,15 +1519,15 @@ gboolean yfReadFlow(
     flow->key.sp = rec.sourceTransportPort;
     flow->key.dp = rec.destinationTransportPort;
     flow->key.proto = rec.protocolIdentifier;
-    flow->val.oct = rec.octetTotalCount;
-    flow->val.pkt = rec.packetTotalCount;
+    flow->val.oct = rec.octetCount;
+    flow->val.pkt = rec.packetCount;
     if (flow->val.oct == 0 && flow->val.pkt == 0) {
-        flow->val.oct = rec.octetDeltaCount;
-        flow->val.pkt = rec.packetDeltaCount;
+        flow->val.oct = rec.octetCount;
+        flow->val.pkt = rec.packetCount;
     }
     flow->key.vlanId = rec.vlanId;
-    flow->rval.oct = rec.reverseOctetTotalCount;
-    flow->rval.pkt = rec.reversePacketTotalCount;
+    flow->rval.oct = rec.reverseOctetCount;
+    flow->rval.pkt = rec.reversePacketCount;
     flow->reason = rec.flowEndReason;
 
     flow->val.isn = rec.tcpSequenceNumber;
@@ -1566,6 +1563,9 @@ static uint64_t yfNTPDecode(
 }
 
 
+/* this is basically for interop testing. drop for now, 
+   since we don't have an extflow anymore... */
+#if 0
 /**
  *yfReadFlowExtended
  *
@@ -1710,6 +1710,7 @@ gboolean yfReadFlowExtended(
 
     return TRUE;
 }
+#endif 
 
 /**
  *yfPrintFlags

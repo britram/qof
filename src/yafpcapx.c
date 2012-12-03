@@ -202,7 +202,7 @@ gboolean yfPcapxMain(
 
         if (!ctx->cfg->nostats) {
             if (g_timer_elapsed(stimer, NULL) > ctx->cfg->stats) {
-                if (!yfWriteStatsFlow(ctx, (uint32_t)yaf_pcapx_dropped,
+                if (!yfWriteStatsRec(ctx, (uint32_t)yaf_pcapx_dropped,
                                       yfStatGetTimer(), &(ctx->err)))
                 {
                     ok = FALSE;

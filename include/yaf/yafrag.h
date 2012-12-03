@@ -144,7 +144,7 @@ void yfFragDumpStats(
     uint64_t            packetTotal);
 
 /**
- * Get Frag Stats to yfWriteStatsFlow for Stats Export
+ * Get Frag Stats to yfWriteStatsRec for Stats Export
  *
  * @param fragtab pointer to fragmentation table
  * @param dropped number of expired fragments

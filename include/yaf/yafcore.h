@@ -419,7 +419,7 @@ fBuf_t *yfWriterForSpec(
  * @return          TRUE on success, FALSE otherwise.
  *
  */
-gboolean yfWriteStatsFlow(
+gboolean yfWriteStatsRec(
     void *yfContext,
     uint32_t pcap_drop,
     GTimer *timer,
