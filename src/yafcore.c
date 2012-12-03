@@ -124,9 +124,14 @@
 
 static uint64_t yaf_start_time = 0;
 
-static fbInfoElementSpec_t yaf_idtime_spec[] = {
+static fbInfoElementSpec_t yaf_addrtime_spec[] = {
     /* FlowID (always 64 bit) */
     { "flowId",                             0, YTF_ANON },
+    /* Addresses */
+    { "sourceIPv6Address",                  0, YTF_IP6 | YTF_KEY },
+    { "destinationIPv6Address",             0, YTF_IP6 | YTF_KEY },
+    { "sourceIPv4Address",                  0, YTF_IP4 | YTF_KEY },
+    { "destinationIPv4Address",             0, YTF_IP4 | YTF_KEY },
     /* Millisecond start and end (epoch) (native time) */
     { "flowStartMilliseconds",              0, 0 },
     { "flowEndMilliseconds",                0, 0 },
@@ -183,11 +188,7 @@ static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
 };
 
 static fbInfoElementSpec_t yaf_flowkey_spec[] = {
-    /* 5-tuple, flow status, interfaces */
-    { "sourceIPv6Address",                  0, YTF_IP6 | YTF_KEY },
-    { "destinationIPv6Address",             0, YTF_IP6 | YTF_KEY },
-    { "sourceIPv4Address",                  0, YTF_IP4 | YTF_KEY },
-    { "destinationIPv4Address",             0, YTF_IP4 | YTF_KEY },
+    /* port, protocol, flow status, interfaces */
     { "sourceTransportPort",                0, YTF_KEY },
     { "destinationTransportPort",           0, YTF_KEY },
     { "protocolIdentifier",                 0, YTF_KEY },
@@ -296,6 +297,11 @@ static uint8_t yaf_ip6map_pfx[12] =
 typedef struct yfIpfixFlow_st {
     /* Flow ID (anon) */
     uint64_t    flowId;
+    /* Addresses */
+    uint32_t    sourceIPv4Address;
+    uint32_t    destinationIPv4Address;
+    uint8_t     sourceIPv6Address[16];
+    uint8_t     destinationIPv6Address[16];
     /* Timers and counters */
     uint64_t    flowStartMilliseconds;
     uint64_t    flowEndMilliseconds;
@@ -315,10 +321,6 @@ typedef struct yfIpfixFlow_st {
     /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
-    uint8_t     sourceIPv6Address[16];
-    uint8_t     destinationIPv6Address[16];
-    uint32_t    sourceIPv4Address;
-    uint32_t    destinationIPv4Address;
     uint16_t    sourceTransportPort;
     uint16_t    destinationTransportPort;
     uint8_t     protocolIdentifier;
@@ -385,16 +387,17 @@ void yfAlignmentCheck()
                          SIZE_T_FORMAT" (pad %"SIZE_T_FORMAT")",            \
                          (SIZE_T_CAST)offsetof(S_,F_), DO_SIZE(S_,F_),      \
                          (SIZE_T_CAST)(offsetof(S_,F_) % DO_SIZE(S_,F_))
-#define EG_STRING(S_,F_) "gap error in struct " #S_ " for element " #F_     \
-                         " offset %#"SIZE_T_FORMATX" size %"SIZE_T_FORMAT,  \
-                         (SIZE_T_CAST)offsetof(S_,F_),                      \
-                         DO_SIZE(S_,F_)
+#define EG_STRING(S_,F_,GS_) "gap error in struct " #S_ " for element " #F_  \
+                         " offset %#"SIZE_T_FORMATX" size %"SIZE_T_FORMAT    \
+                         " gap %lu",                               \
+                         (SIZE_T_CAST)offsetof(S_,F_),                       \
+                         DO_SIZE(S_,F_), GS_
 #define RUN_CHECKS(S_,F_,A_) {                                          \
         if (((offsetof(S_,F_) % DO_SIZE(S_,F_)) != 0) && A_) {          \
             g_error(EA_STRING(S_,F_));                                  \
         }                                                               \
         if (offsetof(S_,F_) != (prevOffset+prevSize)) {                 \
-            g_error(EG_STRING(S_,F_));                                  \
+            g_error(EG_STRING(S_,F_,offsetof(S_,F_)-(prevOffset+prevSize))); \
             return;                                                     \
         }                                                               \
         prevOffset = offsetof(S_,F_);                                   \
@@ -405,6 +408,10 @@ void yfAlignmentCheck()
     }
 
     RUN_CHECKS(yfIpfixFlow_t,flowId,1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
+    RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,1);
+    RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,1);
     RUN_CHECKS(yfIpfixFlow_t,flowStartMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,flowEndMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,octetCount,1);
@@ -420,19 +427,14 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);    
     RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceTransportPort,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationTransportPort,1);
     RUN_CHECKS(yfIpfixFlow_t,protocolIdentifier,1);
     RUN_CHECKS(yfIpfixFlow_t,flowEndReason,1);
     RUN_CHECKS(yfIpfixFlow_t,ingressInterface,1);
     RUN_CHECKS(yfIpfixFlow_t,egressInterface,1);
-    RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceMacAddress[6],1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationMacAddress[6],1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceMacAddress,1);
+    RUN_CHECKS(yfIpfixFlow_t,destinationMacAddress,1);
     RUN_CHECKS(yfIpfixFlow_t,vlanId,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseVlanId,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
@@ -577,7 +579,7 @@ static fbTemplate_t *yfAllocTemplateFor(
     fbInfoModel_t   *model = yfInfoModel();
     fbTemplate_t    *tmpl = fbTemplateAlloc(model);
     
-    if (!fbTemplateAppendSpecArray(tmpl, yaf_idtime_spec, flags, err)) {
+    if (!fbTemplateAppendSpecArray(tmpl, yaf_addrtime_spec, flags, err)) {
         goto err;
     }
     
