@@ -128,10 +128,10 @@ static fbInfoElementSpec_t yaf_addrtime_spec[] = {
     /* FlowID (always 64 bit) */
     { "flowId",                             0, YTF_ANON },
     /* Addresses */
-    { "sourceIPv6Address",                  0, YTF_IP6 | YTF_KEY },
-    { "destinationIPv6Address",             0, YTF_IP6 | YTF_KEY },
     { "sourceIPv4Address",                  0, YTF_IP4 | YTF_KEY },
     { "destinationIPv4Address",             0, YTF_IP4 | YTF_KEY },
+    { "sourceIPv6Address",                  0, YTF_IP6 | YTF_KEY },
+    { "destinationIPv6Address",             0, YTF_IP6 | YTF_KEY },
     /* Millisecond start and end (epoch) (native time) */
     { "flowStartMilliseconds",              0, 0 },
     { "flowEndMilliseconds",                0, 0 },
@@ -1084,7 +1084,6 @@ gboolean yfWriteFlow(
             g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
                         "Illegal IP version %u", flow->key.version);
         }
-        
     }
     
     /* TCP flow; copy TCP data and enable export */
@@ -1111,7 +1110,7 @@ gboolean yfWriteFlow(
         memcpy(rec.destinationMacAddress, flow->destinationMacAddr,
                ETHERNET_MAC_ADDR_LENGTH);
         rec.vlanId = flow->key.vlanId;
-        /* always assign forward MAC -- FIXME why export this? */
+        /* always assign forward 802.1q -- FIXME why export this? */
         rec.reverseVlanId = flow->key.vlanId; 
     }
     
