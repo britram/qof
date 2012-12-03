@@ -370,11 +370,6 @@ static gboolean yaf_core_export_anon = FALSE;
  * doesn't currently, (can't really do it in C,) so we do it at
  * run time
  *
- *
- * @param err a Glib error structure pointer initialized with an
- *        empty error on input, if an alignment error is detected
- *        then a new error will be put into the pointer.
- *
  */
 void yfAlignmentCheck()
 {
