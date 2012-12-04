@@ -168,13 +168,13 @@ static fbInfoElementSpec_t yaf_deltacounter_spec[] = {
 
 static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
     /* TCP octet counts */
-    { "tcpOctetCount",                      8, YTF_TCP | YTF_FLE },
-    { "reverseTcpOctetCount",               8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "initiatorOctets",                    8, YTF_TCP | YTF_FLE },
+    { "responderOctets",                    8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSequenceCount",                   8, YTF_TCP | YTF_FLE },
     { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
     /* reduced-length TCP octet counts */
-    { "tcpOctetCount",                      4, YTF_TCP | YTF_RLE },
-    { "reverseTcpOctetCount",               4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "initiatorOctets",                    4, YTF_TCP | YTF_RLE },
+    { "responderOctets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     /* inflight */
@@ -310,8 +310,8 @@ typedef struct yfIpfixFlow_st {
     uint64_t    packetCount;
     uint64_t    reversePacketCount;
     /* Extended TCP counters and performance info */
-    uint64_t    tcpOctetCount;
-    uint64_t    reverseTcpOctetCount;
+    uint64_t    initiatorOctets;
+    uint64_t    responderOctets;
     uint64_t    tcpSequenceCount;
     uint64_t    reverseTcpSequenceCount;
     uint32_t    meanTcpFlightSize;
@@ -413,8 +413,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseOctetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,packetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reversePacketCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,tcpOctetCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTcpOctetCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,initiatorOctets,1);
+    RUN_CHECKS(yfIpfixFlow_t,responderOctets,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,meanTcpFlightSize,1);
@@ -1085,8 +1085,8 @@ gboolean yfWriteFlow(
     if (flow->key.proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
         // FIXME actually get these counters from somewhere
-        rec.tcpOctetCount = 0;
-        rec.reverseTcpOctetCount = 0;
+        rec.initiatorOctets = 0;
+        rec.responderOctets = 0;
         rec.tcpSequenceCount = 0;
         rec.reverseTcpSequenceCount = 0;
         rec.tcpSequenceNumber = flow->val.isn;
