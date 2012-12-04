@@ -235,6 +235,7 @@ typedef struct yfFlowKey_st {
     }                   addr;
 } yfFlowKey_t;
 
+// FIXME move the ones of these we want into the flow record itself? iaarray, payoct... what else?
 /**
  * yaf flow statistics
  */
