@@ -760,6 +760,8 @@ static void yfFlowPktTCP(
 
 }
 
+/* maybe bring this back, but for now move stuff directly into the values... */
+#if 0
 static void
 yfFlowStatistics(
     yfFlowNode_t            *fn,
@@ -803,6 +805,7 @@ yfFlowStatistics(
     }
 
 }
+#endif 
 
 #if 0
 static void
@@ -1076,7 +1079,6 @@ void yfFlowPBuf(
     if (fn->f.key.proto == YF_PROTO_TCP) {
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
         yfFlowPktTCP(flowtab, fn, val, tcpinfo, NULL, 0);
-
     } 
 
     if (val->pkt == 0) {
@@ -1106,6 +1108,7 @@ void yfFlowPBuf(
 #endif
 
     /* Count packets and octets */
+    val->appoct = datalen;
     val->oct += pbuf->iplen;
     val->pkt += 1;
 
@@ -1113,9 +1116,11 @@ void yfFlowPBuf(
     fn->f.etime = pbuf->ptime;
 
     /* Update stats */
-    if (flowtab->stats_mode) {
-        yfFlowStatistics(fn, val, pbuf->ptime, datalen);
-    }
+    // FIXME removed for now, moving all stats down into the values
+    // first up, appoct
+    // if (flowtab->stats_mode) {
+    //     yfFlowStatistics(fn, val, pbuf->ptime, datalen);
+    // }
 
     /* close flow, or move it to head of queue */
     if ((fn->state & YAF_STATE_FIN) == YAF_STATE_FIN ||

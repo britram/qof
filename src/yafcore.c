@@ -177,7 +177,7 @@ static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
     { "responderOctets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
-    /* inflight */
+    // /* inflight */
     { "meanTcpFlightSize",                  0, YTF_TCP },
     { "reverseMeanTcpFlightSize",           0, YTF_TCP | YTF_BIF },
     { "maxTcpFlightSize",                   0, YTF_TCP },
@@ -1084,11 +1084,15 @@ gboolean yfWriteFlow(
     /* TCP flow; copy TCP data and enable export */
     if (flow->key.proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
+        rec.initiatorOctets = flow->val.appoct;
+        rec.responderOctets = flow->rval.appoct;
         // FIXME actually get these counters from somewhere
-        rec.initiatorOctets = 0;
-        rec.responderOctets = 0;
         rec.tcpSequenceCount = 0;
         rec.reverseTcpSequenceCount = 0;
+        rec.meanTcpFlightSize = 0;
+        rec.reverseMeanTcpFlightSize = 0;
+        rec.maxTcpFlightSize = 0;
+        rec.reverseMaxTcpFlightSize = 0;
         rec.tcpSequenceNumber = flow->val.isn;
         rec.reverseTcpSequenceNumber = flow->rval.isn;
         rec.initialTCPFlags = flow->val.iflags;

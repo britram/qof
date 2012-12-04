@@ -269,7 +269,9 @@ typedef struct yfFlowStats_st {
  * two of these are used to build a biflow.
  */
 typedef struct yfFlowVal_st {
-    /** Octet count */
+    /** Application-layer octet count */
+    uint64_t    appoct;
+    /** IP-layer octet count */
     uint64_t    oct;
     /** Packet count */
     uint64_t    pkt;
