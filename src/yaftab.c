@@ -721,6 +721,17 @@ static void yfFlowPktTCP(
     uint16_t                    headerLen)
 {
 
+    /* FIXME - better handling of sequence numbers. What we need:
+       maxsn -- maximum sequence number sent 
+             use for: retransmit detect (per Mellia)
+             wraparound detect
+             also need lsn/fsn...
+       wrapct -- wraparound counter 
+             (problem: how to not multicount retransmits near wrap?)
+             (thought: store this as a sequence number space counter
+              instead of as a wraparound counter -- 64 bits, subtract isn 
+              each time? work out this algorithm on paper) */
+
     /*Update flags in flow record - may need to upload iflags if out of order*/
     if (tcpinfo->seq > val->isn) {
         /* Union flags */
@@ -1079,6 +1090,8 @@ void yfFlowPBuf(
     if (fn->f.key.proto == YF_PROTO_TCP) {
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
         yfFlowPktTCP(flowtab, fn, val, tcpinfo, NULL, 0);
+        
+        /* FIXME do tcp biflow stuff here -- needs rval? */
     } 
 
     if (val->pkt == 0) {
@@ -1108,7 +1121,7 @@ void yfFlowPBuf(
 #endif
 
     /* Count packets and octets */
-    val->appoct = datalen;
+    val->appoct += datalen;
     val->oct += pbuf->iplen;
     val->pkt += 1;
 
