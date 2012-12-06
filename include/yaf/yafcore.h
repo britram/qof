@@ -197,6 +197,13 @@ labeling is enabled */
 #define YAF_MAX_PKT_BOUNDARY    25
 /** Maximum length of PCAP output file - 5MB */
 #define YAF_PCAP_MAX            5000000
+
+
+/** Constant - 2^31 (for sequence number calculations) */
+#define k2e31 0x80000000U
+/** Constant - 2^32 (for sequence number calculations) */
+#define k2e32 0x100000000ULL
+
 /**
  * A YAF flow key.
  * Contains a flow's five-tuple; used at runtime in the flow table.
@@ -275,12 +282,14 @@ typedef struct yfFlowVal_st {
     uint64_t    oct;
     /** Packet count */
     uint64_t    pkt;
+    /** Retransmit count */
+    uint64_t    rtx;
     /** Initial TCP sequence number */
     uint32_t    isn;
-    /** First Packet Size - to determine whether to turn on fixed size flag*/
-    uint16_t    first_pkt_size;
-    /** flowAttributes */
-    uint16_t    attributes;
+    /** Final TCP sequence number */
+    uint32_t    fsn;
+    /** Sequence number wraparound count */
+    uint32_t    wrapct;
     /** Initial TCP flags */
     uint8_t     iflags;
     /** Union of remaining TCP flags */

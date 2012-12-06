@@ -167,21 +167,25 @@ static fbInfoElementSpec_t yaf_deltacounter_spec[] = {
 };
 
 static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
-    /* TCP octet counts */
+    /* TCP octet and segment counts */
     { "initiatorOctets",                    8, YTF_TCP | YTF_FLE },
     { "responderOctets",                    8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSequenceCount",                   8, YTF_TCP | YTF_FLE },
     { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
-    /* reduced-length TCP octet counts */
+    { "tcpRetranmitCount",                  8, YTF_TCP | YTF_FLE },
+    { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },    
+    /* reduced-length TCP octet and segment counts */
     { "initiatorOctets",                    4, YTF_TCP | YTF_RLE },
     { "responderOctets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpRetranmitCount",                  4, YTF_TCP | YTF_FLE },
+    { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_FLE | YTF_BIF },
     // /* inflight */
-    { "meanTcpFlightSize",                  0, YTF_TCP },
-    { "reverseMeanTcpFlightSize",           0, YTF_TCP | YTF_BIF },
-    { "maxTcpFlightSize",                   0, YTF_TCP },
-    { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF },
+//    { "meanTcpFlightSize",                  0, YTF_TCP },
+//    { "reverseMeanTcpFlightSize",           0, YTF_TCP | YTF_BIF },
+//    { "maxTcpFlightSize",                   0, YTF_TCP },
+//    { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF },
     /* First packet RTT */
     { "reverseFlowDeltaMilliseconds",       0, YTF_BIF }, // 32-bit
     FB_IESPEC_NULL
@@ -314,10 +318,12 @@ typedef struct yfIpfixFlow_st {
     uint64_t    responderOctets;
     uint64_t    tcpSequenceCount;
     uint64_t    reverseTcpSequenceCount;
-    uint32_t    meanTcpFlightSize;
-    uint32_t    reverseMeanTcpFlightSize;
-    uint32_t    maxTcpFlightSize;
-    uint32_t    reverseMaxTcpFlightSize;
+    uint64_t    tcpRetransmitCount;
+    uint64_t    reverseTcpRetransmitCount;
+//    uint32_t    meanTcpFlightSize;
+//    uint32_t    reverseMeanTcpFlightSize;
+//    uint32_t    maxTcpFlightSize;
+//    uint32_t    reverseMaxTcpFlightSize;
     /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
@@ -417,10 +423,12 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,responderOctets,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,meanTcpFlightSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpFlightSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);    
+    RUN_CHECKS(yfIpfixFlow_t,tcpRetransmitCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTcpRetransmitCount,1);
+//    RUN_CHECKS(yfIpfixFlow_t,meanTcpFlightSize,1);
+//    RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpFlightSize,1);
+//    RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
+//    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);    
     RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceTransportPort,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationTransportPort,1);
@@ -1086,13 +1094,10 @@ gboolean yfWriteFlow(
         wtid |= YTF_TCP;
         rec.initiatorOctets = flow->val.appoct;
         rec.responderOctets = flow->rval.appoct;
-        // FIXME actually get these counters from somewhere
-        rec.tcpSequenceCount = 0;
-        rec.reverseTcpSequenceCount = 0;
-        rec.meanTcpFlightSize = 0;
-        rec.reverseMeanTcpFlightSize = 0;
-        rec.maxTcpFlightSize = 0;
-        rec.reverseMaxTcpFlightSize = 0;
+        rec.tcpSequenceCount = k2e32 * flow->val.wrapct + (flow->val.fsn - flow->val.isn);
+        rec.reverseTcpSequenceCount = k2e32 * flow->rval.wrapct + (flow->rval.fsn - flow->rval.isn);
+        rec.tcpRetransmitCount = flow->val.rtx;
+        rec.reverseTcpRetransmitCount = flow->rval.rtx;
         rec.tcpSequenceNumber = flow->val.isn;
         rec.reverseTcpSequenceNumber = flow->rval.isn;
         rec.initialTCPFlags = flow->val.iflags;

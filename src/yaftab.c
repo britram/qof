@@ -712,6 +712,7 @@ static yfFlowNode_t *yfFlowGetNode(
  * @param headerLen length of headerVal
  *
  */
+
 static void yfFlowPktTCP(
     yfFlowTab_t                 *flowtab,
     yfFlowNode_t                *fn,
@@ -721,32 +722,37 @@ static void yfFlowPktTCP(
     uint16_t                    headerLen)
 {
 
-    /* FIXME - better handling of sequence numbers. What we need:
-       maxsn -- maximum sequence number sent 
-             use for: retransmit detect (per Mellia)
-             wraparound detect
-             also need lsn/fsn...
-       wrapct -- wraparound counter 
-             (problem: how to not multicount retransmits near wrap?)
-             (thought: store this as a sequence number space counter
-              instead of as a wraparound counter -- 64 bits, subtract isn 
-              each time? work out this algorithm on paper) */
-
-    /*Update flags in flow record - may need to upload iflags if out of order*/
-    if (tcpinfo->seq > val->isn) {
+    /* handle flags and sequence number */
+    if (val->pkt) {
         /* Union flags */
         val->uflags |= tcpinfo->flags;
-    } else {
-        if (tcpinfo->seq <= val->isn) {
-          /*if packets out of order - don't lose other flags - add to uflags*/
-            val->uflags |= val->iflags;
+         
+        /* not the first packet; handle final sequence number and rtx count */
+        if (tcpinfo->seq > val->fsn) {
+            if (tcpinfo->seq - val->fsn > k2e31) {
+                /* retransmission after wrap */
+                val->rtx += 1;
+            } else {
+                /* normal advance */
+                val->fsn = tcpinfo->seq;
+            }
+        } else {
+            if (val->fsn - tcpinfo->seq > k2e31) {
+                /* sequence number wrap */
+                val->wrapct += 1;
+                val->fsn = tcpinfo->seq;
+            } else {
+                /* simple retransmission */
+                val->rtx += 1;
+            }
         }
+    } else {
         /* Initial flags */
         val->iflags = tcpinfo->flags;
-        /* Initial sequence number */
-        val->isn = tcpinfo->seq;
+        /* Initialize sequence number tracking */
+        val->fsn = val->isn = tcpinfo->seq;
     }
-
+    
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {
         if (tcpinfo->flags & YF_TF_FIN)
