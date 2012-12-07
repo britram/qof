@@ -1038,7 +1038,8 @@ void yfFlowPBuf(
     yfPBuf_t                    *pbuf)
 {
     yfFlowKey_t                 *key = &(pbuf->key);
-    yfFlowKey_t                 rkey;
+    // unused variable -- delete?
+    //    yfFlowKey_t                 rkey;
     yfFlowVal_t                 *val = NULL;
     yfFlowNode_t                *fn = NULL;
     yfTCPInfo_t                 *tcpinfo = &(pbuf->tcpinfo);
@@ -1110,16 +1111,16 @@ void yfFlowPBuf(
                        ETHERNET_MAC_ADDR_LENGTH);
             }
         }
-        val->first_pkt_size = pbuf->iplen;
+//        val->first_pkt_size = pbuf->iplen;
     } else {
         /* compare packet sizes */
-        if ( pbuf->iplen == val->first_pkt_size ) {
-            if (val->pkt == 1) {
-                val->attributes = YAF_SAME_SIZE;
-            }
-        } else {
-            val->attributes = 0;
-        }
+//        if ( pbuf->iplen == val->first_pkt_size ) {
+//            if (val->pkt == 1) {
+//                val->attributes = YAF_SAME_SIZE;
+//            }
+//        } else {
+//            val->attributes = 0;
+//        }
     }
 
 #if YAF_ENABLE_BIVIO
