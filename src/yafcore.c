@@ -172,14 +172,14 @@ static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
     { "responderOctets",                    8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSequenceCount",                   8, YTF_TCP | YTF_FLE },
     { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "tcpRetranmitCount",                  8, YTF_TCP | YTF_FLE },
+    { "tcpRetransmitCount",                  8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },    
     /* reduced-length TCP octet and segment counts */
     { "initiatorOctets",                    4, YTF_TCP | YTF_RLE },
     { "responderOctets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpRetranmitCount",                  4, YTF_TCP | YTF_FLE },
+    { "tcpRetransmitCount",                  4, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_FLE | YTF_BIF },
     // /* inflight */
 //    { "meanTcpFlightSize",                  0, YTF_TCP },
