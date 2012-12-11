@@ -1095,9 +1095,9 @@ gboolean yfWriteFlow(
         rec.initiatorOctets = flow->val.appoct;
         rec.responderOctets = flow->rval.appoct;
         rec.tcpSequenceCount = k2e32 * flow->val.wrapct + (flow->val.fsn - flow->val.isn);
-        if (flow->val.uflags & YF_TF_FIN) rec.tcpSequenceCount -= 1;
+        if (flow->val.oct && flow->val.uflags & YF_TF_FIN) rec.tcpSequenceCount -= 1;
         rec.reverseTcpSequenceCount = k2e32 * flow->rval.wrapct + (flow->rval.fsn - flow->rval.isn);
-        if (flow->rval.uflags & YF_TF_FIN) rec.reverseTcpSequenceCount -= 1;
+        if (flow->val.oct && flow->rval.uflags & YF_TF_FIN) rec.reverseTcpSequenceCount -= 1;
         rec.tcpRetransmitCount = flow->val.rtx;
         rec.reverseTcpRetransmitCount = flow->rval.rtx;
         rec.tcpSequenceNumber = flow->val.isn;
