@@ -69,6 +69,7 @@
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
 #include "yafctx.h"
+#include "decode.h"
 
 #ifndef YFDEBUG_FLOWTABLE
 #define YFDEBUG_FLOWTABLE 0
@@ -705,8 +706,6 @@ static yfFlowNode_t *yfFlowGetNode(
  * @param flowtab pointer to the flow table
  * @param fn pointer to the node for the relevent flow in the flow table
  * @param val
- * @param pkt pointer to the packet payload
- * @param caplen length of the capture (length of pkt)
  * @param tcpinfo pointer to the parsed tcp information
  * @param headerVal pointer to the full packet information, including IP & TCP
  * @param headerLen length of headerVal
