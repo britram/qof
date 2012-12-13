@@ -208,7 +208,6 @@ static void yfFragAdd(
     size_t              hdr_len)
 {
     yfFragRec_t         fr;
-    ssize_t             frag_payoff = 0;
     ssize_t             pay_offset;
 
     /* FIXME figure out what of the stuff here is payload-only */
@@ -225,12 +224,8 @@ static void yfFragAdd(
     /* set first and last flag on the fragment node */
     if (fraginfo->offset == 0) {
         fn->have_first = TRUE;
-        /* first one needs to copy l2, l3, l4 (if avail) */
-        frag_payoff = hdr_len > YF_FRAG_L4H_MAX?YF_FRAG_L4H_MAX :hdr_len;
-    } else {
-        frag_payoff = fraginfo->offset + pay_offset;
     }
-
+    
     if (!fraginfo->more) {
         fn->have_last = TRUE;
     }

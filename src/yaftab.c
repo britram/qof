@@ -5,11 +5,11 @@
  ** YAF Active Flow Table
  **
  ** ------------------------------------------------------------------------
- ** Copyright (C) 2006-2012 Carnegie Mellon University.
- ** All Rights Reserved.
- **
+ ** Copyright (C) 2006-2012 Carnegie Mellon University. All Rights Reserved.
+ ** Copyright (C) 2012      Brian Trammell.             All Rights Reserved.
  ** ------------------------------------------------------------------------
  ** Authors: Brian Trammell, Chris Inacio
+ ** QoF redesign by Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
  ** @OPENSOURCE_HEADER_START@
  ** Use of the YAF system and related source code is subject to the terms
@@ -697,6 +697,38 @@ static yfFlowNode_t *yfFlowGetNode(
     return fn;
 }
 
+static void yfHalfBiflowTCP(
+    yfFlowTab_t                 *flowtab,
+    yfFlowNode_t                *fn,
+    yfFlowVal_t                 *val,
+    yfFlowVal_t                 *rval)
+{
+    /* inflight high-water mark */
+    // FIXME does not handle wraparound
+    
+    if ((val->fsn - rval->lack) > val->maxflight) {
+        val->maxflight = val->fsn - rval->lack;
+    }
+}
+
+
+/**
+ * yfBiflowTCP
+ *
+ * matches forward and reverse values produced by yfFlowPacketTCP()
+ * to calculate biflow-dependent values
+ */
+
+static void yfBiflowTCP(
+    yfFlowTab_t                 *flowtab,
+    yfFlowNode_t                *fn)
+{
+    if (fn->f.val.pkt && fn->f.rval.pkt) {
+        yfHalfBiflowTCP(flowtab, fn, &fn->f.val, &fn->f.rval);
+        yfHalfBiflowTCP(flowtab, fn, &fn->f.rval, &fn->f.val);
+    }
+}
+
 /**
  * yfFlowPktTCP
  *
@@ -707,8 +739,6 @@ static yfFlowNode_t *yfFlowGetNode(
  * @param fn pointer to the node for the relevent flow in the flow table
  * @param val
  * @param tcpinfo pointer to the parsed tcp information
- * @param headerVal pointer to the full packet information, including IP & TCP
- * @param headerLen length of headerVal
  *
  */
 
@@ -716,9 +746,7 @@ static void yfFlowPktTCP(
     yfFlowTab_t                 *flowtab,
     yfFlowNode_t                *fn,
     yfFlowVal_t                 *val,
-    yfTCPInfo_t                 *tcpinfo,
-    uint8_t                     *headerVal,
-    uint16_t                    headerLen)
+    yfTCPInfo_t                 *tcpinfo)
 {
 
     /* handle flags and sequence number */
@@ -750,6 +778,13 @@ static void yfFlowPktTCP(
         val->iflags = tcpinfo->flags;
         /* Initialize sequence number tracking */
         val->fsn = val->isn = tcpinfo->seq;
+    }
+    
+    /* handle ack */ // FIXME make this handle SACK too once we decode SACK
+    if (tcpinfo->flags & YF_TF_ACK) {
+        if (tcpinfo->ack > val->lack || val->lack - tcpinfo->ack > k2e31) {
+            val->lack = tcpinfo->ack;
+        }
     }
     
     /* Update flow state for FIN flag */
@@ -917,7 +952,7 @@ yfAddOutOfSequence(
     /* Do payload and TCP stuff */
     if (fn->f.key.proto == YF_PROTO_TCP) {
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
-        yfFlowPktTCP(flowtab, fn, val, payload, paylen, tcpinfo, NULL, 0);
+        yfFlowPktTCP(flowtab, fn, val, payload, paylen, tcpinfo);
 
     }
 
@@ -1095,9 +1130,10 @@ void yfFlowPBuf(
     /* Do payload and TCP stuff */
     if (fn->f.key.proto == YF_PROTO_TCP) {
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
-        yfFlowPktTCP(flowtab, fn, val, tcpinfo, NULL, 0);
+        yfFlowPktTCP(flowtab, fn, val, tcpinfo);
         
         /* FIXME do tcp biflow stuff here -- needs rval? */
+        yfBiflowTCP(flowtab, fn);
     } 
 
     if (val->pkt == 0) {

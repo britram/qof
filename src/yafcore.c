@@ -181,11 +181,11 @@ static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
-    // /* inflight */
+    /* inflight */
+    { "maxTcpFlightSize",                   0, YTF_TCP | YTF_BIF },
+    { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF },
 //    { "meanTcpFlightSize",                  0, YTF_TCP },
 //    { "reverseMeanTcpFlightSize",           0, YTF_TCP | YTF_BIF },
-//    { "maxTcpFlightSize",                   0, YTF_TCP },
-//    { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF },
     /* First packet RTT */
     { "reverseFlowDeltaMilliseconds",       0, YTF_BIF }, // 32-bit
     FB_IESPEC_NULL
@@ -320,10 +320,10 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSequenceCount;
     uint64_t    tcpRetransmitCount;
     uint64_t    reverseTcpRetransmitCount;
+    uint32_t    maxTcpFlightSize;
+    uint32_t    reverseMaxTcpFlightSize;
 //    uint32_t    meanTcpFlightSize;
 //    uint32_t    reverseMeanTcpFlightSize;
-//    uint32_t    maxTcpFlightSize;
-//    uint32_t    reverseMaxTcpFlightSize;
     /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
@@ -425,10 +425,10 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpRetransmitCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpRetransmitCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);
 //    RUN_CHECKS(yfIpfixFlow_t,meanTcpFlightSize,1);
 //    RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpFlightSize,1);
-//    RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
-//    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);    
     RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceTransportPort,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationTransportPort,1);
@@ -436,8 +436,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,flowEndReason,1);
     RUN_CHECKS(yfIpfixFlow_t,ingressInterface,1);
     RUN_CHECKS(yfIpfixFlow_t,egressInterface,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceMacAddress,1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationMacAddress,1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceMacAddress,0); // 6-byte arrays do not need to be aligned.
+    RUN_CHECKS(yfIpfixFlow_t,destinationMacAddress,0); // 6-byte arrays do not need to be aligned.
     RUN_CHECKS(yfIpfixFlow_t,vlanId,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseVlanId,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
@@ -1106,6 +1106,8 @@ gboolean yfWriteFlow(
         rec.reverseInitialTCPFlags = flow->rval.iflags;
         rec.unionTCPFlags = flow->val.uflags;
         rec.reverseUnionTCPFlags = flow->rval.uflags;
+        rec.maxTcpFlightSize = flow->val.maxflight;
+        rec.reverseMaxTcpFlightSize = flow->rval.maxflight;
     }
     
     /* MAC layer information */
