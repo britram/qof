@@ -293,7 +293,7 @@ typedef struct yfFlowVal_st {
     /** Last acknowledgement number */
     uint32_t    lack;
     /** maximum inflight octets */
-    uint32_t    maxflight;
+    uint32_t     maxflight;
     /** Initial TCP flags */
     uint8_t     iflags;
     /** Union of remaining TCP flags */

@@ -705,8 +705,11 @@ static void yfHalfBiflowTCP(
 {
     /* inflight high-water mark */
     // FIXME does not handle wraparound
-    
-    if ((val->fsn - rval->lack) > val->maxflight) {
+    // FIXME also doesn't handle a valid ACK value of 0
+    if (rval->lack &&
+        (val->fsn > rval->lack) &&  // FIXME understand why this is necessary
+        ((val->fsn - rval->lack) > val->maxflight))
+    {
         val->maxflight = val->fsn - rval->lack;
     }
 }
@@ -782,7 +785,7 @@ static void yfFlowPktTCP(
     
     /* handle ack */ // FIXME make this handle SACK too once we decode SACK
     if (tcpinfo->flags & YF_TF_ACK) {
-        if (tcpinfo->ack > val->lack || val->lack - tcpinfo->ack > k2e31) {
+        if ((tcpinfo->ack > val->lack) || ((val->lack - tcpinfo->ack) > k2e31)) {
             val->lack = tcpinfo->ack;
         }
     }
@@ -1124,7 +1127,7 @@ void yfFlowPBuf(
 
     /* Calculate reverse RTT */
     if (val->pkt == 0 && val == &(fn->f.rval)) {
-        fn->f.rdtime = pbuf->ptime - fn->f.stime;
+        fn->f.rdtime = (uint32_t)(pbuf->ptime - fn->f.stime);
     }
 
     /* Do payload and TCP stuff */
@@ -1132,7 +1135,7 @@ void yfFlowPBuf(
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
         yfFlowPktTCP(flowtab, fn, val, tcpinfo);
         
-        /* FIXME do tcp biflow stuff here -- needs rval? */
+        /* Calculate things that need two sides of a TCP flow */
         yfBiflowTCP(flowtab, fn);
     } 
 

@@ -20,16 +20,11 @@
 		F519224A1672388F00514165 /* yafrag.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922341672388F00514165 /* yafrag.c */; };
 		F519224C1672388F00514165 /* yafstat.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922371672388F00514165 /* yafstat.c */; };
 		F519224D1672388F00514165 /* yaftab.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922391672388F00514165 /* yaftab.c */; };
-		F51922601672389900514165 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = F51922501672389900514165 /* Makefile */; };
-		F5192304167238A400514165 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = F519226A167238A400514165 /* Makefile */; };
-		F5192305167238A400514165 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = F5192286167238A400514165 /* Makefile */; };
-		F5192306167238A400514165 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = F519228D167238A400514165 /* Makefile */; };
 		F519231E167238A400514165 /* airlock.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922C5167238A400514165 /* airlock.c */; };
 		F519231F167238A400514165 /* airopt.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922C6167238A400514165 /* airopt.c */; };
 		F5192320167238A400514165 /* airutil.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922C7167238A400514165 /* airutil.c */; };
 		F5192321167238A400514165 /* daeconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922C8167238A400514165 /* daeconfig.c */; };
 		F5192336167238A400514165 /* logconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922F1167238A400514165 /* logconfig.c */; };
-		F5192337167238A400514165 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = F51922F2167238A400514165 /* Makefile */; };
 		F5192338167238A400514165 /* mio.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922F5167238A400514165 /* mio.c */; };
 		F5192339167238A400514165 /* mio_common_net.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922F6167238A400514165 /* mio_common_net.c */; };
 		F519233A167238A400514165 /* mio_config.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922F8167238A400514165 /* mio_config.c */; };
@@ -59,7 +54,6 @@
 
 /* Begin PBXFileReference section */
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
-		F519221D1672388F00514165 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F519221F1672388F00514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F51922201672388F00514165 /* picq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = picq.c; sourceTree = "<group>"; };
@@ -88,7 +82,6 @@
 		F51922371672388F00514165 /* yafstat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafstat.c; sourceTree = "<group>"; };
 		F51922381672388F00514165 /* yafstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafstat.h; sourceTree = "<group>"; };
 		F51922391672388F00514165 /* yaftab.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yaftab.c; sourceTree = "<group>"; };
-		F51922501672389900514165 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		F51922511672389900514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F51922521672389900514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F51922541672389900514165 /* autoinc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = autoinc.h; sourceTree = "<group>"; };
@@ -110,7 +103,6 @@
 		F5192267167238A400514165 /* airdaemon.pod */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = airdaemon.pod; sourceTree = "<group>"; };
 		F5192268167238A400514165 /* filedaemon.1 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.man; path = filedaemon.1; sourceTree = "<group>"; };
 		F5192269167238A400514165 /* filedaemon.pod */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = filedaemon.pod; sourceTree = "<group>"; };
-		F519226A167238A400514165 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		F519226B167238A400514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F519226C167238A400514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F519226D167238A400514165 /* Doxyfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
@@ -136,14 +128,12 @@
 		F5192283167238A400514165 /* mio_stdio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mio_stdio.h; sourceTree = "<group>"; };
 		F5192284167238A400514165 /* privconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = privconfig.h; sourceTree = "<group>"; };
 		F5192285167238A400514165 /* stamp-h2 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "stamp-h2"; sourceTree = "<group>"; };
-		F5192286167238A400514165 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		F5192287167238A400514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F5192288167238A400514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F5192289167238A400514165 /* libairframe.pc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = libairframe.pc; sourceTree = "<group>"; };
 		F519228A167238A400514165 /* libairframe.pc.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = libairframe.pc.in; sourceTree = "<group>"; };
 		F519228B167238A400514165 /* libairframe.spec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = libairframe.spec; sourceTree = "<group>"; };
 		F519228C167238A400514165 /* libairframe.spec.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = libairframe.spec.in; sourceTree = "<group>"; };
-		F519228D167238A400514165 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		F519228E167238A400514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F519228F167238A400514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F5192290167238A400514165 /* NEWS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NEWS; sourceTree = "<group>"; };
@@ -155,7 +145,6 @@
 		F51922C8167238A400514165 /* daeconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = daeconfig.c; sourceTree = "<group>"; };
 		F51922CB167238A400514165 /* filedaemon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = filedaemon.c; sourceTree = "<group>"; };
 		F51922F1167238A400514165 /* logconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = logconfig.c; sourceTree = "<group>"; };
-		F51922F2167238A400514165 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		F51922F3167238A400514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F51922F4167238A400514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F51922F5167238A400514165 /* mio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mio.c; sourceTree = "<group>"; };
@@ -191,7 +180,6 @@
 			isa = PBXGroup;
 			children = (
 				F519221A1672388F00514165 /* decode.c */,
-				F519221D1672388F00514165 /* Makefile */,
 				F519221E1672388F00514165 /* Makefile.am */,
 				F519221F1672388F00514165 /* Makefile.in */,
 				F51922201672388F00514165 /* picq.c */,
@@ -227,7 +215,6 @@
 		F519224F1672389900514165 /* include */ = {
 			isa = PBXGroup;
 			children = (
-				F51922501672389900514165 /* Makefile */,
 				F51922511672389900514165 /* Makefile.am */,
 				F51922521672389900514165 /* Makefile.in */,
 				F51922531672389900514165 /* yaf */,
@@ -268,7 +255,6 @@
 				F519228A167238A400514165 /* libairframe.pc.in */,
 				F519228B167238A400514165 /* libairframe.spec */,
 				F519228C167238A400514165 /* libairframe.spec.in */,
-				F519228D167238A400514165 /* Makefile */,
 				F519228E167238A400514165 /* Makefile.am */,
 				F519228F167238A400514165 /* Makefile.in */,
 				F5192290167238A400514165 /* NEWS */,
@@ -285,7 +271,6 @@
 				F5192267167238A400514165 /* airdaemon.pod */,
 				F5192268167238A400514165 /* filedaemon.1 */,
 				F5192269167238A400514165 /* filedaemon.pod */,
-				F519226A167238A400514165 /* Makefile */,
 				F519226B167238A400514165 /* Makefile.am */,
 				F519226C167238A400514165 /* Makefile.in */,
 			);
@@ -296,7 +281,6 @@
 			isa = PBXGroup;
 			children = (
 				F5192270167238A400514165 /* airframe */,
-				F5192286167238A400514165 /* Makefile */,
 				F5192287167238A400514165 /* Makefile.am */,
 				F5192288167238A400514165 /* Makefile.in */,
 			);
@@ -341,7 +325,6 @@
 				F51922C8167238A400514165 /* daeconfig.c */,
 				F51922CB167238A400514165 /* filedaemon.c */,
 				F51922F1167238A400514165 /* logconfig.c */,
-				F51922F2167238A400514165 /* Makefile */,
 				F51922F3167238A400514165 /* Makefile.am */,
 				F51922F4167238A400514165 /* Makefile.in */,
 				F51922F5167238A400514165 /* mio.c */,
@@ -445,16 +428,11 @@
 				F519224A1672388F00514165 /* yafrag.c in Sources */,
 				F519224C1672388F00514165 /* yafstat.c in Sources */,
 				F519224D1672388F00514165 /* yaftab.c in Sources */,
-				F51922601672389900514165 /* Makefile in Sources */,
-				F5192304167238A400514165 /* Makefile in Sources */,
-				F5192305167238A400514165 /* Makefile in Sources */,
-				F5192306167238A400514165 /* Makefile in Sources */,
 				F519231E167238A400514165 /* airlock.c in Sources */,
 				F519231F167238A400514165 /* airopt.c in Sources */,
 				F5192320167238A400514165 /* airutil.c in Sources */,
 				F5192321167238A400514165 /* daeconfig.c in Sources */,
 				F5192336167238A400514165 /* logconfig.c in Sources */,
-				F5192337167238A400514165 /* Makefile in Sources */,
 				F5192338167238A400514165 /* mio.c in Sources */,
 				F5192339167238A400514165 /* mio_common_net.c in Sources */,
 				F519233A167238A400514165 /* mio_config.c in Sources */,

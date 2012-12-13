@@ -977,6 +977,7 @@ static const uint8_t *yfDecodeTCP(
     /* Copy sequence number and flags */
     if (tcpinfo) {
         tcpinfo->seq = g_ntohl(tcph->th_seq);
+        tcpinfo->ack = g_ntohl(tcph->th_ack);
         tcpinfo->flags = tcph->th_flags;
     }
 
@@ -1020,9 +1021,10 @@ gboolean yfDefragTCP(
     key->sp = g_ntohs(tcph->th_sport);
     key->dp = g_ntohs(tcph->th_dport);
 
-    /* Copy sequence number and flags */
+    /* Copy seq, ack, and flags */
     if (tcpinfo) {
         tcpinfo->seq = g_ntohl(tcph->th_seq);
+        tcpinfo->ack = g_ntohl(tcph->th_ack);
         tcpinfo->flags = tcph->th_flags;
     }
 
