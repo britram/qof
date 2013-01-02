@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D38872B716946DDF00E66A70 /* qofifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922211672388F00514165 /* qofifmap.c */; };
 		F519223B1672388F00514165 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = F519221A1672388F00514165 /* decode.c */; };
 		F519223E1672388F00514165 /* picq.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922201672388F00514165 /* picq.c */; };
 		F51922401672388F00514165 /* ring.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922221672388F00514165 /* ring.c */; };
@@ -446,6 +447,7 @@
 				F5192342167238A400514165 /* mio_source_udp.c in Sources */,
 				F5192343167238A400514165 /* mio_stdio.c in Sources */,
 				F5192344167238A400514165 /* privconfig.c in Sources */,
+				D38872B716946DDF00E66A70 /* qofifmap.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
