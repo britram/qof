@@ -6,7 +6,7 @@ measurement of per-flow performance characteristics. It forked as of YAF
 version 2.3.2. It removes all payload inspection and packet handling features 
 from YAF, and adds performance measurement and flow pseudonymization features.
 
-QoF is primarily intended to support research into efficient per-flow
+QoF is primarily intended to support research into efficient
 performance metrics for TCP flows; however, it can also be used for general
 flow measurement, especially in environments where the deployment of
 technologies which inspect packet payload is restricted. If what you're looking
@@ -23,6 +23,8 @@ We intend to track bugfixes in YAF releases subsequent to 2.3.2, but not new
 features, especially as new YAF features will likely involve DPI features
 removed from QoF. QoF is still mostly command-line compatible with YAF, but
 this will probably change in the future, as well.
+
+QoF is licensed under the GNU General Public License, Version 2.
 
 YAF
 ===
@@ -73,7 +75,8 @@ Presently, the destinationTransportPort information element contains
 ICMP type and code information for ICMP or ICMP6 flows; this is nonstandard
 and may not be interoperable with other IPFIX implementations.
 
-BPF Filtering only works with libpcap; it does not operate with the Bivio Zero-Copy Library or with libdag.
+BPF Filtering only works with libpcap; it does not operate with the Bivio
+Zero-Copy Library or with libdag.
 
 QoF will not rotate output files if it is not seeing any flow data.  However,
 it will continue to write process statistics messages at the configured
