@@ -5,7 +5,7 @@
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2006-2012 Carnegie Mellon University. All Rights Reserved.
- ** Copyright (C) 2012      Brian Trammell.             All Rights Reserved.
+ ** Copyright (C) 2012-2013 Brian Trammell.             All Rights Reserved.
  ** ------------------------------------------------------------------------
  ** Authors: Brian Trammell, Chris Inacio, Emily Ecoff <ecoff@cert.org>
  ** QoF redesign by Brian Trammell <brian@trammell.ch>

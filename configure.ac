@@ -3,6 +3,7 @@ dnl ------------------------------------------------------------------------
 dnl configure.in
 dnl autotools build system for YAF applications
 dnl ------------------------------------------------------------------------
+dnl Copyright (C) 2012-2013 Brian Trammell.             All Rights Reserved.
 dnl Copyright (C) 2005-2012 Carnegie Mellon University. All Rights Reserved.
 dnl ------------------------------------------------------------------------
 dnl Authors: Brian Trammell
@@ -13,9 +14,10 @@ dnl ------------------------------------------------------------------------
 
 dnl RCSIDENT("$Id: configure.in 18549 2012-09-14 15:57:18Z ecoff_svn $")
 
-AC_INIT([yaf], [2.3.2], [netsa-help@cert.org],[yaf])
+AC_INIT([qof], [0.9.0], [brian@trammell.ch], [qof])
 AC_CONFIG_AUX_DIR([autoconf])
-AC_COPYRIGHT([Copyright (C) 2006-2012 by Carnegie Mellon University
+AC_COPYRIGHT([Copyright (C) 2012-2013 by Brian Trammell
+Copyright (C) 2006-2012 by Carnegie Mellon University
 GNU Public License (GPL) Rights pursuant to Version 2, June 1991
 Government Purpose License Rights (GPLR) pursuant to DFARS 252.227-7013])
 AC_CANONICAL_BUILD
@@ -70,7 +72,7 @@ DX_RTF_FEATURE(OFF)
 DX_XML_FEATURE(OFF)
 DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
-DX_INIT_DOXYGEN(yaf, Doxyfile, doc)
+DX_INIT_DOXYGEN(qof, Doxyfile, doc)
 
 dnl and then there was an ancient version of redhate, AS4
 dnl AC_PROG_CC_C99

@@ -5,8 +5,9 @@
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2006-2012 Carnegie Mellon University. All Rights Reserved.
+ ** Copyright (C) 2012-2013 Brian Trammell.             All Rights Reserved.
  ** ------------------------------------------------------------------------
- ** Authors: Brian Trammell
+ ** Authors: Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
  ** Use of the YAF system and related source code is subject to the terms
  ** of the following licenses:
