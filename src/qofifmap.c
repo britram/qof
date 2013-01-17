@@ -1,7 +1,7 @@
 /**
  ** @file qofifmap.c
  **
- ** Address to interface map, based on a hybrid hash-trie structure
+ ** Address to interface map, based on a sorted array search.
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2012 Brian Trammell. All Rights Reserved.
@@ -43,6 +43,8 @@ typedef struct qfIfMap_st {
     qfIfMapEntry6_t     *dst6map;
     size_t              dst6map_sz;
 } qfIfMap_t;
+
+#define QF_IFMAP_INIT {NULL, 0, NULL, 0, NULL, 0, NULL, 0}
 
 static int qfIp6Compare(uint8_t *a, uint8_t *b) {
     for (int i = 0; i < 16; i++) {
@@ -228,10 +230,38 @@ static void qfMapInsert6(qfIfMapEntry6_t         **map,
     (*map)[i+1].ifnum = ifnum;
 }
 
-gboolean qfParseMapFile(qfIfMap_t       *map,
-                        FILE            *file)
+void qfMapAddIPv4Mapping(qfIfMap_t      *map,
+                         uint32_t       addr,
+                         uint8_t        pfx,
+                         uint8_t        ingress,
+                         uint8_t        egress)
 {
-    return TRUE;
+    if (ingress) {
+        qfMapInsert4(&(map->src4map), &(map->src4map_sz),
+                     addr, pfx, ingress);
+    }
+    if (egress) {
+        qfMapInsert4(&(map->dst4map), &(map->dst4map_sz),
+                     addr, pfx, egress);
+    }
+}
+
+
+void qfMapAddIPv6Mapping(qfIfMap_t      *map,
+                         uint8_t        *addr,
+                         uint8_t        pfx,
+                         uint8_t        ingress,
+                         uint8_t        egress)
+{
+    if (ingress) {
+        qfMapInsert6(&(map->src6map), &(map->src6map_sz),
+                     addr, pfx, ingress);
+    }
+    if (egress) {
+        qfMapInsert6(&(map->dst6map), &(map->dst6map_sz),
+                     addr, pfx, egress);
+    }
+
 }
 
 void qfMapAddresses(qfIfMap_t           *map,
