@@ -4,7 +4,7 @@
  ** Address to interface map, based on a sorted array search.
  **
  ** ------------------------------------------------------------------------
- ** Copyright (C) 2012 Brian Trammell. All Rights Reserved.
+ ** Copyright (C) 2012-2013 Brian Trammell. All Rights Reserved.
  ** ------------------------------------------------------------------------
  ** Author: Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
@@ -17,32 +17,20 @@
 #include <yaf/autoinc.h>
 #include <yaf/yaftab.h>
 
-typedef struct qfIfMapEntry4_st {
+#include <yaf/qofifmap.h>
+
+struct qfIfMapEntry4_st {
     uint32_t        a;
     uint32_t        b;
     uint8_t         ifnum;
-} qfIfMapEntry4_t;
+};
 
-typedef struct qfIfMapEntry6_st {
+struct qfIfMapEntry6_st {
     uint8_t         a[16];
     uint8_t         b[16];
     uint8_t         ifnum;    
-} qfIfMapEntry6_t;
+};
 
-typedef struct qfIfMap_st {
-    /* IPv4 sources */
-    qfIfMapEntry4_t     *src4map;
-    size_t              src4map_sz;
-    /* IPv4 destinations */
-    qfIfMapEntry4_t     *dst4map;
-    size_t              dst4map_sz;
-    /* IPv6 sources */
-    qfIfMapEntry6_t     *src6map;
-    size_t              src6map_sz;
-    /* IPv6 destinations */
-    qfIfMapEntry6_t     *dst6map;
-    size_t              dst6map_sz;
-} qfIfMap_t;
 
 #define QF_IFMAP_INIT {NULL, 0, NULL, 0, NULL, 0, NULL, 0}
 
@@ -230,7 +218,19 @@ static void qfMapInsert6(qfIfMapEntry6_t         **map,
     (*map)[i+1].ifnum = ifnum;
 }
 
-void qfMapAddIPv4Mapping(qfIfMap_t      *map,
+void qfIfMapInit(qfIfMap_t *map)
+{
+    map->src4map = NULL;
+    map->src6map = NULL;
+    map->dst4map = NULL;
+    map->dst6map = NULL;
+    map->src4map_sz = 0;
+    map->src6map_sz = 0;
+    map->dst4map_sz = 0;
+    map->dst6map_sz = 0;
+}
+
+void qfIfMapAddIPv4Mapping(qfIfMap_t      *map,
                          uint32_t       addr,
                          uint8_t        pfx,
                          uint8_t        ingress,
@@ -247,7 +247,7 @@ void qfMapAddIPv4Mapping(qfIfMap_t      *map,
 }
 
 
-void qfMapAddIPv6Mapping(qfIfMap_t      *map,
+void qfIfMapAddIPv6Mapping(qfIfMap_t      *map,
                          uint8_t        *addr,
                          uint8_t        pfx,
                          uint8_t        ingress,
@@ -264,7 +264,7 @@ void qfMapAddIPv6Mapping(qfIfMap_t      *map,
 
 }
 
-void qfMapAddresses(qfIfMap_t           *map,
+void qfIfMapAddresses(qfIfMap_t           *map,
                     yfFlowKey_t         *key, 
                     uint8_t             *ingress, 
                     uint8_t             *egress)
