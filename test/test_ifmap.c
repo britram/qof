@@ -21,7 +21,7 @@ void print_parser_error(FILE* out, const yaml_parser_t *parser, const char *file
     }
     
     if (errmsg) {
-        fprintf(out, "QoF config error: %s at at line %d, column %d in file %s\n",
+        fprintf(out, "QoF config error: %s at at line %d, column %zd in file %s\n",
                 errmsg, parser->mark.line, parser->mark.column, filename);
     } else {
         switch (parser->error) {
@@ -30,24 +30,28 @@ void print_parser_error(FILE* out, const yaml_parser_t *parser, const char *file
             break;
         case YAML_READER_ERROR:
             if (parser->problem_value != -1) {
-                fprintf(out, "YAML reader error: %s: #%X at %d in file %s\n",
-                        parser->problem, parser->problem_value, parser->problem_offset, filename);
+                fprintf(out, "YAML reader error: %s: #%X at %zd in file %s\n",
+                        parser->problem, parser->problem_value,
+                        parser->problem_offset, filename);
             } else {
-                fprintf(out, "YAML reader error: %s at %d in file %s\n",
+                fprintf(out, "YAML reader error: %s at %zd in file %s\n",
                         parser->problem, parser->problem_offset, filename);
             }
             break;
         case YAML_SCANNER_ERROR:
         case YAML_PARSER_ERROR:
             if (parser->context) {
-                fprintf(out, "YAML parser error: %s at line %d, column %d\n"
-                        "%s at line %d, column %d in file %s\n",
-                        parser->context, parser->context_mark.line+1, parser->context_mark.column+1,
-                        parser->problem, parser->problem_mark.line+1, parser->problem_mark.column+1,
+                fprintf(out, "YAML parser error: %s at line %d, column %ld\n"
+                        "%s at line %d, column %ld in file %s\n",
+                        parser->context, parser->context_mark.line+1,
+                        parser->context_mark.column+1,
+                        parser->problem, parser->problem_mark.line+1,
+                        parser->problem_mark.column+1,
                         filename);
             } else {
-                fprintf(out, "YAML parser error: %s at line %d, column %d in file %s\n",
-                        parser->problem, parser->problem_mark.line+1, parser->problem_mark.column+1,
+                fprintf(out, "YAML parser error: %s at line %d, column %ld in file %s\n",
+                        parser->problem, parser->problem_mark.line+1,
+                        parser->problem_mark.column+1,
                         filename);
             }
         break;
@@ -58,34 +62,295 @@ void print_parser_error(FILE* out, const yaml_parser_t *parser, const char *file
 }
 
 typedef enum {
-    QCP_INIT,
-    QCP_IN_STREAM,
-    QCP_IN_DOC,
-    QCP_IN_DOC_MAP,
-    QCP_IN_IFMAP,
-    QCP_IN_IFMAP_SEQ,
-    QCP_IN_IFMAP_MAP,
-    QCP_IN_IFMAP_V4ADDR,
-    QCP_IN_IFMAP_V6ADDR,
-    QCP_IN_IFMAP_PREFIX,
-    QCP_IN_IFMAP_INGRESS,
-    QCP_IN_IFMAP_EGRESS,
+    QCP_INIT,               // initial state
+    QCP_IN_STREAM,          // in stream
+    QCP_IN_DOC,             // in document
+    QCP_IN_DOC_MAP,         // in mapping in document
+    QCP_IN_IFMAP,           // expecting value (sequence) for interface-map
+    QCP_IN_IFMAP_SEQ,       // in value (sequence) for interface-map
+    QCP_IN_IFMAP_KEY,       // expecting key for interface-map
+    QCP_IN_IFMAP_V4NET,    // expecting v4 address value for ifmap
+    QCP_IN_IFMAP_V6NET,    // expecting v6 address value for ifmap
+    QCP_IN_IFMAP_INGRESS,   // expecting ingress interface number for ifmap
+    QCP_IN_IFMAP_EGRESS,    // expecting egress interface number for ifmap
+    QCP_IN_DOC_SKIP         // skipping a non-interface 
 } qcp_state_t;
+
+int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
+    
+    qcp_state_t     qcpstate = QCP_INIT;
+    yaml_event_t    event;
+
+    char            addr4buf[16];
+    uint32_t        addr4;
+    unsigned int    pfx4;
+
+    char            addr6buf[40];
+    uint8_t         addr6[16];
+    unsigned int    pfx6;
+    
+    unsigned int    ingress;
+    unsigned int    egress;
+    
+    int             rv;
+
+    while (1) {
+        // get next event
+        if (!yaml_parser_parse(parser, &event)) {
+            print_parser_error(stderr, parser, filename, NULL);
+            return 1;
+        }
+        
+        // switch based on state
+        if (event.type == YAML_STREAM_END_EVENT) {
+            yaml_event_delete(&event);
+            break;
+        } else if (event.type != YAML_NO_EVENT) switch (qcpstate) {
+
+            case QCP_INIT:               // initial state
+                if (event.type != YAML_STREAM_START_EVENT) {
+                    print_parser_error(stderr, parser, filename,
+                                       "internal error: missing stream start");
+                    return 1;
+                }
+                qcpstate = QCP_IN_STREAM;
+                break;
+
+            case QCP_IN_STREAM:          // in stream
+                if (event.type == YAML_DOCUMENT_START_EVENT) {
+                    qcpstate = QCP_IN_DOC;
+                } else if (event.type == YAML_STREAM_END_EVENT) {
+                    qcpstate = QCP_INIT;
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "internal error: missing doc start");
+                    return 1;
+                }
+                break;
+
+            case QCP_IN_DOC:             // in document
+                if (event.type == YAML_MAPPING_START_EVENT) {
+                    qcpstate = QCP_IN_DOC_MAP;
+                } else if (event.type == YAML_DOCUMENT_END_EVENT) {
+                    qcpstate = QCP_IN_STREAM;
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "QoF config must consist of a single map:"
+                                       " sequence not allowed");
+                    return 1;
+                }
+                break;
+                
+            case QCP_IN_DOC_MAP:         // in mapping in document
+                if (event.type == YAML_SCALAR_EVENT) {
+                    if (strcmp((const char*)event.data.scalar.value, "interface-map") == 0) {
+                        qcpstate = QCP_IN_IFMAP;
+                    } else {
+                        print_parser_error(stderr, parser, filename,
+                                           "unknown configuration key");
+                        return 1;
+                    }
+                } else if (event.type == YAML_MAPPING_END_EVENT) {
+                    qcpstate = QCP_IN_DOC;
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "internal error: missing key");
+                    return 1;
+                }
+                break;
+                
+            case QCP_IN_IFMAP:           // expecting value (sequence) for interface-map
+                if (event.type == YAML_SEQUENCE_START_EVENT) {
+                    qcpstate = QCP_IN_IFMAP_SEQ;
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "missing sequence value for interface-map");
+                    return 1;
+                }
+                break;
+                
+            case QCP_IN_IFMAP_SEQ:       // in value (sequence) for interface-map
+                if (event.type == YAML_MAPPING_START_EVENT) {
+                    // new mapping, clear buffers
+                    addr4buf[0] = '\0';
+                    addr4 = 0;
+                    pfx4 = 0;
+                    addr6buf[0] = '\0';
+                    memset(addr6, 0, sizeof(addr6));
+                    pfx6 = 0;
+                    ingress = 0;
+                    egress = 0;
+                    qcpstate = QCP_IN_IFMAP_KEY;
+                } else if (event.type == YAML_SEQUENCE_END_EVENT) {
+                    qcpstate = QCP_IN_DOC_MAP;
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "missing mapping in interface-map");
+                    return 1;
+                }
+                break;
+                    
+            case QCP_IN_IFMAP_KEY:       // expecting key for interface-map
+                if (event.type == YAML_MAPPING_END_EVENT) {
+                    // end mapping, add buffers to map
+                    if (addr4buf[0]) {
+                        qfIfMapAddIPv4Mapping(map, addr4, pfx4, ingress, egress);
+                    }
+                    if (addr6buf[0]) {
+                        qfIfMapAddIPv6Mapping(map, addr6, pfx6, ingress, egress);
+                    }
+                    qcpstate = QCP_IN_IFMAP_SEQ;
+                } else if (event.type != YAML_SCALAR_EVENT) {
+                    print_parser_error(stderr, &parser, filename,
+                                       "internal error: missing key");
+                    return 1;
+                } else if (strcmp((const char*)event.data.scalar.value, "ip4-net") == 0) {
+                    qcpstate = QCP_IN_IFMAP_V4NET;
+                } else if (strcmp((const char*)event.data.scalar.value, "ip6-net") == 0){
+                    qcpstate = QCP_IN_IFMAP_V6NET;
+                } else if (strcmp((const char*)event.data.scalar.value, "ingress-if") == 0) {
+                    qcpstate = QCP_IN_IFMAP_INGRESS;
+                } else if (strcmp((const char*)event.data.scalar.value, "egress-if") == 0) {
+                    qcpstate = QCP_IN_IFMAP_EGRESS;
+                } else {
+                    print_parser_error(stderr, &parser, filename,
+                                       "unknown interface-map key");
+                    return 1;
+                }
+                break;
+                
+            case QCP_IN_IFMAP_V4NET:    // expecting v4 address value for ifmap
+                if (event.type == YAML_SCALAR_EVENT) {
+                    
+                    rv = sscanf(event.data.scalar.value, "%15[0-9.]/%u", addr4buf, &pfx4);
+                    if (rv == 1) {
+                        pfx4 = 32; // implicit single host
+                    } else if (rv != 2) {
+                        print_parser_error(stderr, &parser, filename,
+                                           "invalid IPv4 network");
+                        return 1;
+                    }
+                    
+                    if (pfx4 > 32) {
+                        print_parser_error(stderr, &parser, filename,
+                                           "invalid IPv4 prefix length");
+                        return 1;
+                    }
+
+                    rv = inet_pton(AF_INET, addr4buf, &addr4);
+                    if (rv == 0) {
+                        print_parser_error(stderr, &parser, filename,
+                                           "invalid IPv4 address");
+                    } else if (rv == -1) {
+                        print_parser_error(stderr, &parser, filename,
+                                           strerror(errno));
+                    }
+                    addr4 = ntohl(addr4);
+                } else {
+                    print_parser_error(stderr, &parser, filename,
+                                       "missing value for ip4-net");
+                    return 1;
+                }
+                qcpstate = QCP_IN_IFMAP_KEY;
+                break;
+                    
+            case QCP_IN_IFMAP_V6NET:    // expecting v6 address value for ifmap
+                if (event.type == YAML_SCALAR_EVENT) {
+                    rv = sscanf(event.data.scalar.value, "%15[0-9a-fA-F:.]/%u", addr6buf, &pfx6);
+                    if (rv == 1) {
+                        pfx6 = 128; // implicit single host
+                    } else if (rv != 2) {
+                        print_parser_error(stderr, &parser, filename,
+                                           "invalid IPv6 network");
+                        return 1;
+                    }
+                    
+                    if (pfx6 > 128) {
+                        print_parser_error(stderr, &parser, filename,
+                                           "invalid IPv6 prefix length");
+                        return 1;
+                    }
+                    
+                    rv = inet_pton(AF_INET, addr6buf, &addr6);
+                    if (rv == 0) {
+                        print_parser_error(stderr, parser, filename,
+                                           "invalid IPv6 address");
+                    } else if (rv == -1) {
+                        print_parser_error(stderr, parser, filename,
+                                           strerror(errno));
+                    }
+                    addr4 = ntohl(addr4);
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "missing value for ip4-net");
+                    return 1;
+                }
+                qcpstate = QCP_IN_IFMAP_KEY;
+                break;
+                    
+            case QCP_IN_IFMAP_INGRESS:   // expecting ingress interface number for ifmap
+                if (event.type == YAML_SCALAR_EVENT) {
+                    rv = sscanf(event.data.scalar.value, "%u", &ingress);
+                    if (rv != 1 || ingress > 255) {
+                        print_parser_error(stderr, parser, filename,
+                                           "invalid ingress interface number");
+                        return 1;
+                    }
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "missing value for ingress-if");
+                    return 1;
+                    
+                }
+                qcpstate = QCP_IN_IFMAP_KEY;
+                break;
+
+            case QCP_IN_IFMAP_EGRESS:    // expecting egress interface number for ifmap
+                if (event.type == YAML_SCALAR_EVENT) {
+                    rv = sscanf(event.data.scalar.value, "%u", &egress);
+                    if (rv != 1 || egress > 255) {
+                        print_parser_error(stderr, parser, filename,
+                                           "invalid egress interface number");
+                        return 1;
+                    }
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "missing value for egress-if");
+                    return 1;
+                    
+                }
+                qcpstate = QCP_IN_IFMAP_KEY;
+                break;
+                
+            case QCP_IN_DOC_SKIP:        // skipping a non-ifmap key (TODO)
+            default:
+                print_parser_error(stderr, parser, filename,
+                                   "internal error: invalid parser state");
+                return 1;
+        }
+        // clean up
+        yaml_event_delete(&event);
+    }
+}
 
 int main (int argc, char* argv[])
 {
     qfIfMap_t       map;
     yaml_parser_t   parser;
     yaml_event_t    event;
-    qcp_state_t     qcpstate = QCP_INIT;
     
-    uint8_t addr6[16];
+    FILE            *mapfile;
+    
+    int rv;
     
     // check args
     if (argc != 3) {
         fprintf(stdout, "Usage: test_ifmap mapfile testfile\n");
         return 1;
     }
+    
+    // initialize map
+    qfIfMapInit(&map);
 
     // initilize parser
     memset(&parser, 0, sizeof(parser));
@@ -94,116 +359,24 @@ int main (int argc, char* argv[])
         return 1;
     }
     
+    // open and bind mapfile
     if (!(mapfile = fopen(argv[1], "r"))) {
         fprintf(stderr, "error opening mapfile: %s\n", strerror(errno));
         return 1;
     }
-    
     yaml_parser_set_input_file(&parser, mapfile);
 
-    while (!mapfile_done) {
-        if (!yaml_parser_parse(&parser, &event)) {
-            print_parser_error(stderr, &parser, argv[1], NULL);
-            return 1;
-        }
-        
-        if (event.type == YAML_STREAM_END_EVENT) {
-            break;
-        }
-        
-        switch(event.type) {
-                
-        // Stream bookkeeping events
-        case YAML_STREAM_START_EVENT:
-            if (qcpstate == QCP_INIT) {
-                qcpstate = QCP_IN_STREAM;
-            } else {
-                print_parser_error(stderr, &parser, argv[1],
-                                   "internal error: unexpected stream start");
-                return 1;
-            }
-            break;
-        case YAML_STREAM_END_EVENT:
-            if (qcpstate == QCP_IN_STREAM) {
-                qcpstate = QCP_INIT;
-            } else {
-                print_parser_error(stderr, &parser, argv[1],
-                                   "unexpected stream end");
-                return 1;
-            }
-            break;
-        case YAML_DOCUMENT_START_EVENT:
-            if (qcpstate == QCP_IN_STREAM) {
-                qcpstate = QCP_IN_DOC;
-            } else {
-                print_parser_error(stderr, &parser, argv[1],
-                                   "internal error: unexpected document start");
-                return 1;
-            }
-            break;
-        case YAML_DOCUMENT_END_EVENT:
-            if (qcpstate == QCP_IN_DOC) {
-                qcpstate = QCP_IN_STREAM;
-            } else {
-                print_parser_error(stderr, &parser, argv[1],
-                                   "unexpected document end");
-                return 1;
-            }
-            break;
-        case YAML_MAPPING_START_EVENT:
-            if (qcpstate == QCP_IN_DOC) {
-                qcpstate = QCP_IN_DOC_MAP;
-            } elsif (qcpstate == QCP_IN_IFMAP_SEQ) {
-                qcpstate = QCP_IN_IFMAP_MAP;
-            } else {
-                print_parser_error(stderr, &parser, argv[1],
-                                   "unexpected map start");
-                return 1;
-            }
-            break;
-        case YAML_MAPPING_END_EVENT:
-            if (qcpstate == QCP_IN_DOC_MAP) {
-                qcpstate = QCP_IN_DOC;
-            } elsif (qcpstate == QCP_IN_IFMAP_MAP) {
-                qcpstate = QCP_IN_IFMAP_SEQ;
-            } else {
-                print_parser_error(stderr, &parser, argv[1],
-                                   "unexpected map end");
-                return 1;
-            }
-            break;
-                
-        // FIXME WORK POINTER HERE
-            
-            case YAML_NO_EVENT: puts("No event!"); break;
-                /* Stream start/end */
-            case YAML_SEQUENCE_START_EVENT: puts("<b>Start Sequence</b>"); break;
-            case YAML_SEQUENCE_END_EVENT:   puts("<b>End Sequence</b>");   break;
-            case YAML_MAPPING_START_EVENT:  puts("<b>Start Mapping</b>");  break;
-            case YAML_MAPPING_END_EVENT:    puts("<b>End Mapping</b>");    break;
-                /* Data */
-            case YAML_ALIAS_EVENT:  printf("Got alias (anchor %s)\n", event.data.alias.anchor); break;
-            case YAML_SCALAR_EVENT: printf("Got scalar (value %s)\n", event.data.scalar.value); break;
-        }
-
+    // parse the mapfile
+    if (!(rv = parse_ifmap(&map, &parser, argv[1]))) {
+        return rv;
     }
     
+    fprintf(stdout, "Mapfile parse successful.\n");
     
-    // initialize map
-    qfIfMapInit(&map);
+    // free and reinitialize parser
     
-
+    // open and bind testfile
     
+    // parse the testfile
     
-    
-    qfIfMapAddIPv4Mapping(&map,0x0A000100,24,1,11);
-    qfIfMapAddIPv4Mapping(&map,0x0A000200,24,2,12);
-    qfIfMapAddIPv4Mapping(&map,0x0A000300,24,3,13);
-    qfIfMapAddIPv4Mapping(&map,0x0A000400,24,4,14);
-    qfIfMapAddIPv4Mapping(&map,0x7f000000,8,9,19);
-    
-    inet_pton(AF_INET6, "2003:db8:1:2::0", addr6);
-    qfIfMapAddIPv6Mapping(&map, addr6, 64, 2, 12);
-    
-    // FIXME run a few tests
 }

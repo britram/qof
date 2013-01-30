@@ -67,7 +67,7 @@
 /* Begin PBXFileReference section */
 		D31013E116A926230068059F /* qofifmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qofifmap.h; sourceTree = "<group>"; };
 		D31013E416A94BA80068059F /* test_ifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_ifmap.c; sourceTree = "<group>"; };
-		D3FECD0E16B9043500EF95BB /* qof copy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "qof copy"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3FECD0E16B9043500EF95BB /* test_ifmap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_ifmap; sourceTree = BUILT_PRODUCTS_DIR; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F519221F1672388F00514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
@@ -392,7 +392,7 @@
 			isa = PBXGroup;
 			children = (
 				F52D56C016723812006D32A1 /* qof */,
-				D3FECD0E16B9043500EF95BB /* qof copy */,
+				D3FECD0E16B9043500EF95BB /* test_ifmap */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -414,7 +414,7 @@
 			);
 			name = test_ifmap;
 			productName = qof;
-			productReference = D3FECD0E16B9043500EF95BB /* qof copy */;
+			productReference = D3FECD0E16B9043500EF95BB /* test_ifmap */;
 			productType = "com.apple.product-type.tool";
 		};
 		F52D56BF16723812006D32A1 /* qof */ = {
@@ -525,6 +525,7 @@
 				HEADER_SEARCH_PATHS = (
 					./include,
 					./airframe/include,
+					/opt/local/include,
 					"/opt/local/include/glib-2.0",
 					"/opt/local/lib/glib-2.0/include",
 					"$(HOME)/opt/include",
@@ -539,8 +540,9 @@
 					"-lfixbuf",
 					"-lglib-2.0",
 					"-lpcap",
+					"-lyaml",
 				);
-				PRODUCT_NAME = "qof copy";
+				PRODUCT_NAME = test_ifmap;
 			};
 			name = Debug;
 		};
@@ -554,6 +556,7 @@
 				HEADER_SEARCH_PATHS = (
 					./include,
 					./airframe/include,
+					/opt/local/include,
 					"/opt/local/include/glib-2.0",
 					"/opt/local/lib/glib-2.0/include",
 					"$(HOME)/opt/include",
@@ -568,8 +571,9 @@
 					"-lfixbuf",
 					"-lglib-2.0",
 					"-lpcap",
+					"-lyaml",
 				);
-				PRODUCT_NAME = "qof copy";
+				PRODUCT_NAME = test_ifmap;
 			};
 			name = Release;
 		};
@@ -636,6 +640,7 @@
 				HEADER_SEARCH_PATHS = (
 					./include,
 					./airframe/include,
+					/opt/local/include,
 					"/opt/local/include/glib-2.0",
 					"/opt/local/lib/glib-2.0/include",
 					"$(HOME)/opt/include",
@@ -665,6 +670,7 @@
 				HEADER_SEARCH_PATHS = (
 					./include,
 					./airframe/include,
+					/opt/local/include,
 					"/opt/local/include/glib-2.0",
 					"/opt/local/lib/glib-2.0/include",
 					"$(HOME)/opt/include",

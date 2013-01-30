@@ -1,5 +1,5 @@
 /**
- ** @file qofifmap.c
+ ** @file qofifmap.h
  **
  ** Address to interface map, based on a sorted array search.
  **
@@ -15,6 +15,9 @@
 
 #ifndef _QOF_IFMAP_H_
 #define _QOF_IFMAP_H_
+
+#include <yaf/autoinc.h>
+#include <yaf/yaftab.h>
 
 struct qfIfMapEntry4_st;
 typedef struct qfIfMapEntry4_st qfIfMapEntry4_t;

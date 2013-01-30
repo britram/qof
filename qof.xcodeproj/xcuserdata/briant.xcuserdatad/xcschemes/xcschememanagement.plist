@@ -9,9 +9,19 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>test_ifmap.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>D3FECCE716B9043500EF95BB</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>F52D56BF16723812006D32A1</key>
 		<dict>
 			<key>primary</key>
