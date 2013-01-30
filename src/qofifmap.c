@@ -19,6 +19,8 @@
 
 #include <yaf/qofifmap.h>
 
+#include <netinet/in.h>
+
 struct qfIfMapEntry4_st {
     uint32_t        a;
     uint32_t        b;
@@ -30,9 +32,6 @@ struct qfIfMapEntry6_st {
     uint8_t         b[16];
     uint8_t         ifnum;    
 };
-
-
-#define QF_IFMAP_INIT {NULL, 0, NULL, 0, NULL, 0, NULL, 0}
 
 static int qfIp6Compare(uint8_t *a, uint8_t *b) {
     for (int i = 0; i < 16; i++) {
@@ -180,7 +179,7 @@ static void qfMapInsert4(qfIfMapEntry4_t       **map,
     (*map)[i+1].ifnum = ifnum;
 }
 
-static void qfMapInsert6(qfIfMapEntry6_t         **map,
+static void qfMapInsert6(qfIfMapEntry6_t       **map,
                          size_t                *map_sz,
                          uint8_t               *addr,
                          uint8_t               pfx,
@@ -236,6 +235,12 @@ void qfIfMapAddIPv4Mapping(qfIfMap_t      *map,
                          uint8_t        ingress,
                          uint8_t        egress)
 {
+    char addrbuf[16];
+    uint32_t naddr = htonl(addr);
+    (void)inet_ntop(AF_INET, &naddr, addrbuf, sizeof(naddr));
+    fprintf(stderr, "** qofifmap adding IPv4 mapping %s/%u => (%u,%u)\n",
+            addrbuf, pfx, ingress, egress);
+    
     if (ingress) {
         qfMapInsert4(&(map->src4map), &(map->src4map_sz),
                      addr, pfx, ingress);
@@ -247,12 +252,18 @@ void qfIfMapAddIPv4Mapping(qfIfMap_t      *map,
 }
 
 
-void qfIfMapAddIPv6Mapping(qfIfMap_t      *map,
+void qfIfMapAddIPv6Mapping(qfIfMap_t    *map,
                          uint8_t        *addr,
                          uint8_t        pfx,
                          uint8_t        ingress,
                          uint8_t        egress)
 {
+    char addrbuf[40];
+    (void)inet_ntop(AF_INET6, addr, addrbuf, 16);
+    fprintf(stderr, "** qofifmap adding IPv6 mapping %s/%u => (%u,%u)\n",
+            addrbuf, pfx, ingress, egress);
+
+    
     if (ingress) {
         qfMapInsert6(&(map->src6map), &(map->src6map_sz),
                      addr, pfx, ingress);

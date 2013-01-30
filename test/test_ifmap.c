@@ -21,7 +21,7 @@ void print_parser_error(FILE* out, const yaml_parser_t *parser, const char *file
     }
     
     if (errmsg) {
-        fprintf(out, "QoF config error: %s at at line %d, column %zd in file %s\n",
+        fprintf(out, "QoF config error: %s at line %zd, column %zd in file %s\n",
                 errmsg, parser->mark.line, parser->mark.column, filename);
     } else {
         switch (parser->error) {
@@ -41,15 +41,15 @@ void print_parser_error(FILE* out, const yaml_parser_t *parser, const char *file
         case YAML_SCANNER_ERROR:
         case YAML_PARSER_ERROR:
             if (parser->context) {
-                fprintf(out, "YAML parser error: %s at line %d, column %ld\n"
-                        "%s at line %d, column %ld in file %s\n",
+                fprintf(out, "YAML parser error: %s at line %ld, column %ld\n"
+                        "%s at line %ld, column %ld in file %s\n",
                         parser->context, parser->context_mark.line+1,
                         parser->context_mark.column+1,
                         parser->problem, parser->problem_mark.line+1,
                         parser->problem_mark.column+1,
                         filename);
             } else {
-                fprintf(out, "YAML parser error: %s at line %d, column %ld in file %s\n",
+                fprintf(out, "YAML parser error: %s at line %ld, column %ld in file %s\n",
                         parser->problem, parser->problem_mark.line+1,
                         parser->problem_mark.column+1,
                         filename);
@@ -201,19 +201,19 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
                     }
                     qcpstate = QCP_IN_IFMAP_SEQ;
                 } else if (event.type != YAML_SCALAR_EVENT) {
-                    print_parser_error(stderr, &parser, filename,
+                    print_parser_error(stderr, parser, filename,
                                        "internal error: missing key");
                     return 1;
                 } else if (strcmp((const char*)event.data.scalar.value, "ip4-net") == 0) {
                     qcpstate = QCP_IN_IFMAP_V4NET;
                 } else if (strcmp((const char*)event.data.scalar.value, "ip6-net") == 0){
                     qcpstate = QCP_IN_IFMAP_V6NET;
-                } else if (strcmp((const char*)event.data.scalar.value, "ingress-if") == 0) {
+                } else if (strcmp((const char*)event.data.scalar.value, "ingress") == 0) {
                     qcpstate = QCP_IN_IFMAP_INGRESS;
-                } else if (strcmp((const char*)event.data.scalar.value, "egress-if") == 0) {
+                } else if (strcmp((const char*)event.data.scalar.value, "egress") == 0) {
                     qcpstate = QCP_IN_IFMAP_EGRESS;
                 } else {
-                    print_parser_error(stderr, &parser, filename,
+                    print_parser_error(stderr, parser, filename,
                                        "unknown interface-map key");
                     return 1;
                 }
@@ -222,62 +222,32 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
             case QCP_IN_IFMAP_V4NET:    // expecting v4 address value for ifmap
                 if (event.type == YAML_SCALAR_EVENT) {
                     
-                    rv = sscanf(event.data.scalar.value, "%15[0-9.]/%u", addr4buf, &pfx4);
+                    rv = sscanf((const char*)event.data.scalar.value, "%15[0-9.]/%u", addr4buf, &pfx4);
                     if (rv == 1) {
                         pfx4 = 32; // implicit single host
                     } else if (rv != 2) {
-                        print_parser_error(stderr, &parser, filename,
+                        print_parser_error(stderr, parser, filename,
                                            "invalid IPv4 network");
                         return 1;
                     }
                     
                     if (pfx4 > 32) {
-                        print_parser_error(stderr, &parser, filename,
+                        print_parser_error(stderr, parser, filename,
                                            "invalid IPv4 prefix length");
                         return 1;
                     }
 
+                    fprintf(stderr, "ip4-net: %s/%u\n", addr4buf, pfx4);
+                    
                     rv = inet_pton(AF_INET, addr4buf, &addr4);
                     if (rv == 0) {
-                        print_parser_error(stderr, &parser, filename,
+                        print_parser_error(stderr, parser, filename,
                                            "invalid IPv4 address");
-                    } else if (rv == -1) {
-                        print_parser_error(stderr, &parser, filename,
-                                           strerror(errno));
-                    }
-                    addr4 = ntohl(addr4);
-                } else {
-                    print_parser_error(stderr, &parser, filename,
-                                       "missing value for ip4-net");
-                    return 1;
-                }
-                qcpstate = QCP_IN_IFMAP_KEY;
-                break;
-                    
-            case QCP_IN_IFMAP_V6NET:    // expecting v6 address value for ifmap
-                if (event.type == YAML_SCALAR_EVENT) {
-                    rv = sscanf(event.data.scalar.value, "%15[0-9a-fA-F:.]/%u", addr6buf, &pfx6);
-                    if (rv == 1) {
-                        pfx6 = 128; // implicit single host
-                    } else if (rv != 2) {
-                        print_parser_error(stderr, &parser, filename,
-                                           "invalid IPv6 network");
                         return 1;
-                    }
-                    
-                    if (pfx6 > 128) {
-                        print_parser_error(stderr, &parser, filename,
-                                           "invalid IPv6 prefix length");
-                        return 1;
-                    }
-                    
-                    rv = inet_pton(AF_INET, addr6buf, &addr6);
-                    if (rv == 0) {
-                        print_parser_error(stderr, parser, filename,
-                                           "invalid IPv6 address");
                     } else if (rv == -1) {
                         print_parser_error(stderr, parser, filename,
                                            strerror(errno));
+                        return 1;
                     }
                     addr4 = ntohl(addr4);
                 } else {
@@ -288,9 +258,48 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
                     
+            case QCP_IN_IFMAP_V6NET:    // expecting v6 address value for ifmap
+                
+                if (event.type == YAML_SCALAR_EVENT) {
+                    rv = sscanf((const char*)event.data.scalar.value, "%15[0-9a-fA-F:.]/%u", addr6buf, &pfx6);
+                    if (rv == 1) {
+                        pfx6 = 128; // implicit single host
+                    } else if (rv != 2) {
+                        print_parser_error(stderr, parser, filename,
+                                           "invalid IPv6 network");
+                        return 1;
+                    }
+                    
+                    if (pfx6 > 128) {
+                        print_parser_error(stderr, parser, filename,
+                                           "invalid IPv6 prefix length");
+                        return 1;
+                    }
+                    
+                    fprintf(stderr, "ip6-net: %s/%u\n", addr6buf, pfx6);
+                    
+                    rv = inet_pton(AF_INET6, addr6buf, &addr6);
+                    if (rv == 0) {
+                        print_parser_error(stderr, parser, filename,
+                                           "invalid IPv6 address");
+                        return 1;
+                    } else if (rv == -1) {
+                        print_parser_error(stderr, parser, filename,
+                                           strerror(errno));
+                        return 1;
+                    }
+                    addr4 = ntohl(addr4);
+                } else {
+                    print_parser_error(stderr, parser, filename,
+                                       "missing value for ip6-net");
+                    return 1;
+                }
+                qcpstate = QCP_IN_IFMAP_KEY;
+                break;
+                    
             case QCP_IN_IFMAP_INGRESS:   // expecting ingress interface number for ifmap
                 if (event.type == YAML_SCALAR_EVENT) {
-                    rv = sscanf(event.data.scalar.value, "%u", &ingress);
+                    rv = sscanf((const char *)event.data.scalar.value, "%u", &ingress);
                     if (rv != 1 || ingress > 255) {
                         print_parser_error(stderr, parser, filename,
                                            "invalid ingress interface number");
@@ -307,7 +316,7 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
 
             case QCP_IN_IFMAP_EGRESS:    // expecting egress interface number for ifmap
                 if (event.type == YAML_SCALAR_EVENT) {
-                    rv = sscanf(event.data.scalar.value, "%u", &egress);
+                    rv = sscanf((const char *)event.data.scalar.value, "%u", &egress);
                     if (rv != 1 || egress > 255) {
                         print_parser_error(stderr, parser, filename,
                                            "invalid egress interface number");
@@ -331,13 +340,14 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
         // clean up
         yaml_event_delete(&event);
     }
+    
+    return 0;
 }
 
 int main (int argc, char* argv[])
 {
     qfIfMap_t       map;
     yaml_parser_t   parser;
-    yaml_event_t    event;
     
     FILE            *mapfile;
     
@@ -367,6 +377,7 @@ int main (int argc, char* argv[])
     yaml_parser_set_input_file(&parser, mapfile);
 
     // parse the mapfile
+    fprintf(stdout, "Parsing mapfile %s...\n", argv[1]); 
     if (!(rv = parse_ifmap(&map, &parser, argv[1]))) {
         return rv;
     }
