@@ -249,7 +249,11 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
                                            strerror(errno));
                         return 1;
                     }
+                    
                     addr4 = ntohl(addr4);
+                    
+                    addr4 = addr4;
+                    
                 } else {
                     print_parser_error(stderr, parser, filename,
                                        "missing value for ip4-net");
@@ -288,7 +292,7 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
                                            strerror(errno));
                         return 1;
                     }
-                    addr4 = ntohl(addr4);
+
                 } else {
                     print_parser_error(stderr, parser, filename,
                                        "missing value for ip6-net");

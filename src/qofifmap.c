@@ -19,7 +19,7 @@
 
 #include <yaf/qofifmap.h>
 
-#include <netinet/in.h>
+#include <arpa/inet.h>
 
 struct qfIfMapEntry4_st {
     uint32_t        a;
@@ -168,15 +168,16 @@ static void qfMapInsert4(qfIfMapEntry4_t       **map,
     (*map_sz)++;
     
     // shift further elements
-    for (j = *map_sz - 1; j > i; j--) {
-        memcpy(&map[j], &map[j-1], sizeof(qfIfMapEntry4_t));
+    if (i < *map_sz - 1) {
+        memcpy(&(*map)[i+1], &(*map)[i],
+               (*map_sz - (i+1)) * sizeof(qfIfMapEntry4_t));
     }
     
     // create new element
     mask = qfPrefixMask4(pfx);
-    (*map)[i+1].a = addr & mask;
-    (*map)[i+1].b = addr | ~mask;
-    (*map)[i+1].ifnum = ifnum;
+    (*map)[i].a = addr & mask;
+    (*map)[i].b = addr | ~mask;
+    (*map)[i].ifnum = ifnum;
 }
 
 static void qfMapInsert6(qfIfMapEntry6_t       **map,
@@ -205,16 +206,23 @@ static void qfMapInsert6(qfIfMapEntry6_t       **map,
     (*map_sz)++;
     
     // shift further elements
-    for (j = (*map_sz) - 1; j > i; j--) {
-        memcpy(&map[j], &map[j-1], sizeof(map[j-1]));
+    if (i < *map_sz - 1) {
+        memcpy(&(*map)[i+1], &(*map)[i],
+               (*map_sz - (i+1)) * sizeof(qfIfMapEntry6_t));
     }
+        
+//    if (*map_sz > 1) {
+//        for (j = (*map_sz) - 1; j > i; j--) {
+//            memcpy(&map[j], &map[j-1], sizeof(map[j-1]));
+//        }
+//    }
     
     // create new element
     qfPrefixMask6(mask,pfx);
-    qfIp6BitAnd((*map)[i+1].a, addr, mask);
+    qfIp6BitAnd((*map)[i].a, addr, mask);
     qfIp6BitInvert(mask);
-    qfIp6BitOr((*map)[i+1].b, addr, mask);
-    (*map)[i+1].ifnum = ifnum;
+    qfIp6BitOr((*map)[i].b, addr, mask);
+    (*map)[i].ifnum = ifnum;
 }
 
 void qfIfMapInit(qfIfMap_t *map)
@@ -229,7 +237,7 @@ void qfIfMapInit(qfIfMap_t *map)
     map->dst6map_sz = 0;
 }
 
-void qfIfMapAddIPv4Mapping(qfIfMap_t      *map,
+void qfIfMapAddIPv4Mapping(qfIfMap_t    *map,
                          uint32_t       addr,
                          uint8_t        pfx,
                          uint8_t        ingress,
@@ -237,9 +245,12 @@ void qfIfMapAddIPv4Mapping(qfIfMap_t      *map,
 {
     char addrbuf[16];
     uint32_t naddr = htonl(addr);
-    (void)inet_ntop(AF_INET, &naddr, addrbuf, sizeof(naddr));
-    fprintf(stderr, "** qofifmap adding IPv4 mapping %s/%u => (%u,%u)\n",
-            addrbuf, pfx, ingress, egress);
+    if (inet_ntop(AF_INET, &naddr, addrbuf, sizeof(addrbuf))) {
+        fprintf(stderr, "** qofifmap adding IPv4 mapping %s/%u => (%u,%u)\n",
+                addrbuf, pfx, ingress, egress);
+    } else {
+        fprintf(stderr, "error unparsing IPv4 address 0x%08x: %s\n", naddr, strerror(errno));
+    }
     
     if (ingress) {
         qfMapInsert4(&(map->src4map), &(map->src4map_sz),
@@ -259,10 +270,12 @@ void qfIfMapAddIPv6Mapping(qfIfMap_t    *map,
                          uint8_t        egress)
 {
     char addrbuf[40];
-    (void)inet_ntop(AF_INET6, addr, addrbuf, 16);
-    fprintf(stderr, "** qofifmap adding IPv6 mapping %s/%u => (%u,%u)\n",
-            addrbuf, pfx, ingress, egress);
-
+    if (inet_ntop(AF_INET6, addr, addrbuf, sizeof(addrbuf))) {
+        fprintf(stderr, "** qofifmap adding IPv6 mapping %s/%u => (%u,%u)\n",
+                addrbuf, pfx, ingress, egress);
+    } else {
+        fprintf(stderr, "error unparsing IPv6 address: %s\n", strerror(errno));
+    }
     
     if (ingress) {
         qfMapInsert6(&(map->src6map), &(map->src6map_sz),
