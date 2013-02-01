@@ -59,4 +59,7 @@ void qfIfMapAddresses(qfIfMap_t           *map,
                     uint8_t             *ingress,
                     uint8_t             *egress);
 
+void qfIfMapDump(FILE*                      out,
+                 qfIfMap_t                  *map);
+
 #endif

@@ -34,11 +34,7 @@ struct qfIfMapEntry6_st {
 };
 
 static int qfIp6Compare(uint8_t *a, uint8_t *b) {
-    for (int i = 0; i < 16; i++) {
-        if (a[i] > b[i]) return 1;
-        if (a[i] < b[i]) return -1;
-    }
-    return 0;
+    return memcmp(a, b, 16);
 }
 
 static void qfIp6Mask(uint8_t *ma, uint8_t *a, uint8_t *mask) {
@@ -50,7 +46,7 @@ static void qfIp6Mask(uint8_t *ma, uint8_t *a, uint8_t *mask) {
 static uint32_t qfPrefixMask4(uint8_t p) {
     uint32_t o = 0;
     
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < p; i++) {
         o >>= 1;
         o |= 0x80000000U;
     }
@@ -92,8 +88,8 @@ static uint8_t qfMapSearch4(qfIfMapEntry4_t     *map,
                             uint32_t            addr)
 {
     /* initialize bounds */
-    size_t x = 0;
-    size_t y = map_sz - 1;
+    ssize_t x = 0;
+    ssize_t y = map_sz - 1;
     
     int i;
 
@@ -101,12 +97,12 @@ static uint8_t qfMapSearch4(qfIfMapEntry4_t     *map,
     while (x <= y) {
         i = (x+y)/2;
         
-        if (map[i].b < addr) {
-            y = i - 1;
-        } else if (addr >= map[i].a && addr <= map[i].b) {
+        if (addr >= map[i].a && addr <= map[i].b) {
             return map[i].ifnum;
-        } else {
+        } else if (map[i].b < addr) {
             x = i + 1;
+        } else {
+            y = i - 1;
         }
     }
     
@@ -118,28 +114,58 @@ static uint8_t qfMapSearch6(qfIfMapEntry6_t     *map,
                             uint8_t             *addr)
 {
     /* initialize bounds */
-    size_t x = 0;
-    size_t y = map_sz - 1;
+    ssize_t x = 0;
+    ssize_t y = map_sz - 1;
     
     int i;
 
     /* and converge */
     while (x <= y) {
         i = (x+y)/2;
-        
-        if (qfIp6Compare(map[i].a, addr) < 0) {
-            y = i - 1;
+
+        if ((qfIp6Compare(addr, map[i].a) > -1) &&
+            (qfIp6Compare(addr, map[i].b) < 1)) {
+            return map[i].ifnum;
+        } else if (qfIp6Compare(map[i].a, addr) < 0) {
+            x = i + 1;
         } else {
-            if ((qfIp6Compare(map[i].a, addr) < 1) &&
-                (qfIp6Compare(map[i].b, addr) > -1)) {
-                return map[i].ifnum;
-            } else {
-                x = i + 1;
-            }
+            y = i - 1;
         }
     }
     
     return 0;
+}
+
+
+static void qfIfMap4Dump(FILE*                     out,
+                         qfIfMapEntry4_t           *map,
+                         size_t                    map_sz)
+{
+    int i;
+    uint32_t a, b;
+    char abuf[16], bbuf[16];
+    
+    for (i = 0; i < map_sz; i++) {
+        a = ntohl(map[i].a);
+        b = ntohl(map[i].b);
+        (void)inet_ntop(AF_INET, &a, abuf, sizeof(abuf));
+        (void)inet_ntop(AF_INET, &b, bbuf, sizeof(bbuf));
+        fprintf(out, "%s - %s -> %3u\n", abuf, bbuf, map[i].ifnum);
+    }
+}
+
+static void qfIfMap6Dump(FILE*                     out,
+                         qfIfMapEntry6_t           *map,
+                         size_t                    map_sz)
+{
+    int i;
+    char abuf[40], bbuf[40];
+    
+    for (i = 0; i < map_sz; i++) {
+        (void)inet_ntop(AF_INET6, map[i].a, abuf, sizeof(abuf));
+        (void)inet_ntop(AF_INET6, map[i].b, bbuf, sizeof(bbuf));
+        fprintf(out, "%s - %s -> %3u\n", abuf, bbuf, map[i].ifnum);
+    }
 }
 
 static void qfMapInsert4(qfIfMapEntry4_t       **map,
@@ -148,14 +174,20 @@ static void qfMapInsert4(qfIfMapEntry4_t       **map,
                          uint8_t               pfx,
                          uint8_t               ifnum)
 {
-    size_t i, j;
+    size_t i = 0;
     uint32_t mask;
     
     qfIfMapEntry4_t     *new_map;
     
     // linear search to insertion point
-    for (i = 0; (i < *map_sz) && (addr < (*map)[i].b); i++);
-    
+    if (*map_sz == 0 || addr < (*map)[0].a) {
+        i = 0;
+    } else if (addr > (*map)[(*map_sz)-1].b) {
+        i = *map_sz;
+    } else for (i = 1; i < *map_sz; i++) {
+        if (((*map)[i-1].b < addr) && (addr < (*map)[i].a)) break;
+    }
+        
     // FIXME check for overlap
     
     // reallocate map
@@ -169,14 +201,14 @@ static void qfMapInsert4(qfIfMapEntry4_t       **map,
     
     // shift further elements
     if (i < *map_sz - 1) {
-        memcpy(&(*map)[i+1], &(*map)[i],
+        memcpy(&((*map)[i+1]), &((*map)[i]),
                (*map_sz - (i+1)) * sizeof(qfIfMapEntry4_t));
     }
     
     // create new element
     mask = qfPrefixMask4(pfx);
     (*map)[i].a = addr & mask;
-    (*map)[i].b = addr | ~mask;
+    (*map)[i].b = (addr | (~mask));
     (*map)[i].ifnum = ifnum;
 }
 
@@ -186,14 +218,21 @@ static void qfMapInsert6(qfIfMapEntry6_t       **map,
                          uint8_t               pfx,
                          uint8_t               ifnum)
 {
-    size_t i, j;
+    size_t i = 0;
     uint8_t mask[16];
     
     qfIfMapEntry6_t     *new_map;
 
     // linear search to insertion point
-    for (i = 0; (i < *map_sz) && (qfIp6Compare(addr,(*map)[i].b) < 0); i++);
-    
+    if (*map_sz == 0 || qfIp6Compare(addr, (*map)[0].a) < 0) {
+        i = 0;
+    } else if (qfIp6Compare(addr, (*map)[(*map_sz)-1].b) > 0) {
+        i = *map_sz;
+    } else for (i = 1; i < *map_sz; i++) {
+        if ((qfIp6Compare((*map)[i-1].b, addr) < 0) &&
+            (qfIp6Compare(addr, (*map)[i].a) < 0)) break;
+    }
+
     // FIXME check for overlap
     
     // reallocate map
@@ -204,18 +243,12 @@ static void qfMapInsert6(qfIfMapEntry6_t       **map,
     }
     *map = new_map;
     (*map_sz)++;
-    
+
     // shift further elements
     if (i < *map_sz - 1) {
-        memcpy(&(*map)[i+1], &(*map)[i],
+        memcpy(&((*map)[i+1]), &((*map)[i]),
                (*map_sz - (i+1)) * sizeof(qfIfMapEntry6_t));
     }
-        
-//    if (*map_sz > 1) {
-//        for (j = (*map_sz) - 1; j > i; j--) {
-//            memcpy(&map[j], &map[j-1], sizeof(map[j-1]));
-//        }
-//    }
     
     // create new element
     qfPrefixMask6(mask,pfx);
@@ -243,14 +276,14 @@ void qfIfMapAddIPv4Mapping(qfIfMap_t    *map,
                          uint8_t        ingress,
                          uint8_t        egress)
 {
-    char addrbuf[16];
-    uint32_t naddr = htonl(addr);
-    if (inet_ntop(AF_INET, &naddr, addrbuf, sizeof(addrbuf))) {
-        fprintf(stderr, "** qofifmap adding IPv4 mapping %s/%u => (%u,%u)\n",
-                addrbuf, pfx, ingress, egress);
-    } else {
-        fprintf(stderr, "error unparsing IPv4 address 0x%08x: %s\n", naddr, strerror(errno));
-    }
+//    char addrbuf[16];
+//    uint32_t naddr = htonl(addr);
+//    if (inet_ntop(AF_INET, &naddr, addrbuf, sizeof(addrbuf))) {
+//        fprintf(stderr, "** qofifmap adding IPv4 mapping %s/%u => (%u,%u)\n",
+//                addrbuf, pfx, ingress, egress);
+//    } else {
+//        fprintf(stderr, "error unparsing IPv4 address 0x%08x: %s\n", naddr, strerror(errno));
+//    }
     
     if (ingress) {
         qfMapInsert4(&(map->src4map), &(map->src4map_sz),
@@ -269,13 +302,13 @@ void qfIfMapAddIPv6Mapping(qfIfMap_t      *map,
                            uint8_t        ingress,
                            uint8_t        egress)
 {
-    char addrbuf[40];
-    if (inet_ntop(AF_INET6, addr, addrbuf, sizeof(addrbuf))) {
-        fprintf(stderr, "** qofifmap adding IPv6 mapping %s/%u => (%u,%u)\n",
-                addrbuf, pfx, ingress, egress);
-    } else {
-        fprintf(stderr, "error unparsing IPv6 address: %s\n", strerror(errno));
-    }
+//    char addrbuf[40];
+//    if (inet_ntop(AF_INET6, addr, addrbuf, sizeof(addrbuf))) {
+//        fprintf(stderr, "** qofifmap adding IPv6 mapping %s/%u => (%u,%u)\n",
+//                addrbuf, pfx, ingress, egress);
+//    } else {
+//        fprintf(stderr, "error unparsing IPv6 address: %s\n", strerror(errno));
+//    }
     
     if (ingress) {
         qfMapInsert6(&(map->src6map), &(map->src6map_sz),
@@ -304,6 +337,19 @@ void qfIfMapAddresses(qfIfMap_t           *map,
         *ingress = 0;
         *egress = 0;        
     }
+}
+
+void qfIfMapDump(FILE*                      out,
+                 qfIfMap_t                  *map)
+{
+    fprintf(out, "ip4 source map:\n");
+    qfIfMap4Dump(out, map->src4map, map->src4map_sz);
+    fprintf(out, "ip6 source map:\n");
+    qfIfMap6Dump(out, map->src6map, map->src6map_sz);
+    fprintf(out, "ip4 dest map:\n");
+    qfIfMap4Dump(out, map->dst4map, map->dst4map_sz);
+    fprintf(out, "ip6 dest map:\n");
+    qfIfMap6Dump(out, map->dst6map, map->dst6map_sz);
 }
 
                       

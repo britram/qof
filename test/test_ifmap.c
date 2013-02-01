@@ -355,7 +355,8 @@ int main (int argc, char* argv[])
     
     FILE            *mapfile, *testfile;
     
-    static char     testbuf[1024], addrbuf[40];
+    static char     testbuf[1024];
+    static char     addrbuf[40];
     
     yfFlowKey_t     testkey;
     
@@ -393,10 +394,10 @@ int main (int argc, char* argv[])
         return rv;
     }
     
-    fprintf(stdout, "Mapfile parse successful.\n");
+    fprintf(stdout, "Mapfile parse successful:\n");
     
-    // initialize the testkey
-    memset(&testkey, 0, sizeof(testkey));
+    qfIfMapDump(stdout, &map);
+    
     
     // open and parse the testfile
     if (!(testfile = fopen(argv[2], "r"))) {
@@ -405,22 +406,36 @@ int main (int argc, char* argv[])
     }
     
     while (fgets(testbuf, sizeof(testbuf), testfile)) {
-        if (sscanf(testbuf, "%15[0-9.]", addrbuf) == 1) {
-            if (inet_pton(AF_INET, addrbuf, &addr4) == 1) {
+
+        // initialize the testkey
+        memset(&testkey, 0, sizeof(testkey));
+
+        if (strchr(testbuf, ':')) {
+            if ((sscanf(testbuf, " %39[0-9a-fA-F:.]", addrbuf) == 1) &&
+                (inet_pton(AF_INET6, addrbuf, testkey.addr.v6.sip) == 1))
+            {
+                testkey.version = 6;
+                memcpy(testkey.addr.v6.dip, testkey.addr.v6.sip, sizeof(testkey.addr.v6.dip));
+                inet_ntop(AF_INET6, testkey.addr.v6.sip, addrbuf, sizeof(addrbuf));
+            } else {
+                fprintf(stdout, "can't parse IPv6 address %40s\n", testbuf);
+                continue;
+            }
+        } else {
+            if ((sscanf(testbuf, " %15[0-9.]", addrbuf) == 1) &&
+                (inet_pton(AF_INET, addrbuf, &addr4) == 1))
+            {
                 testkey.version = 4;
                 testkey.addr.v4.sip = ntohl(addr4);
                 testkey.addr.v4.dip = ntohl(addr4);
+                inet_ntop(AF_INET, &addr4, addrbuf, sizeof(addrbuf));
+            } else {
+                fprintf(stdout, "can't parse IPv4 address %40s\n", testbuf);
+                continue;
             }
-        } else if (sscanf(testbuf, " %39[0-9a-fA-F:.]", addrbuf) == 1) {
-            if (inet_pton(AF_INET, addrbuf, testkey.addr.v6.sip) == 1) {
-                testkey.version = 6;
-                memcpy(testkey.addr.v6.dip, testkey.addr.v6.sip, sizeof(testkey.addr.v6.dip));
-            }            
-        } else {
-            fprintf(stdout, "%-40s unparseable\n", addrbuf);
         }
         
         qfIfMapAddresses(&map, &testkey, &ingress, &egress);
-        fprintf(stdout, "%-40s in %3u out %3u\n", addrbuf, ingress, egress);
+        fprintf(stdout, "%40s in %3u out %3u\n", addrbuf, ingress, egress);
     }
 }
