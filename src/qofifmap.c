@@ -263,11 +263,11 @@ void qfIfMapAddIPv4Mapping(qfIfMap_t    *map,
 }
 
 
-void qfIfMapAddIPv6Mapping(qfIfMap_t    *map,
-                         uint8_t        *addr,
-                         uint8_t        pfx,
-                         uint8_t        ingress,
-                         uint8_t        egress)
+void qfIfMapAddIPv6Mapping(qfIfMap_t      *map,
+                           uint8_t        *addr,
+                           uint8_t        pfx,
+                           uint8_t        ingress,
+                           uint8_t        egress)
 {
     char addrbuf[40];
     if (inet_ntop(AF_INET6, addr, addrbuf, sizeof(addrbuf))) {
@@ -289,9 +289,9 @@ void qfIfMapAddIPv6Mapping(qfIfMap_t    *map,
 }
 
 void qfIfMapAddresses(qfIfMap_t           *map,
-                    yfFlowKey_t         *key, 
-                    uint8_t             *ingress, 
-                    uint8_t             *egress)
+                      yfFlowKey_t         *key, 
+                      uint8_t             *ingress, 
+                      uint8_t             *egress)
 {
     if (key->version == 4) {
         *ingress = qfMapSearch4(map->src4map, map->src4map_sz, key->addr.v4.sip);

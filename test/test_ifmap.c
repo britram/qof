@@ -265,7 +265,7 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
             case QCP_IN_IFMAP_V6NET:    // expecting v6 address value for ifmap
                 
                 if (event.type == YAML_SCALAR_EVENT) {
-                    rv = sscanf((const char*)event.data.scalar.value, "%15[0-9a-fA-F:.]/%u", addr6buf, &pfx6);
+                    rv = sscanf((const char*)event.data.scalar.value, "%39[0-9a-fA-F:.]/%u", addr6buf, &pfx6);
                     if (rv == 1) {
                         pfx6 = 128; // implicit single host
                     } else if (rv != 2) {
@@ -353,7 +353,14 @@ int main (int argc, char* argv[])
     qfIfMap_t       map;
     yaml_parser_t   parser;
     
-    FILE            *mapfile;
+    FILE            *mapfile, *testfile;
+    
+    static char     testbuf[1024], addrbuf[40];
+    
+    yfFlowKey_t     testkey;
+    
+    uint32_t        addr4;
+    uint8_t         ingress, egress;
     
     int rv;
     
@@ -388,10 +395,32 @@ int main (int argc, char* argv[])
     
     fprintf(stdout, "Mapfile parse successful.\n");
     
-    // free and reinitialize parser
+    // initialize the testkey
+    memset(&testkey, 0, sizeof(testkey));
     
-    // open and bind testfile
+    // open and parse the testfile
+    if (!(testfile = fopen(argv[2], "r"))) {
+        fprintf(stderr, "error opening testfile: %s\n", strerror(errno));
+        return 1;
+    }
     
-    // parse the testfile
-    
+    while (fgets(testbuf, sizeof(testbuf), testfile)) {
+        if (sscanf(testbuf, "%15[0-9.]", addrbuf) == 1) {
+            if (inet_pton(AF_INET, addrbuf, &addr4) == 1) {
+                testkey.version = 4;
+                testkey.addr.v4.sip = ntohl(addr4);
+                testkey.addr.v4.dip = ntohl(addr4);
+            }
+        } else if (sscanf(testbuf, " %39[0-9a-fA-F:.]", addrbuf) == 1) {
+            if (inet_pton(AF_INET, addrbuf, testkey.addr.v6.sip) == 1) {
+                testkey.version = 6;
+                memcpy(testkey.addr.v6.dip, testkey.addr.v6.sip, sizeof(testkey.addr.v6.dip));
+            }            
+        } else {
+            fprintf(stdout, "%-40s unparseable\n", addrbuf);
+        }
+        
+        qfIfMapAddresses(&map, &testkey, &ingress, &egress);
+        fprintf(stdout, "%-40s in %3u out %3u\n", addrbuf, ingress, egress);
+    }
 }
