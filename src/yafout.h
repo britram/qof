@@ -62,7 +62,7 @@
 #include <yaf/autoinc.h>
 #include <airframe/airlock.h>
 #include <fixbuf/public.h>
-#include "yafctx.h"
+#include "qofctx.h"
 
 fBuf_t *yfOutputOpen(
     yfConfig_t              *cfg,

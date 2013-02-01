@@ -60,7 +60,7 @@
 #define _YAF_FLUSH_H_
 
 #include <yaf/autoinc.h>
-#include "yafctx.h"
+#include "qofctx.h"
 
 gboolean yfProcessPBufRing(
     yfContext_t        *ctx,

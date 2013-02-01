@@ -41,6 +41,7 @@
 		F5192342167238A400514165 /* mio_source_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192301167238A400514165 /* mio_source_udp.c */; };
 		F5192343167238A400514165 /* mio_stdio.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192302167238A400514165 /* mio_stdio.c */; };
 		F5192344167238A400514165 /* privconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192303167238A400514165 /* privconfig.c */; };
+		F52331DB16BC130400A3FA81 /* qofctx.c in Sources */ = {isa = PBXBuildFile; fileRef = F52331DA16BC130400A3FA81 /* qofctx.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -81,7 +82,7 @@
 		F51922271672388F00514165 /* yafcap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafcap.h; sourceTree = "<group>"; };
 		F51922281672388F00514165 /* yafcollect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafcollect.c; sourceTree = "<group>"; };
 		F51922291672388F00514165 /* yafcore.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafcore.c; sourceTree = "<group>"; };
-		F519222A1672388F00514165 /* yafctx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafctx.h; sourceTree = "<group>"; };
+		F519222A1672388F00514165 /* qofctx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofctx.h; sourceTree = "<group>"; };
 		F519222B1672388F00514165 /* yafcygwin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafcygwin.c; sourceTree = "<group>"; };
 		F519222C1672388F00514165 /* yafdag.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafdag.c; sourceTree = "<group>"; };
 		F519222D1672388F00514165 /* yafdag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafdag.h; sourceTree = "<group>"; };
@@ -177,6 +178,7 @@
 		F5192301167238A400514165 /* mio_source_udp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mio_source_udp.c; sourceTree = "<group>"; };
 		F5192302167238A400514165 /* mio_stdio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mio_stdio.c; sourceTree = "<group>"; };
 		F5192303167238A400514165 /* privconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = privconfig.c; sourceTree = "<group>"; };
+		F52331DA16BC130400A3FA81 /* qofctx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofctx.c; sourceTree = "<group>"; };
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -222,7 +224,7 @@
 				F51922271672388F00514165 /* yafcap.h */,
 				F51922281672388F00514165 /* yafcollect.c */,
 				F51922291672388F00514165 /* yafcore.c */,
-				F519222A1672388F00514165 /* yafctx.h */,
+				F519222A1672388F00514165 /* qofctx.h */,
 				F519222B1672388F00514165 /* yafcygwin.c */,
 				F519222C1672388F00514165 /* yafdag.c */,
 				F519222D1672388F00514165 /* yafdag.h */,
@@ -238,6 +240,7 @@
 				F51922371672388F00514165 /* yafstat.c */,
 				F51922381672388F00514165 /* yafstat.h */,
 				F51922391672388F00514165 /* yaftab.c */,
+				F52331DA16BC130400A3FA81 /* qofctx.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -507,6 +510,7 @@
 				F5192343167238A400514165 /* mio_stdio.c in Sources */,
 				F5192344167238A400514165 /* privconfig.c in Sources */,
 				D38872B716946DDF00E66A70 /* qofifmap.c in Sources */,
+				F52331DB16BC130400A3FA81 /* qofctx.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -397,9 +397,7 @@ typedef struct yfHdrSre_st {
 struct yfDecodeCtx_st {
     /* State (none) */
     /* Configuration */
-    uint64_t        pcap_offset;
     int             datalink;
-    uint16_t        pcap_caplist;
     uint16_t        reqtype;
     gboolean        gremode;
     /* Statistics */
@@ -1354,11 +1352,6 @@ gboolean yfDecodeToPBuf(
     /* Keep the start of pcap for pcap output */
     ipTcpHeaderStart = pkt;
 
-    /* add the offset into the pcap */
-    pbuf->pcap_offset = ctx->pcap_offset;
-    pbuf->pcap_caplist = ctx->pcap_caplist;
-    ctx->pcap_offset += (16 + pbuf->pcap_hdr.caplen);
-
     /* Unwrap layer 2 headers */
     if (!(pkt = yfDecodeL2(ctx, &caplen, pkt, &type, l2info))) {
         return FALSE;
@@ -1408,8 +1401,6 @@ yfDecodeCtx_t *yfDecodeCtxAlloc(
     ctx->datalink = datalink;
     ctx->reqtype = reqtype;
     ctx->gremode = gremode;
-    ctx->pcap_offset = sizeof(struct pcap_file_header);
-    ctx->pcap_caplist = 0;
 
     /* Done */
     return ctx;
@@ -1485,18 +1476,6 @@ uint32_t yfGetDecodeStats(
 
     return fail_total;
 }
-
-/**
- * yfDecodeResetOffset
- *
- */
-void yfDecodeResetOffset(
-    yfDecodeCtx_t *ctx)
-{
-    ctx->pcap_offset = sizeof(struct pcap_file_header);
-    ctx->pcap_caplist++;
-}
-
 
 /**
  * yfDecodeDumpStats

@@ -157,8 +157,6 @@ typedef struct yfPBuf_st {
     struct pcap_pkthdr  pcap_hdr;
     /** pcap struct */
     pcap_t          *pcapt;
-    /** offset into pcap */
-    uint64_t        pcap_offset;
     /** caplist */
     uint16_t        pcap_caplist;
     /** Packet IP length. */
@@ -323,15 +321,6 @@ uint64_t yfDecodeTimeNTP(
 void yfDecodeDumpStats(
     yfDecodeCtx_t       *ctx,
     uint64_t            packetTotal);
-
-/**
- * Reset Offset into Pcap if evaluating multiple pcap
- * files
- *
- * @param ctx decode context
- */
-void yfDecodeResetOffset(
-    yfDecodeCtx_t *ctx);
 
 /**
  * Get Stats to Export in Options Records

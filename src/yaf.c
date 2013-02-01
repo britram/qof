@@ -68,7 +68,7 @@
 
 #include "yafcap.h"
 #include "yafstat.h"
-#include "yafctx.h"
+#include "qofctx.h"
 #if YAF_ENABLE_DAG
 #include "yafdag.h"
 #endif

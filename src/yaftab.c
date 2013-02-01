@@ -68,7 +68,7 @@
 #include <yaf/picq.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
-#include "yafctx.h"
+#include "qofctx.h"
 #include "decode.h"
 
 #ifndef YFDEBUG_FLOWTABLE

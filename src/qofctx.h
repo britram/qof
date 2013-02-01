@@ -1,11 +1,12 @@
 /**
- ** yafctx.h
- ** YAF configuration
+ ** qofctx.h
+ ** QoF configuration
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2007-2012 Carnegie Mellon University. All Rights Reserved.
+ ** Copyright (C) 2013      Brian Trammell. All Rights Reserved
  ** ------------------------------------------------------------------------
- ** Authors: Brian Trammell
+ ** Authors: Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
  ** @OPENSOURCE_HEADER_START@
  ** Use of the YAF system and related source code is subject to the terms
@@ -56,8 +57,8 @@
  ** ------------------------------------------------------------------------
  */
 
-#ifndef _YAF_CTX_H_
-#define _YAF_CTX_H_
+#ifndef _QOF_CTX_H_
+#define _QOF_CTX_H_
 
 #include <yaf/autoinc.h>
 #include <yaf/yaftab.h>
@@ -66,29 +67,30 @@
 #include <yaf/ring.h>
 #include <airframe/airlock.h>
 
+/* YAF Configuration structure */
 typedef struct yfConfig_st {
-    char            *inspec;
-    char            *livetype;
-    char            *outspec;
-    char            *bpf_expr;
-    gboolean        lockmode;
-    gboolean        ipfixNetTrans;
-    gboolean        noerror;
-    gboolean        dagInterface;
-    gboolean        pcapxInterface;
-    gboolean        macmode;
-    gboolean        silkmode;
-    gboolean        nostats;
-    gboolean        statsmode;
-    gboolean        deltamode;
-    uint32_t        ingressInt;
-    uint32_t        egressInt;
-    uint64_t        stats;
-    uint64_t        rotate_ms;
+    char            *inspec;            // Input specifier
+    char            *livetype;          // Packet capture driver
+    char            *outspec;           // Output specifier
+    char            *bpf_expr;          // libpcap BPF filter expression
+    gboolean        lockmode;           // use lock files
+    gboolean        ipfixNetTrans;      // ??
+    gboolean        noerror;            // ??
+    gboolean        dagInterface;       // ??
+    gboolean        pcapxInterface;     // ??
+    gboolean        macmode;            // Emit Layer 2 information
+    gboolean        silkmode;           // Enable SiLK compatibility
+    gboolean        nostats;            // Disable statistics
+    gboolean        statsmode;          // ??
+    gboolean        deltamode;          // Export counters as deltas
+    uint32_t        ingressInt;         // Constant ingress interface
+    uint32_t        egressInt;          // Constant egress interface
+    uint64_t        stats;              // ??
+    uint64_t        rotate_ms;          // ??
     /* in seconds - convert to ms in yaf.c */
-    uint64_t        yaf_udp_template_timeout;
-    uint32_t        odid;
-    fbConnSpec_t    connspec;
+    uint64_t        yaf_udp_template_timeout;   // UDP template retransmission
+    uint32_t        odid;                       // Observation domain ID
+    fbConnSpec_t    connspec;                   // fixbuf connection specifier
     } yfConfig_t;
 
 #define YF_CONFIG_INIT {NULL, NULL, NULL, NULL, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, 0, 0, 300, 0, 600, 0, FB_CONNSPEC_INIT}
@@ -116,12 +118,6 @@ typedef struct yfContext_st {
     uint64_t            lastUdpTempTime;
     /** Error description */
     GError              *err;
-    /** Pcap File Ptr for Rolling Pcap*/
-    pcap_dumper_t       *pcap;
-    /** Pcap Offset into Rolling Pcap */
-    uint64_t             pcap_offset;
-    /** Pcap Lock Buffer */
-    AirLock             pcap_lock;
 } yfContext_t;
 
 #define YF_CTX_INIT {NULL, NULL, 0, NULL, NULL, NULL, NULL, 0, AIR_LOCK_INIT, NULL, 0, NULL, NULL, 0, AIR_LOCK_INIT}

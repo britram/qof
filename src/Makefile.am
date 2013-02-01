@@ -76,5 +76,5 @@ yafcollect_LDADD = libyaf.la @GLIB_LDADD@
 yafcollect_LDFLAGS =  -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@
 yafcollect_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@
 
-noinst_HEADERS = yafdag.h yafcap.h yafpcapx.h yafstat.h yafout.h yaflush.h yafctx.h
+noinst_HEADERS = yafdag.h yafcap.h yafpcapx.h yafstat.h yafout.h yaflush.h qofctx.h
 

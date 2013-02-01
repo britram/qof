@@ -464,11 +464,6 @@ static void yfCapHandle(
     }
 #endif
 
-    /* rolling pcap dump */
-    if (ctx->pcap) {
-        pcap_dump((u_char *)ctx->pcap, hdr, pkt);
-    }
-
     /* Decode packet into packet buffer */
     if (!yfDecodeToPBuf(ctx->dectx,
                         yfDecodeTimeval(&(hdr->ts)),
@@ -477,11 +472,6 @@ static void yfCapHandle(
     {
         /* Couldn't decode packet; counted in dectx. Skip. */
         return;
-    }
-
-    if (ctx->pcap) {
-        pbuf->pcap_offset = ctx->pcap_offset;
-        ctx->pcap_offset += (16 + pbuf->pcap_hdr.caplen);
     }
 
     /* Handle fragmentation if necessary */
@@ -557,7 +547,8 @@ gboolean yfCapMain(
                     g_clear_error(&(ctx->err));
                     break;
                 }
-                yfDecodeResetOffset(ctx->dectx);
+                // FIXME remove this, stub of old pcap dump
+                //yfDecodeResetOffset(ctx->dectx);
 
             } else if (!cs->is_live) {
              /* EOF in single capfile mode; break; will check to see if
@@ -588,7 +579,8 @@ gboolean yfCapMain(
                     ok = FALSE;
                     break;
                 }
-                yfDecodeResetOffset(ctx->dectx);
+                // FIXME remove this, stub of old pcap dump
+                //yfDecodeResetOffset(ctx->dectx);
             } else {
                 if (ctx->cfg->noerror) {
                     g_warning("Couldn't read next pcap record from %s: %s",
@@ -646,16 +638,6 @@ gboolean yfCapMain(
         }
         /* free timer */
         g_timer_destroy(stimer);
-    }
-
-    if (ctx->pcap) {
-        pcap_dump_flush(ctx->pcap);
-        pcap_dump_close(ctx->pcap);
-        air_lock_release(&(ctx->pcap_lock));
-        air_lock_cleanup(&(ctx->pcap_lock));
-        if (timer_pcap_file) {
-            g_timer_destroy(timer_pcap_file);
-        }
     }
 
     return yfFinalFlush(ctx, ok, yaf_pcap_drop, yfStatGetTimer(),
