@@ -389,7 +389,7 @@ int main (int argc, char* argv[])
 
     // parse the mapfile
     fprintf(stdout, "Parsing mapfile %s...\n", argv[1]); 
-    if (!(rv = parse_ifmap(&map, &parser, argv[1]))) {
+    if ((rv = parse_ifmap(&map, &parser, argv[1])) != 0) {
         return rv;
     }
     
