@@ -270,6 +270,14 @@ void qfIfMapInit(qfIfMap_t *map)
     map->dst6map_sz = 0;
 }
 
+void qfIfMapFree(qfIfMap_t *map) {
+    if (map->src4map) free(map->src4map);
+    if (map->dst4map) free(map->dst4map);
+    if (map->src6map) free(map->src6map);
+    if (map->dst6map) free(map->dst6map);
+    qfIfMapInit(map);
+}
+
 void qfIfMapAddIPv4Mapping(qfIfMap_t    *map,
                          uint32_t       addr,
                          uint8_t        pfx,

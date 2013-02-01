@@ -263,7 +263,6 @@ int parse_ifmap(qfIfMap_t *map, yaml_parser_t *parser, const char *filename) {
                 break;
                     
             case QCP_IN_IFMAP_V6NET:    // expecting v6 address value for ifmap
-                
                 if (event.type == YAML_SCALAR_EVENT) {
                     rv = sscanf((const char*)event.data.scalar.value, "%39[0-9a-fA-F:.]/%u", addr6buf, &pfx6);
                     if (rv == 1) {
@@ -397,7 +396,6 @@ int main (int argc, char* argv[])
     fprintf(stdout, "Mapfile parse successful:\n");
     
     qfIfMapDump(stdout, &map);
-    
     
     // open and parse the testfile
     if (!(testfile = fopen(argv[2], "r"))) {

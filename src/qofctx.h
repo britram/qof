@@ -65,7 +65,10 @@
 #include <yaf/yafrag.h>
 #include <yaf/decode.h>
 #include <yaf/ring.h>
+#include <yaf/qofifmap.h>
 #include <airframe/airlock.h>
+
+#include <yaml.h>
 
 /* YAF Configuration structure */
 typedef struct yfConfig_st {
@@ -73,7 +76,7 @@ typedef struct yfConfig_st {
     char            *livetype;          // Packet capture driver
     char            *outspec;           // Output specifier
     char            *bpf_expr;          // libpcap BPF filter expression
-    gboolean        lockmode;           // use lock files
+    gboolean        lockmode;           // true = use lock files
     gboolean        ipfixNetTrans;      // ??
     gboolean        noerror;            // ??
     gboolean        dagInterface;       // ??
@@ -108,6 +111,8 @@ typedef struct yfContext_st {
     yfFlowTab_t         *flowtab;
     /** Fragment table */
     yfFragTab_t         *fragtab;
+    /** Interface map */
+    qfIfMap_t           ifmap;              // Interface map
     /** Output rotation state */
     uint64_t            last_rotate_ms;
     /** Output lock buffer */
@@ -120,6 +125,9 @@ typedef struct yfContext_st {
     GError              *err;
 } yfContext_t;
 
-#define YF_CTX_INIT {NULL, NULL, 0, NULL, NULL, NULL, NULL, 0, AIR_LOCK_INIT, NULL, 0, NULL, NULL, 0, AIR_LOCK_INIT}
+#define YF_CTX_INIT {NULL, NULL, NULL, NULL, NULL, NULL, QF_IFMAP_INIT, 0, AIR_LOCK_INIT, NULL, 0, NULL}
+
+gboolean qfParseYamlConfig(yfContext_t           *ctx,
+                           const char            *filename);
 
 #endif

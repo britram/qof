@@ -79,6 +79,9 @@
 /* FIXME determine if we want to be more dynamic about this */
 #define YAF_SNAPLEN 128
 
+/* Configuration configuration */
+static char         *qof_cfgfile = NULL;
+
 /* I/O configuration */
 static yfConfig_t    yaf_config = YF_CONFIG_INIT;
 static int           yaf_opt_rotate = 0;
@@ -126,6 +129,8 @@ static yfClose_fn yaf_close_fn = NULL;
 
 #define THE_LAME_80COL_FORMATTER_STRING "\n\t\t\t\t"
 
+// FIXME refactor all of this into YAML configuration for QoF
+
 /* Local derived configutation */
 
 AirOptionEntry yaf_optent_core[] = {
@@ -162,6 +167,10 @@ AirOptionEntry yaf_optent_core[] = {
     AF_OPTION("ipfix",(char)0, 0, AF_OPT_TYPE_STRING, &yaf_opt_ipfix_transport,
               THE_LAME_80COL_FORMATTER_STRING"Export via IPFIX (tcp, udp, "
               "sctp) to CP at -o","protocol"),
+    AF_OPTION( "yaml", (char)0, 0, AF_OPT_TYPE_STRING, &qof_cfgfile,
+              THE_LAME_80COL_FORMATTER_STRING"Read additional configuration "
+              " from YAML file"THE_LAME_80COL_FORMATTER_STRING"(currently used"
+              "for interface mapping)","file"),
     AF_OPTION_END
 };
 
@@ -405,7 +414,6 @@ static void yfParseOptions(
 
     air_option_context_parse(aoctx);
 
-
     /* set up logging and privilege drop */
     if (!logc_setup(&err)) {
         air_opterr("%s", err->message);
@@ -413,6 +421,11 @@ static void yfParseOptions(
 
     if (!privc_setup(&err)) {
         air_opterr("%s", err->message);
+    }
+    
+    /* process YAML configuration file */
+    if (qof_cfgfile) {
+        
     }
 
     /* process ip4mode and ip6mode */
@@ -575,7 +588,7 @@ static void yfParseOptions(
             air_opterr("Refusing to write to terminal on stdout");
         }
     }
-
+    
     air_option_context_free(aoctx);
 }
 
@@ -640,7 +653,13 @@ int main (
     /* parse options */
     yfParseOptions(&argc, &argv);
     ctx.cfg = &yaf_config;
-
+    
+    /* read YAML configuration file */
+    /* FIXME, options parsing needs to be refactored in order to properly
+       integrate YAML configuration; as long as this is only for interface
+       maps, we're good, though. */
+    qfParseYamlConfig(&ctx, qof_cfgfile);
+    
     /* Set up quit handler */
     yfQuitInit();
 

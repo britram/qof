@@ -659,6 +659,7 @@
 					"-lfixbuf",
 					"-lglib-2.0",
 					"-lpcap",
+					"-lyaml",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -689,6 +690,7 @@
 					"-lfixbuf",
 					"-lglib-2.0",
 					"-lpcap",
+					"-lyaml",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

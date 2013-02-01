@@ -40,7 +40,11 @@ typedef struct qfIfMap_st {
     size_t              dst6map_sz;
 } qfIfMap_t;
 
+#define QF_IFMAP_INIT {NULL, 0, NULL, 0, NULL, 0, NULL, 0}
+
 void qfIfMapInit(qfIfMap_t *map);
+
+void qfIfMapFree(qfIfMap_t *map);
 
 void qfIfMapAddIPv4Mapping(qfIfMap_t      *map,
                          uint32_t       addr,
