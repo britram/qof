@@ -19,6 +19,7 @@
 
 #include "qofctx.h"
 
+// FIXME replace this with GError
 static void qfYamlError(const yaml_parser_t     *parser,
                         const char              *filename,
                         const char              *errmsg)
@@ -81,6 +82,7 @@ typedef enum {
     QCP_IN_IFMAP_V6NET,     // expecting v6 address value for ifmap
     QCP_IN_IFMAP_INGRESS,   // expecting ingress interface number for ifmap
     QCP_IN_IFMAP_EGRESS,    // expecting egress interface number for ifmap
+    QCP_IN_ANONMODE,        // expecting value (boolean) for anon-mode
 } qcp_state_t;
 
 gboolean qfParseYamlConfig(yfContext_t           *ctx,
@@ -117,7 +119,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
     memset(&parser, 0, sizeof(parser));
     if (!yaml_parser_initialize(&parser)) {
         qfYamlError(&parser, NULL, NULL);
-        return 1;
+        return FALSE;
     }
     yaml_parser_set_input_file(&parser, cfgfile);
 
@@ -125,7 +127,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
         // get next event
         if (!yaml_parser_parse(&parser, &event)) {
             qfYamlError(&parser, filename, NULL);
-            return 1;
+            return FALSE;
         }
         
         // switch based on state
@@ -138,7 +140,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 if (event.type != YAML_STREAM_START_EVENT) {
                     qfYamlError(&parser, filename,
                                        "internal error: missing stream start");
-                    return 1;
+                    return FALSE;
                 }
                 qcpstate = QCP_IN_STREAM;
                 break;
@@ -151,7 +153,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 } else {
                     qfYamlError(&parser, filename,
                                        "internal error: missing doc start");
-                    return 1;
+                    return FALSE;
                 }
                 break;
                 
@@ -163,27 +165,26 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 } else {
                     qfYamlError(&parser, filename,
                                        "QoF config must consist of a single map");
-                    return 1;
+                    return FALSE;
                 }
                 break;
                 
             case QCP_IN_DOC_MAP:         // in mapping in document
-                if (event.type == YAML_SCALAR_EVENT) {
-                    if (strcmp((const char*)event.data.scalar.value,
-                               "interface-map") == 0)
-                    {
-                        qcpstate = QCP_IN_IFMAP;
-                    } else {
-                        qfYamlError(&parser, filename,
-                                           "unknown configuration key");
-                        return 1;
-                    }
-                } else if (event.type == YAML_MAPPING_END_EVENT) {
+                if (event.type == YAML_MAPPING_END_EVENT) {
                     qcpstate = QCP_IN_DOC;
-                } else {
+                } else if (event.type != YAML_SCALAR_EVENT) {
                     qfYamlError(&parser, filename,
-                                       "internal error: missing key");
-                    return 1;
+                                "internal error: missing key");
+                    return FALSE;
+                } else if (strcmp((const char*)event.data.scalar.value,
+                                  "interface-map") == 0) {
+                    qcpstate = QCP_IN_IFMAP;
+                } else if (strcmp((const char*)event.data.scalar.value,
+                                  "anon-export") == 0) {
+                    qcpstate = QCP_IN_ANONMODE;
+                } else {
+                    qfYamlError(&parser, filename, "unknown configuration key");
+                    return FALSE;
                 }
                 break;
                 
@@ -193,7 +194,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 } else {
                     qfYamlError(&parser, filename,
                                 "missing sequence value for interface-map");
-                    return 1;
+                    return FALSE;
                 }
                 break;
                 
@@ -214,7 +215,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 } else {
                     qfYamlError(&parser, filename,
                                 "missing mapping in interface-map");
-                    return 1;
+                    return FALSE;
                 }
                 break;
                 
@@ -233,7 +234,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 } else if (event.type != YAML_SCALAR_EVENT) {
                     qfYamlError(&parser, filename,
                                        "internal error: missing key");
-                    return 1;
+                    return FALSE;
                 } else if (strcmp((const char*)event.data.scalar.value,
                                   "ip4-net") == 0)
                 {
@@ -253,7 +254,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 } else {
                     qfYamlError(&parser, filename,
                                        "unknown interface-map key");
-                    return 1;
+                    return FALSE;
                 }
                 break;
                 
@@ -267,13 +268,13 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     } else if (rv != 2) {
                         qfYamlError(&parser, filename,
                                            "invalid IPv4 network");
-                        return 1;
+                        return FALSE;
                     }
                     
                     if (pfx4 > 32) {
                         qfYamlError(&parser, filename,
                                            "invalid IPv4 prefix length");
-                        return 1;
+                        return FALSE;
                     }
                     
                     fprintf(stderr, "ip4-net: %s/%u\n", addr4buf, pfx4);
@@ -282,11 +283,11 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     if (rv == 0) {
                         qfYamlError(&parser, filename,
                                            "invalid IPv4 address");
-                        return 1;
+                        return FALSE;
                     } else if (rv == -1) {
                         qfYamlError(&parser, filename,
                                            strerror(errno));
-                        return 1;
+                        return FALSE;
                     }
                     
                     addr4 = ntohl(addr4);
@@ -296,7 +297,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 } else {
                     qfYamlError(&parser, filename,
                                        "missing value for ip4-net");
-                    return 1;
+                    return FALSE;
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
@@ -310,13 +311,13 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     } else if (rv != 2) {
                         qfYamlError(&parser, filename,
                                            "invalid IPv6 network");
-                        return 1;
+                        return FALSE;
                     }
                     
                     if (pfx6 > 128) {
                         qfYamlError(&parser, filename,
                                            "invalid IPv6 prefix length");
-                        return 1;
+                        return FALSE;
                     }
                     
                     fprintf(stderr, "ip6-net: %s/%u\n", addr6buf, pfx6);
@@ -325,17 +326,17 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     if (rv == 0) {
                         qfYamlError(&parser, filename,
                                            "invalid IPv6 address");
-                        return 1;
+                        return FALSE;
                     } else if (rv == -1) {
                         qfYamlError(&parser, filename,
                                            strerror(errno));
-                        return 1;
+                        return FALSE;
                     }
                     
                 } else {
                     qfYamlError(&parser, filename,
                                        "missing value for ip6-net");
-                    return 1;
+                    return FALSE;
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
@@ -347,12 +348,12 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     if (rv != 1 || ingress > 255) {
                         qfYamlError(&parser, filename,
                                            "invalid ingress interface number");
-                        return 1;
+                        return FALSE;
                     }
                 } else {
                     qfYamlError(&parser, filename,
                                        "missing value for ingress-if");
-                    return 1;
+                    return FALSE;
                     
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
@@ -365,25 +366,36 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     if (rv != 1 || egress > 255) {
                         qfYamlError(&parser, filename,
                                            "invalid egress interface number");
-                        return 1;
+                        return FALSE;
                     }
                 } else {
                     qfYamlError(&parser, filename,
                                        "missing value for egress-if");
-                    return 1;
-                    
+                    return FALSE;
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
             
+            case QCP_IN_ANONMODE:
+                if (event.type == YAML_SCALAR_EVENT) {
+                    if (event.data.scalar.value[0] != '0') {
+                        yfWriterExportAnon(TRUE);
+                    }
+                } else {
+                    qfYamlError(&parser, filename,
+                                "missing value for anon-mode");
+                    return FALSE;
+                }
+                break;
+                
             default:
                 qfYamlError(&parser, filename,
                                    "internal error: invalid parser state");
-                return 1;
+                return FALSE;
         }
         // clean up
         yaml_event_delete(&event);
     }
     
-    return 0;
+    return TRUE;
 }

@@ -111,10 +111,10 @@ static gboolean     yaf_opt_gre_mode = FALSE;
 static gboolean     yaf_opt_mac_mode = FALSE;
 
 /* GOption managed core export options */
-static gboolean        yaf_opt_ip6map_mode = FALSE;
+static gboolean     yaf_opt_ip6map_mode = FALSE;
 
 /* global quit flag */
-int    yaf_quit = 0;
+int                 yaf_quit = 0;
 
 /* Runtime functions */
 
@@ -423,11 +423,6 @@ static void yfParseOptions(
         air_opterr("%s", err->message);
     }
     
-    /* process YAML configuration file */
-    if (qof_cfgfile) {
-        
-    }
-
     /* process ip4mode and ip6mode */
     if (yaf_opt_ip4_mode && yaf_opt_ip6_mode) {
         g_warning("cannot run in both ip4-only and ip6-only modes; "
@@ -448,7 +443,14 @@ static void yfParseOptions(
     if (yaf_opt_ip6map_mode) {
         yfWriterExportMappedV6(TRUE);
     }
-
+    // FIXME reverse the sense of this -- delta mode should be default
+    // FIXME check to see whether this should be part of SiLK mode...
+    if (!yaf_config.deltamode) {
+        yfWriterExportTotals(TRUE);
+    }
+    
+    // FIXME harmonize with YAML config -- anon mode is selected there
+    
     /* Pre-process input options */
     if (yaf_config.livetype) {
         /* can't use caplist with live */

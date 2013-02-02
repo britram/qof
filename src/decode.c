@@ -698,33 +698,7 @@ static const uint8_t *yfDecodeL2(
         /* Decode loopback from packet family */
         return yfDecodeL2Loop(ctx, pf, pkt, type);
 #endif
-/*#ifdef DLT_JUNIPER_ETHER
-    case DLT_JUNIPER_ETHER:
-    uint16_t        ext_len;
-    uint8_t         ext_present;
-    uint8_t         hdr_present;
-
-        if (*caplen < 4) {
-            ++ctx->fail_l2hdr;
-            return NULL;
-        }
-        /* Grab Extension Length
-        ext_present = g_ntohs((yfHdrJuniper_t *)pkt->flags) & JUNIPER_FLAG_EXT;
-        hdr_present = g_ntohs((yfHdrJuniper_t *)pkt->flags) & JUNIPER_NO_L2;
-        if (ext_present) {
-            ext_len = g_ntohs((yfHdrJuniper_t *)pkt->ext_len);
-            pkt += 6 + ext_len;
-            *caplen -= 6 + ext_len;
-        } else {
-            pkt += 4;
-            *caplen -= 4;
-        }
-        if (hdr_present == JUNIPER_NO_L2) {
-            *type = DLT_EN10MB;
-            return yfDecodeL2(ctx, pf, pkt, type);
-        */
-        /* variable length - but check for pre-extension length */
-
+            
       default:
         g_warning("unknown datalink %u", ctx->datalink);
         return NULL;

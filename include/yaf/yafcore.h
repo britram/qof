@@ -480,15 +480,19 @@ gboolean yfWriterClose(
  * FIXME doc
  */
 
-void yfWriterExportPayload(
-        gboolean                        payload_mode);
+void yfWriterExportMappedV6(gboolean map_mode);
 
 /**
  * FIXME doc
  */
 
-void yfWriterExportMappedV6(
-        gboolean                        map_mode);
+void yfWriterExportTotals(gboolean total_mode);
+
+/**
+ * FIXME doc
+ */
+
+void yfWriterExportAnon(gboolean anon_mode);
 
 /**
  * Get an IPFIX message buffer for reading YAF flows from an open file pointer.
