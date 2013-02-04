@@ -1050,9 +1050,16 @@ gboolean yfWriteFlow(
     
     /* Flow key selection */
     if (yaf_core_export_anon) {
+
         rec.flowId = 0; /* FIXME assign a flow ID */
+        
         /* enable ID export */
         wtid |= YTF_ANON;
+        
+        /* set ingress and egress interface from map if not already set */
+        qfIfMapAddresses(&ctx->ifmap, &flow->key,
+                         &flow->val.netIf, &flow->rval.netIf);
+        
     } else {
         /* enable key export */
         wtid |= YTF_KEY;
@@ -1122,19 +1129,21 @@ gboolean yfWriteFlow(
         rec.reverseVlanId = flow->key.vlanId; 
     }
     
-    /* Interfaces. FIXME add support for interface mapping here */
+    /* Interfaces. FIXME normalize DAG and BIVIO behavior, now that
+       we're mapping interface numbers from addresses, too. */
 #if YAF_ENABLE_DAG_SEPARATE_INTERFACES || YAF_ENABLE_NAPATECH_SEPARATE_INTERFACES
     rec.ingressInterface = flow->key.netIf;
     rec.egressInterface  = flow->key.netIf | 0x100;
-#endif
-
-#if YAF_ENABLE_BIVIO
+#elif YAF_ENABLE_BIVIO
     rec.ingressInterface = flow->val.netIf;
     if (rec.reversePacketCount) {
         rec.egressInterface = flow->rval.netIf;
     } else {
         rec.egressInterface = flow->val.netIf | 0x100;
     }
+#else 
+    rec.ingressInterface = flow->val.netIf;
+    rec.egressInterface = flow->rval.netIf;
 #endif
 
     if (rec.ingressInterface || rec.egressInterface) {
