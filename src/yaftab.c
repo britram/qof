@@ -68,6 +68,8 @@
 #include <yaf/picq.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
+#include <yaf/qofrtt.h>
+
 #include "qofctx.h"
 #include "decode.h"
 
@@ -486,6 +488,10 @@ static void yfFlowFree(
     yfFlowNode_t        *fn)
 {
 
+    /* free sequence ring if present */
+    if (fn->f.val.seqtime) rgaFree(fn->f.val.seqtime);
+    if (fn->f.rval.seqtime) rgaFree(fn->f.val.seqtime);
+    
     /* free flow */
 #if YAF_ENABLE_COMPACT_IP4
     if (fn->f.key.version == 4) {
@@ -605,7 +611,7 @@ yfFlowTab_t *yfFlowTabAlloc(
 /**
  * yfFlowTabFree
  *
- * free's the entry in the flow table for a given flow entry
+ * free an entire flow table, including all flows therein
  *
  */
 void yfFlowTabFree(
@@ -764,13 +770,12 @@ static void yfFlowPktTCP(
                 val->rtx += 1;
             } else {
                 /* normal advance */
-                val->fsn = tcpinfo->seq;
+                qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
             }
         } else {
             if (val->fsn - tcpinfo->seq > k2e31) {
-                /* sequence number wrap */
-                val->wrapct += 1;
-                val->fsn = tcpinfo->seq;
+                /* advance with sequence number wrap */
+                qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
             } else {
                 /* simple retransmission */
                 val->rtx += 1;
@@ -780,10 +785,12 @@ static void yfFlowPktTCP(
         /* Initial flags */
         val->iflags = tcpinfo->flags;
         /* Initialize sequence number tracking */
-        val->fsn = val->isn = tcpinfo->seq;
+        qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
+        val->isn = val->fsn;
     }
     
-    /* handle ack */ // FIXME make this handle SACK too once we decode SACK
+    /* handle ack */
+    // FIXME make this handle SACK too once we decode SACK
     if (tcpinfo->flags & YF_TF_ACK) {
         if ((tcpinfo->ack > val->lack) || ((val->lack - tcpinfo->ack) > k2e31)) {
             val->lack = tcpinfo->ack;
@@ -1075,7 +1082,7 @@ void yfFlowPBuf(
     yfPBuf_t                    *pbuf)
 {
     yfFlowKey_t                 *key = &(pbuf->key);
-    // unused variable -- delete?
+    // FIXME unused variable -- delete?
     //    yfFlowKey_t                 rkey;
     yfFlowVal_t                 *val = NULL;
     yfFlowNode_t                *fn = NULL;

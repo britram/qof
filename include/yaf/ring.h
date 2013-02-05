@@ -74,6 +74,9 @@ void rgaFree(
 uint8_t *rgaNextHead(
     rgaRing_t       *ring);
 
+uint8_t *rgaForceHead(
+    rgaRing_t       *ring);
+
 void rgaRewindHead(
     rgaRing_t       *ring);
 

@@ -206,6 +206,45 @@ uint8_t *rgaNextHead(
     return head;
 }
 
+/**
+ * rgaForceHead
+ *
+ *
+ *
+ */
+uint8_t *rgaForceHead(
+    rgaRing_t       *ring)
+{
+    uint8_t         *head;
+        
+    /* get head pointer */
+    head = ring->head;
+    
+    /* advance head pointer and wrap */
+    ring->head += ring->elt_sz;
+    if (ring->head > ring->end) {
+        ring->head = ring->base;
+    }
+    
+    /* advance tail pointer if buffer full */
+    if (ring->count >= (ring->cap - ring->trsv)) {
+        ring->tail += ring->elt_sz;
+        if (ring->tail > ring->end) {
+            ring->tail = ring->base;
+        }
+    }
+    
+    /* keep count and peak */
+    ++(ring->count);
+    if (ring->count > ring->peak) {
+        ring->peak = ring->count;
+    }
+    
+    /* return head pointer */
+    return head;
+}
+
+
 #if YAF_RING_THREAD
 /**
  * rgaNextHead

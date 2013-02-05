@@ -42,6 +42,7 @@
 		F5192343167238A400514165 /* mio_stdio.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192302167238A400514165 /* mio_stdio.c */; };
 		F5192344167238A400514165 /* privconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192303167238A400514165 /* privconfig.c */; };
 		F52331DB16BC130400A3FA81 /* qofctx.c in Sources */ = {isa = PBXBuildFile; fileRef = F52331DA16BC130400A3FA81 /* qofctx.c */; };
+		F54A49E216C12DAF004D5B5C /* qofrtt.c in Sources */ = {isa = PBXBuildFile; fileRef = F54A49E116C12DAF004D5B5C /* qofrtt.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -180,6 +181,8 @@
 		F5192303167238A400514165 /* privconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = privconfig.c; sourceTree = "<group>"; };
 		F52331DA16BC130400A3FA81 /* qofctx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofctx.c; sourceTree = "<group>"; };
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
+		F54A49E116C12DAF004D5B5C /* qofrtt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrtt.c; sourceTree = "<group>"; };
+		F54A49E416C130C5004D5B5C /* qofrtt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrtt.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -241,6 +244,7 @@
 				F51922381672388F00514165 /* yafstat.h */,
 				F51922391672388F00514165 /* yaftab.c */,
 				F52331DA16BC130400A3FA81 /* qofctx.c */,
+				F54A49E116C12DAF004D5B5C /* qofrtt.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -271,6 +275,7 @@
 				F519225E1672389900514165 /* yafrag.h */,
 				F519225F1672389900514165 /* yaftab.h */,
 				D31013E116A926230068059F /* qofifmap.h */,
+				F54A49E416C130C5004D5B5C /* qofrtt.h */,
 			);
 			path = yaf;
 			sourceTree = "<group>";
@@ -511,6 +516,7 @@
 				F5192344167238A400514165 /* privconfig.c in Sources */,
 				D38872B716946DDF00E66A70 /* qofifmap.c in Sources */,
 				F52331DB16BC130400A3FA81 /* qofctx.c in Sources */,
+				F54A49E216C12DAF004D5B5C /* qofrtt.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -187,17 +187,6 @@ void yfFlowTabFree(
 
 
 /**
- * Update the Pcap Filename in the Flowtab for pcap meta data output
- *
- * @param flowtab pointer to flow table
- * @param new_file_name the filename of the next pcap file to write to
- */
-
-void yfUpdateRollingPcapFile(
-    yfFlowTab_t                *flowtab,
-    GString                    *new_file_name);
-
-/**
  * yfGetFlowTabStats
  * Get Flow Table Stats for Export
  *

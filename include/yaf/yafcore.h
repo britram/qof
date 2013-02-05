@@ -108,6 +108,9 @@
 #include <fixbuf/public.h>
 #include <stdlib.h>
 #include <math.h>
+
+#include <yaf/ring.h>
+
 /**
  * This is the CERT Private Enterprise Number (PEN) assigned by
  * IANA, used to define our enterprise data elements to extend
@@ -301,6 +304,8 @@ typedef struct yfFlowVal_st {
     uint8_t     uflags;
     /** Real or virtual network interface */
     uint8_t     netIf;
+    /** Sequence number timestamp ring */
+    rgaRing_t   *seqtime;
     /** yaf flow statistics */
     yfFlowStats_t stats;
 } yfFlowVal_t;
