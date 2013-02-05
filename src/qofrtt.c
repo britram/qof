@@ -62,6 +62,20 @@ void qfRttSeqAdvance(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
 void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
     qfSeqTime_t *stent;
 
+    /* track RTT if configured to do so */
+    if (sval->seqtime && ack > aval->lack) {
+        do {
+            stent = (qfSeqTime_t *)rgaNextTail(sval->seqtime);
+        } while (stent && stent->seq < ack);
+        
+        if (stent) {
+            sval->lrtt = (uint32_t)(ms - stent->ms);
+            sval->rttsum += sval->lrtt;
+            sval->rttcount += 1;
+            if (sval->lrtt > sval->maxrtt) sval->maxrtt = sval->lrtt;
+        }
+    }
+
     /* track last ACK */
     aval->lack = ack;
     
@@ -72,19 +86,5 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
         ((sval->fsn - aval->lack) > sval->maxflight))
     {
         sval->maxflight = sval->fsn - aval->lack;
-    }
-
-    /* track RTT if configured to do so */
-    if (sval->seqtime) {
-        for (stent = (qfSeqTime_t *)rgaNextTail(sval->seqtime);
-             stent && stent->seq < ack;)
-        {
-            if (stent) {
-                sval->lrtt = (uint32_t)(ms - stent->ms);
-                sval->rttsum += sval->lrtt;
-                sval->rttcount += 1;
-                if (sval->lrtt > sval->maxrtt) sval->maxrtt = sval->lrtt;
-            }
-        }
     }
 }

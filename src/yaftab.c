@@ -490,7 +490,7 @@ static void yfFlowFree(
 
     /* free sequence ring if present */
     if (fn->f.val.seqtime) rgaFree(fn->f.val.seqtime);
-    if (fn->f.rval.seqtime) rgaFree(fn->f.val.seqtime);
+    if (fn->f.rval.seqtime) rgaFree(fn->f.rval.seqtime);
     
     /* free flow */
 #if YAF_ENABLE_COMPACT_IP4

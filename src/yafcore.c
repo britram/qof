@@ -1124,12 +1124,12 @@ gboolean yfWriteFlow(
         rec.reverseUnionTCPFlags = flow->rval.uflags;
         rec.maxTcpFlightSize = flow->val.maxflight;
         rec.reverseMaxTcpFlightSize = flow->rval.maxflight;
-        rec.meanTcpRttMilliseconds = flow->rval.rttcount ?
+        rec.meanTcpRttMilliseconds = flow->val.rttcount ?
             (uint32_t)(flow->val.rttsum / flow->val.rttcount) : 0;
         rec.reverseMeanTcpRttMilliseconds = flow->rval.rttcount ?
             (uint32_t)(flow->rval.rttsum / flow->rval.rttcount) : 0;
         rec.maxTcpRttMilliseconds = flow->val.maxrtt;
-        rec.reverseMaxTcpRttMilliseconds = flow->val.maxrtt;
+        rec.reverseMaxTcpRttMilliseconds = flow->rval.maxrtt;
     }
     
     /* MAC layer information */

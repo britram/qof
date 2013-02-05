@@ -64,6 +64,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--rtt 64"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--in yaf-test.pcap"
             isEnabled = "YES">
          </CommandLineArgument>
