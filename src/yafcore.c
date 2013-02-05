@@ -95,21 +95,23 @@
 /** General dimensions -- these are either present or not */
 #define YTF_BIF         0x0001  /* Biflow */
 #define YTF_TCP         0x0002  /* TCP and extended TCP */
-#define YTF_MAC         0x0004  /* MAC layer information */
-#define YTF_PHY         0x0008  /* PHY layer information */
+#define YTF_RTT         0x0004  /* sufficient RTT samples available */
+#define YTF_MAC         0x0008  /* MAC layer information */
+#define YTF_PHY         0x0010  /* PHY layer information */
 
 /* Special dimensions -- one of each group must be present */
-#define YTF_IP4         0x0010  /* IPv4 addresses */
-#define YTF_IP6         0x0020  /* IPv6 addresses */
-#define YTF_KEY         0x0040  /* Remainder of primary flow key */
-#define YTF_ANON        0x0080  /* Flow ID; implies ^0x70 */
-#define YTF_FLE         0x0100
-#define YTF_RLE         0x0200
+#define YTF_KEY         0x0020  /* Primary flow key except addresses */
+#define YTF_IP4         0x0040  /* IPv4 addresses */
+#define YTF_IP6         0x0080  /* IPv6 addresses */
+#define YTF_ANON        0x0100  /* Flow ID; implies ^0x70 */
+#define YTF_FLE         0x0200  /* full-length encoding */
+#define YTF_RLE         0x0400  /* reduced-length encoding */
 
 #define YTF_INTERNAL    0x0800 /* internal (padding) IEs */
-#define YTF_ALL         0x01FF /* this has to be everything _except_ RLE enabled */
+#define YTF_ALL         0x02FF /* this has to be everything _except_ RLE enabled */
 
-#define YTF_REV         0xFF0F /* FIXME what is this? */
+/* FIXME more 6313 to throw away... */
+/* #define YTF_REV         0xFF0F */
 
 /** If any of the FLE/RLE values are larger than this constant
     then we have to use FLE, otherwise, we choose RLE to
@@ -182,13 +184,13 @@ static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
     /* inflight */
-    { "maxTcpFlightSize",                   0, YTF_TCP | YTF_BIF },
-    { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF },
+    { "maxTcpFlightSize",                   0, YTF_TCP | YTF_BIF | YTF_RTT },
+    { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF | YTF_RTT },
     /* rtt */
-    { "meanTcpRttMilliseconds",             0, YTF_TCP | YTF_BIF },
-    { "reverseMeanTcpRttMilliseconds",      0, YTF_TCP | YTF_BIF },
-    { "maxTcpRttMilliseconds",              0, YTF_TCP | YTF_BIF },
-    { "reverseMaxTcpRttMilliseconds",       0, YTF_TCP | YTF_BIF },
+    { "meanTcpRttMilliseconds",             0, YTF_TCP | YTF_BIF | YTF_RTT },
+    { "reverseMeanTcpRttMilliseconds",      0, YTF_TCP | YTF_BIF | YTF_RTT },
+    { "maxTcpRttMilliseconds",              0, YTF_TCP | YTF_BIF | YTF_RTT },
+    { "reverseMaxTcpRttMilliseconds",       0, YTF_TCP | YTF_BIF | YTF_RTT },
 //    { "meanTcpFlightSize",                  0, YTF_TCP },
 //    { "reverseMeanTcpFlightSize",           0, YTF_TCP | YTF_BIF },
     /* First packet RTT */

@@ -91,6 +91,18 @@ typedef enum {
     QCP_IN_TMPL_OPT,        // expecting IE option value (template map val)
 } qcp_state_t;
 
+#define QCP_SCALARVAL (const char*)event.data.scalar.value
+
+#define QCP_SCALAR_NEXT_STATE(_v_, _s_) \
+    else if (strcmp((const char*)event.data.scalar.value, (_v_)) == 0) \
+        qcpstate = (_s_);
+
+#define QCP_SCALAR_ERROR(_e_) \
+    else { \
+        qfYamlError(&parser, filename, "unknown configuration key"); \
+        return FALSE; \
+    }
+
 gboolean qfParseYamlConfig(yfContext_t           *ctx,
                            const char            *filename)
 {
@@ -181,18 +193,12 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     qfYamlError(&parser, filename,
                                 "internal error: missing key");
                     return FALSE;
-                } else if (strcmp((const char*)event.data.scalar.value,
-                                  "interface-map") == 0) {
-                    qcpstate = QCP_IN_IFMAP;
-                } else if (strcmp((const char*)event.data.scalar.value,
-                                  "anon-mode") == 0) {
-                    qcpstate = QCP_IN_ANONMODE;
-                } else {
-                    qfYamlError(&parser, filename, "unknown configuration key");
-                    return FALSE;
                 }
-                break;
-                
+                QCP_SCALAR_NEXT_STATE("interface-map", QCP_IN_IFMAP)
+                QCP_SCALAR_NEXT_STATE("anon-mode", QCP_IN_ANONMODE)
+                QCP_SCALAR_NEXT_STATE("template", QCP_IN_TMPL)
+                QCP_SCALAR_ERROR("unknown configuration key")
+                break;                
             case QCP_IN_IFMAP:           // expecting value (sequence) for interface-map
                 if (event.type == YAML_SEQUENCE_START_EVENT) {
                     qcpstate = QCP_IN_IFMAP_SEQ;
@@ -240,27 +246,12 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     qfYamlError(&parser, filename,
                                        "internal error: missing key");
                     return FALSE;
-                } else if (strcmp((const char*)event.data.scalar.value,
-                                  "ip4-net") == 0)
-                {
-                    qcpstate = QCP_IN_IFMAP_V4NET;
-                } else if (strcmp((const char*)event.data.scalar.value,
-                                  "ip6-net") == 0)
-                {
-                    qcpstate = QCP_IN_IFMAP_V6NET;
-                } else if (strcmp((const char*)event.data.scalar.value,
-                                  "ingress") == 0)
-                {
-                    qcpstate = QCP_IN_IFMAP_INGRESS;
-                } else if (strcmp((const char*)event.data.scalar.value,
-                                  "egress") == 0)
-                {
-                    qcpstate = QCP_IN_IFMAP_EGRESS;
-                } else {
-                    qfYamlError(&parser, filename,
-                                       "unknown interface-map key");
-                    return FALSE;
                 }
+                QCP_SCALAR_NEXT_STATE("ip4-net", QCP_IN_IFMAP_V4NET)
+                QCP_SCALAR_NEXT_STATE("ip6-net", QCP_IN_IFMAP_V6NET)
+                QCP_SCALAR_NEXT_STATE("ingress", QCP_IN_IFMAP_INGRESS)
+                QCP_SCALAR_NEXT_STATE("egress", QCP_IN_IFMAP_EGRESS)
+                QCP_SCALAR_ERROR("unknown interface-map key")
                 break;
                 
             case QCP_IN_IFMAP_V4NET:    // expecting v4 address value for ifmap
