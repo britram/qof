@@ -299,9 +299,8 @@ typedef struct yfFlowVal_st {
     uint8_t     iflags;
     /** Union of remaining TCP flags */
     uint8_t     uflags;
-#   if YAF_ENABLE_BIVIO
+    /** Real or virtual network interface */
     uint8_t     netIf;
-#   endif
     /** yaf flow statistics */
     yfFlowStats_t stats;
 } yfFlowVal_t;
