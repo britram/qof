@@ -507,6 +507,12 @@ void yfWriterExportTotals(gboolean total_mode);
 void yfWriterExportAnon(gboolean anon_mode);
 
 /**
+ * FIXME doc
+ */
+
+void yfWriterSpecifyExportIE(const char *iename);
+
+/**
  * Get an IPFIX message buffer for reading YAF flows from an open file pointer.
  * Reuses an existing buffer if supplied.
  *

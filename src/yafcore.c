@@ -530,6 +530,10 @@ void yfWriterExportAnon(
     yaf_core_export_anon = anon_mode;
 }
 
+void yfWriterSpecifyExportIE(const char *iename) {
+    g_warning("ignoring request to export %s", iename);
+}
+
 /**
  * yfFlowPrepare
  *

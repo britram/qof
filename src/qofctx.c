@@ -87,21 +87,32 @@ typedef enum {
     QCP_IN_IFMAP_EGRESS,    // expecting egress interface number for ifmap
     QCP_IN_ANONMODE,        // expecting value (boolean) for anon-mode
     QCP_IN_TMPL,            // expecting value (map) for template
-    QCP_IN_TMPL_MAP,        // expecting IE name (template map key)
-    QCP_IN_TMPL_OPT,        // expecting IE option value (template map val)
+    QCP_IN_TMPL_SEQ,        // expecting IE name (template sequence value)
 } qcp_state_t;
 
-#define QCP_SCALARVAL (const char*)event.data.scalar.value
+#define QCP_SV (const char*)event.data.scalar.value
 
-#define QCP_SCALAR_NEXT_STATE(_v_, _s_) \
-    else if (strcmp((const char*)event.data.scalar.value, (_v_)) == 0) \
-        qcpstate = (_s_);
-
-#define QCP_SCALAR_ERROR(_e_) \
-    else { \
-        qfYamlError(&parser, filename, "unknown configuration key"); \
+#define QCP_REQUIRE_SCALAR(_e_) \
+    if (event.type != YAML_SCALAR_EVENT) { \
+        qfYamlError(&parser, filename, (_e_)); \
         return FALSE; \
     }
+
+#define QCP_SCALAR_NEXT_STATE(_v_, _s_) \
+    if (strcmp((const char*)event.data.scalar.value, (_v_)) == 0) { \
+        qcpstate = (_s_); \
+        break; \
+    }
+
+#define QCP_EVENT_NEXT_STATE(_v_, _s_) \
+    if (event.type == (_v_)) { \
+        qcpstate = (_s_); \
+        break; \
+    }
+
+#define QCP_DEFAULT(_e_) \
+    qfYamlError(&parser, filename, (_e_)); \
+    return FALSE; \
 
 gboolean qfParseYamlConfig(yfContext_t           *ctx,
                            const char            *filename)
@@ -121,6 +132,8 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
     
     unsigned int    ingress;
     unsigned int    egress;
+
+    char            iebuf[80];
     
     int             rv;
     
@@ -154,59 +167,34 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
         } else if (event.type != YAML_NO_EVENT) switch (qcpstate) {
                 
             case QCP_INIT:               // initial state
-                if (event.type != YAML_STREAM_START_EVENT) {
-                    qfYamlError(&parser, filename,
-                                       "internal error: missing stream start");
-                    return FALSE;
-                }
-                qcpstate = QCP_IN_STREAM;
+                QCP_EVENT_NEXT_STATE(YAML_STREAM_START_EVENT, QCP_IN_STREAM)
+                QCP_DEFAULT("internal error: missing stream start")
                 break;
                 
             case QCP_IN_STREAM:          // in stream
-                if (event.type == YAML_DOCUMENT_START_EVENT) {
-                    qcpstate = QCP_IN_DOC;
-                } else if (event.type == YAML_STREAM_END_EVENT) {
-                    qcpstate = QCP_INIT;
-                } else {
-                    qfYamlError(&parser, filename,
-                                       "internal error: missing doc start");
-                    return FALSE;
-                }
+                QCP_EVENT_NEXT_STATE(YAML_DOCUMENT_START_EVENT, QCP_IN_DOC)
+                QCP_EVENT_NEXT_STATE(YAML_STREAM_END_EVENT, QCP_INIT)
+                QCP_DEFAULT("internal error: missing doc start")
                 break;
                 
             case QCP_IN_DOC:             // in document
-                if (event.type == YAML_MAPPING_START_EVENT) {
-                    qcpstate = QCP_IN_DOC_MAP;
-                } else if (event.type == YAML_DOCUMENT_END_EVENT) {
-                    qcpstate = QCP_IN_STREAM;
-                } else {
-                    qfYamlError(&parser, filename,
-                                       "QoF config must consist of a single map");
-                    return FALSE;
-                }
+                QCP_EVENT_NEXT_STATE(YAML_MAPPING_START_EVENT, QCP_IN_DOC_MAP)
+                QCP_EVENT_NEXT_STATE(YAML_DOCUMENT_END_EVENT, QCP_IN_STREAM)
+                QCP_DEFAULT("QoF config must consist of a single map")
                 break;
                 
             case QCP_IN_DOC_MAP:         // in mapping in document
-                if (event.type == YAML_MAPPING_END_EVENT) {
-                    qcpstate = QCP_IN_DOC;
-                } else if (event.type != YAML_SCALAR_EVENT) {
-                    qfYamlError(&parser, filename,
-                                "internal error: missing key");
-                    return FALSE;
-                }
+                QCP_EVENT_NEXT_STATE(YAML_MAPPING_END_EVENT, QCP_IN_DOC)
+                QCP_REQUIRE_SCALAR("internal error: missing key")
                 QCP_SCALAR_NEXT_STATE("interface-map", QCP_IN_IFMAP)
                 QCP_SCALAR_NEXT_STATE("anon-mode", QCP_IN_ANONMODE)
                 QCP_SCALAR_NEXT_STATE("template", QCP_IN_TMPL)
-                QCP_SCALAR_ERROR("unknown configuration key")
-                break;                
+                QCP_DEFAULT("unknown configuration key")
+                break;
+                
             case QCP_IN_IFMAP:           // expecting value (sequence) for interface-map
-                if (event.type == YAML_SEQUENCE_START_EVENT) {
-                    qcpstate = QCP_IN_IFMAP_SEQ;
-                } else {
-                    qfYamlError(&parser, filename,
-                                "missing sequence value for interface-map");
-                    return FALSE;
-                }
+                QCP_EVENT_NEXT_STATE(YAML_SEQUENCE_START_EVENT, QCP_IN_IFMAP_SEQ)
+                QCP_DEFAULT("missing sequence value for interface-map")
                 break;
                 
             case QCP_IN_IFMAP_SEQ:       // in value (sequence) for interface-map
@@ -221,13 +209,10 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     ingress = 0;
                     egress = 0;
                     qcpstate = QCP_IN_IFMAP_KEY;
-                } else if (event.type == YAML_SEQUENCE_END_EVENT) {
-                    qcpstate = QCP_IN_DOC_MAP;
-                } else {
-                    qfYamlError(&parser, filename,
-                                "missing mapping in interface-map");
-                    return FALSE;
+                    break;
                 }
+                QCP_EVENT_NEXT_STATE(YAML_SEQUENCE_END_EVENT, QCP_IN_DOC_MAP)
+                QCP_DEFAULT("missing mapping in interface-map")
                 break;
                 
             case QCP_IN_IFMAP_KEY:       // expecting key for interface-map
@@ -242,23 +227,20 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                                               ingress, egress);
                     }
                     qcpstate = QCP_IN_IFMAP_SEQ;
-                } else if (event.type != YAML_SCALAR_EVENT) {
-                    qfYamlError(&parser, filename,
-                                       "internal error: missing key");
-                    return FALSE;
+                    break;
                 }
+                
+                QCP_REQUIRE_SCALAR("internal error: missing key")
                 QCP_SCALAR_NEXT_STATE("ip4-net", QCP_IN_IFMAP_V4NET)
                 QCP_SCALAR_NEXT_STATE("ip6-net", QCP_IN_IFMAP_V6NET)
                 QCP_SCALAR_NEXT_STATE("ingress", QCP_IN_IFMAP_INGRESS)
                 QCP_SCALAR_NEXT_STATE("egress", QCP_IN_IFMAP_EGRESS)
-                QCP_SCALAR_ERROR("unknown interface-map key")
+                QCP_DEFAULT("unknown interface-map key")
                 break;
                 
             case QCP_IN_IFMAP_V4NET:    // expecting v4 address value for ifmap
                 if (event.type == YAML_SCALAR_EVENT) {
-                    
-                    rv = sscanf((const char*)event.data.scalar.value,
-                                "%15[0-9.]/%u", addr4buf, &pfx4);
+                    rv = sscanf(QCP_SV, "%15[0-9.]/%u", addr4buf, &pfx4);
                     if (rv == 1) {
                         pfx4 = 32; // implicit single host
                     } else if (rv != 2) {
@@ -300,8 +282,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 
             case QCP_IN_IFMAP_V6NET:    // expecting v6 address value for ifmap
                 if (event.type == YAML_SCALAR_EVENT) {
-                    rv = sscanf((const char*)event.data.scalar.value,
-                                "%39[0-9a-fA-F:.]/%u", addr6buf, &pfx6);
+                    rv = sscanf(QCP_SV, "%39[0-9a-fA-F:.]/%u", addr6buf, &pfx6);
                     if (rv == 1) {
                         pfx6 = 128; // implicit single host
                     } else if (rv != 2) {
@@ -339,8 +320,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 
             case QCP_IN_IFMAP_INGRESS:   // expecting ingress interface number for ifmap
                 if (event.type == YAML_SCALAR_EVENT) {
-                    rv = sscanf((const char *)event.data.scalar.value,
-                                "%u", &ingress);
+                    rv = sscanf(QCP_SV, "%u", &ingress);
                     if (rv != 1 || ingress > 255) {
                         qfYamlError(&parser, filename,
                                            "invalid ingress interface number");
@@ -357,8 +337,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 
             case QCP_IN_IFMAP_EGRESS:    // expecting egress interface number for ifmap
                 if (event.type == YAML_SCALAR_EVENT) {
-                    rv = sscanf((const char *)event.data.scalar.value,
-                                "%u", &egress);
+                    rv = sscanf(QCP_SV, "%u", &egress);
                     if (rv != 1 || egress > 255) {
                         qfYamlError(&parser, filename,
                                            "invalid egress interface number");
@@ -372,9 +351,10 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
             
+            // FIXME this goes away when templates are runtime-specified
             case QCP_IN_ANONMODE:
                 if (event.type == YAML_SCALAR_EVENT) {
-                    if (event.data.scalar.value[0] != '0') {
+                    if ((QCP_SV)[0] != '0') {
                         yfWriterExportAnon(TRUE);
                     }
                 } else {
@@ -384,6 +364,18 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 }
                 qcpstate = QCP_IN_DOC_MAP;
                 break;
+            
+            case QCP_IN_TMPL:
+                QCP_EVENT_NEXT_STATE(YAML_SEQUENCE_START_EVENT, QCP_IN_TMPL_SEQ)
+                QCP_DEFAULT("template must be a sequence of IE names")
+                break;
+                
+            case QCP_IN_TMPL_SEQ:
+                QCP_EVENT_NEXT_STATE(YAML_SEQUENCE_END_EVENT, QCP_IN_DOC_MAP)
+                QCP_REQUIRE_SCALAR("template must be a sequence of IE names")
+                
+                // FIXME add GError support
+                yfWriterSpecifyExportIE(QCP_SV);
                 
             default:
                 qfYamlError(&parser, filename,
