@@ -184,6 +184,11 @@ static fbInfoElementSpec_t yaf_perfcounter_spec[] = {
     /* inflight */
     { "maxTcpFlightSize",                   0, YTF_TCP | YTF_BIF },
     { "reverseMaxTcpFlightSize",            0, YTF_TCP | YTF_BIF },
+    /* rtt */
+    { "meanTcpRttMilliseconds",             0, YTF_TCP | YTF_BIF },
+    { "reverseMeanTcpRttMilliseconds",      0, YTF_TCP | YTF_BIF },
+    { "maxTcpRttMilliseconds",              0, YTF_TCP | YTF_BIF },
+    { "reverseMaxTcpRttMilliseconds",       0, YTF_TCP | YTF_BIF },
 //    { "meanTcpFlightSize",                  0, YTF_TCP },
 //    { "reverseMeanTcpFlightSize",           0, YTF_TCP | YTF_BIF },
     /* First packet RTT */
@@ -322,8 +327,10 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpRetransmitCount;
     uint32_t    maxTcpFlightSize;
     uint32_t    reverseMaxTcpFlightSize;
-//    uint32_t    meanTcpFlightSize;
-//    uint32_t    reverseMeanTcpFlightSize;
+    uint32_t    meanTcpRttMilliseconds;
+    uint32_t    reverseMeanTcpRttMilliseconds;
+    uint32_t    maxTcpRttMilliseconds;
+    uint32_t    reverseMaxTcpRttMilliseconds;
     /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
@@ -427,8 +434,10 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpRetransmitCount,1);
     RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);
-//    RUN_CHECKS(yfIpfixFlow_t,meanTcpFlightSize,1);
-//    RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpFlightSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,meanTcpRttMilliseconds,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds,1);
+    RUN_CHECKS(yfIpfixFlow_t,maxTcpRttMilliseconds,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceTransportPort,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationTransportPort,1);
@@ -1115,6 +1124,12 @@ gboolean yfWriteFlow(
         rec.reverseUnionTCPFlags = flow->rval.uflags;
         rec.maxTcpFlightSize = flow->val.maxflight;
         rec.reverseMaxTcpFlightSize = flow->rval.maxflight;
+        rec.meanTcpRttMilliseconds = flow->rval.rttcount ?
+            (uint32_t)(flow->val.rttsum / flow->val.rttcount) : 0;
+        rec.reverseMeanTcpRttMilliseconds = flow->rval.rttcount ?
+            (uint32_t)(flow->rval.rttsum / flow->rval.rttcount) : 0;
+        rec.maxTcpRttMilliseconds = flow->val.maxrtt;
+        rec.reverseMaxTcpRttMilliseconds = flow->val.maxrtt;
     }
     
     /* MAC layer information */

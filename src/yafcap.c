@@ -85,7 +85,7 @@ struct yfCapSource_st {
 
 static pcap_t *yaf_pcap;
 
-static GTimer *timer_pcap_file = NULL;
+//static GTimer *timer_pcap_file = NULL;
 
 /* Quit flag support */
 extern int yaf_quit;

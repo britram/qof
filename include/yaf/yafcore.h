@@ -300,6 +300,12 @@ typedef struct yfFlowVal_st {
     uint32_t    maxflight;
     /** last rtt (milliseconds) */
     uint32_t    lrtt;
+    /** maximum rtt (milliseconds) */
+    uint32_t    maxrtt;
+    /** rtt sum (milliseconds) */
+    uint64_t    rttsum;
+    /** rtt count */
+    uint64_t    rttcount;
     /** Initial TCP flags */
     uint8_t     iflags;
     /** Union of remaining TCP flags */

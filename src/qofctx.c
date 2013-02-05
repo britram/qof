@@ -86,6 +86,9 @@ typedef enum {
     QCP_IN_IFMAP_INGRESS,   // expecting ingress interface number for ifmap
     QCP_IN_IFMAP_EGRESS,    // expecting egress interface number for ifmap
     QCP_IN_ANONMODE,        // expecting value (boolean) for anon-mode
+    QCP_IN_TMPL,            // expecting value (map) for template
+    QCP_IN_TMPL_MAP,        // expecting IE name (template map key)
+    QCP_IN_TMPL_OPT,        // expecting IE option value (template map val)
 } qcp_state_t;
 
 gboolean qfParseYamlConfig(yfContext_t           *ctx,
@@ -108,7 +111,6 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
     unsigned int    egress;
     
     int             rv;
-    
     
     // short circuit on no file
     if (!filename) return TRUE;

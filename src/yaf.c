@@ -65,6 +65,7 @@
 #include <yaf/yafcore.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
+#include <yaf/qofrtt.h>
 
 #include "yafcap.h"
 #include "yafstat.h"
@@ -93,6 +94,7 @@ static gboolean      yaf_opt_ipfix_tls = FALSE;
 /* GOption managed flow table options */
 static int          yaf_opt_idle = 300;
 static int          yaf_opt_active = 1800;
+static int          yaf_opt_rttring = 0;
 static int          yaf_opt_max_flows = 0;
 static gboolean     yaf_opt_force_read_all = FALSE;
 static gboolean     yaf_opt_uniflow_mode = FALSE;
@@ -207,6 +209,10 @@ AirOptionEntry yaf_optent_flow[] = {
     AF_OPTION( "active-timeout", 'A', 0, AF_OPT_TYPE_INT, &yaf_opt_active,
                THE_LAME_80COL_FORMATTER_STRING"Active flow timeout [1800, "
                "30m]", "sec" ),
+    // FIXME make this nonconfigurable once we know how well it works
+    AF_OPTION ( "rtt", 'r', 0, AF_OPT_TYPE_INT, &yaf_opt_rttring,
+                THE_LAME_80COL_FORMATTER_STRING"track RTT with n segments [0]",
+               "seg-count" ),
     AF_OPTION( "max-flows", (char)0, 0, AF_OPT_TYPE_INT, &yaf_opt_max_flows,
                THE_LAME_80COL_FORMATTER_STRING"Maximum size of flow table [0]",
                "flows" ),
@@ -448,6 +454,9 @@ static void yfParseOptions(
     if (!yaf_config.deltamode) {
         yfWriterExportTotals(TRUE);
     }
+    
+    /* process RTT tracking option */
+    qfRttRingSize(yaf_opt_rttring);
     
     // FIXME harmonize with YAML config -- anon mode is selected there
     

@@ -80,7 +80,10 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
              stent && stent->seq < ack;)
         {
             if (stent) {
-                sval->lrtt = ms - stent->ms;
+                sval->lrtt = (uint32_t)(ms - stent->ms);
+                sval->rttsum += sval->lrtt;
+                sval->rttcount += 1;
+                if (sval->lrtt > sval->maxrtt) sval->maxrtt = sval->lrtt;
             }
         }
     }
