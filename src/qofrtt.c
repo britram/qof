@@ -58,3 +58,30 @@ void qfRttSeqAdvance(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
         stent->seq = seq;
     }
 }
+
+void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
+    qfSeqTime_t *stent;
+
+    /* track last ACK */
+    aval->lack = ack;
+    
+    /* track inflight high-water mark */
+    // FIXME does not handle wraparound
+    // FIXME also doesn't handle a valid ACK value of 0
+    if ((sval->fsn > aval->lack) &&
+        ((sval->fsn - aval->lack) > sval->maxflight))
+    {
+        sval->maxflight = sval->fsn - aval->lack;
+    }
+
+    /* track RTT if configured to do so */
+    if (sval->seqtime) {
+        for (stent = (qfSeqTime_t *)rgaNextTail(sval->seqtime);
+             stent && stent->seq < ack;)
+        {
+            if (stent) {
+                sval->lrtt = ms - stent->ms;
+            }
+        }
+    }
+}

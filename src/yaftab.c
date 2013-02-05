@@ -648,7 +648,8 @@ void yfFlowTabFree(
 static yfFlowNode_t *yfFlowGetNode(
     yfFlowTab_t             *flowtab,
     yfFlowKey_t             *key,
-    yfFlowVal_t             **valp)
+    yfFlowVal_t             **valp,
+    yfFlowVal_t             **rvalp)
 {
     yfFlowKey_t             rkey;
     yfFlowNode_t            *fn;
@@ -657,6 +658,7 @@ static yfFlowNode_t *yfFlowGetNode(
     if ((fn = g_hash_table_lookup(flowtab->table, key))) {
         /* Forward flow found. */
         *valp = &(fn->f.val);
+        *rvalp = &(fn->f.rval);
         return fn;
     }
 
@@ -665,6 +667,7 @@ static yfFlowNode_t *yfFlowGetNode(
     if ((fn = g_hash_table_lookup(flowtab->table, &rkey))) {
         /* Reverse flow found. */
         *valp = &(fn->f.rval);
+        *rvalp = &(fn->f.val);
         return fn;
     }
 
@@ -692,7 +695,8 @@ static yfFlowNode_t *yfFlowGetNode(
 
     /* This is a forward flow */
     *valp = &(fn->f.val);
-
+    *rvalp = &(fn->f.rval);
+    
     /* Count it */
     ++(flowtab->count);
     if (flowtab->count > flowtab->stats.stat_peak) {
@@ -701,41 +705,6 @@ static yfFlowNode_t *yfFlowGetNode(
 
     /* All done */
     return fn;
-}
-
-static void yfHalfBiflowTCP(
-    yfFlowTab_t                 *flowtab,
-    yfFlowNode_t                *fn,
-    yfFlowVal_t                 *val,
-    yfFlowVal_t                 *rval)
-{
-    /* inflight high-water mark */
-    // FIXME does not handle wraparound
-    // FIXME also doesn't handle a valid ACK value of 0
-    if (rval->lack &&
-        (val->fsn > rval->lack) &&  // FIXME understand why this is necessary
-        ((val->fsn - rval->lack) > val->maxflight))
-    {
-        val->maxflight = val->fsn - rval->lack;
-    }
-}
-
-
-/**
- * yfBiflowTCP
- *
- * matches forward and reverse values produced by yfFlowPacketTCP()
- * to calculate biflow-dependent values
- */
-
-static void yfBiflowTCP(
-    yfFlowTab_t                 *flowtab,
-    yfFlowNode_t                *fn)
-{
-    if (fn->f.val.pkt && fn->f.rval.pkt) {
-        yfHalfBiflowTCP(flowtab, fn, &fn->f.val, &fn->f.rval);
-        yfHalfBiflowTCP(flowtab, fn, &fn->f.rval, &fn->f.val);
-    }
 }
 
 /**
@@ -747,6 +716,7 @@ static void yfBiflowTCP(
  * @param flowtab pointer to the flow table
  * @param fn pointer to the node for the relevent flow in the flow table
  * @param val
+ * @param rval
  * @param tcpinfo pointer to the parsed tcp information
  *
  */
@@ -755,6 +725,7 @@ static void yfFlowPktTCP(
     yfFlowTab_t                 *flowtab,
     yfFlowNode_t                *fn,
     yfFlowVal_t                 *val,
+    yfFlowVal_t                 *rval,
     yfTCPInfo_t                 *tcpinfo)
 {
 
@@ -793,7 +764,7 @@ static void yfFlowPktTCP(
     // FIXME make this handle SACK too once we decode SACK
     if (tcpinfo->flags & YF_TF_ACK) {
         if ((tcpinfo->ack > val->lack) || ((val->lack - tcpinfo->ack) > k2e31)) {
-            val->lack = tcpinfo->ack;
+            qfRttAck(val, rval, flowtab->ctime, tcpinfo->ack);
         }
     }
     
@@ -815,10 +786,10 @@ static void yfFlowPktTCP(
         fn->state |= YAF_STATE_RST;
     }
 
+    /* Count urgent flags (FIXME do we want this?) */
     if (flowtab->stats_mode && (tcpinfo->flags & YF_TF_URG)) {
         val->stats.tcpurgct++;
     }
-
 }
 
 /* maybe bring this back, but for now move stuff directly into the values... */
@@ -1085,6 +1056,7 @@ void yfFlowPBuf(
     // FIXME unused variable -- delete?
     //    yfFlowKey_t                 rkey;
     yfFlowVal_t                 *val = NULL;
+    yfFlowVal_t                 *rval = NULL;
     yfFlowNode_t                *fn = NULL;
     yfTCPInfo_t                 *tcpinfo = &(pbuf->tcpinfo);
     yfL2Info_t                  *l2info = &(pbuf->l2info);
@@ -1112,7 +1084,7 @@ void yfFlowPBuf(
     flowtab->stats.stat_octets += pbuf->iplen;
 
     /* Get a flow node for this flow */
-    fn = yfFlowGetNode(flowtab, key, &val);
+    fn = yfFlowGetNode(flowtab, key, &val, &rval);
 
     /* Check for active timeout or counter overflow */
     if (((pbuf->ptime - fn->f.stime) > flowtab->active_ms) ||
@@ -1120,7 +1092,7 @@ void yfFlowPBuf(
     {
         yfFlowClose(flowtab, fn, YAF_END_ACTIVE);
         /* get a new flow node containing this packet */
-        fn = yfFlowGetNode(flowtab, key, &val);
+        fn = yfFlowGetNode(flowtab, key, &val, &rval);
         /* set continuation flag in silk mode */
         if (flowtab->silkmode) fn->f.reason = YAF_ENDF_ISCONT;
     }
@@ -1129,7 +1101,7 @@ void yfFlowPBuf(
     if ((pbuf->ptime - fn->f.etime) > flowtab->idle_ms) {
         yfFlowClose(flowtab, fn, YAF_END_IDLE);
         /* get a new flow node for the current packet */
-        fn = yfFlowGetNode(flowtab, key, &val);
+        fn = yfFlowGetNode(flowtab, key, &val, &rval);
     }
 
     /* Calculate reverse RTT */
@@ -1140,10 +1112,7 @@ void yfFlowPBuf(
     /* Do payload and TCP stuff */
     if (fn->f.key.proto == YF_PROTO_TCP) {
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
-        yfFlowPktTCP(flowtab, fn, val, tcpinfo);
-        
-        /* Calculate things that need two sides of a TCP flow */
-        yfBiflowTCP(flowtab, fn);
+        yfFlowPktTCP(flowtab, fn, val, rval, tcpinfo);
     } 
 
     if (val->pkt == 0) {
