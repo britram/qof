@@ -180,7 +180,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                                   "interface-map") == 0) {
                     qcpstate = QCP_IN_IFMAP;
                 } else if (strcmp((const char*)event.data.scalar.value,
-                                  "anon-export") == 0) {
+                                  "anon-mode") == 0) {
                     qcpstate = QCP_IN_ANONMODE;
                 } else {
                     qfYamlError(&parser, filename, "unknown configuration key");
@@ -386,6 +386,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                                 "missing value for anon-mode");
                     return FALSE;
                 }
+                qcpstate = QCP_IN_DOC_MAP;
                 break;
                 
             default:
