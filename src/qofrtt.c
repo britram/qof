@@ -27,6 +27,21 @@ void qfRttRingSize(size_t ring_sz) {
     qof_rtt_ring_sz = ring_sz;
 }
 
+void qfRttSeqInit(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
+    qfSeqTime_t *stent;
+
+    /* set initial and final sequence number */
+    val->isn = val->fsn = seq;
+
+    /* initialize seqtime buffer if configured to do so */
+    if (qof_rtt_ring_sz) {
+        val->seqtime = rgaAlloc(sizeof(qfSeqTime_t), qof_rtt_ring_sz);
+        stent = (qfSeqTime_t *)rgaForceHead(val->seqtime);
+        stent->ms = ms;
+        stent->seq = seq;
+    }
+}
+
 void qfRttSeqAdvance(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
     qfSeqTime_t *stent;
     
@@ -36,16 +51,10 @@ void qfRttSeqAdvance(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
     }
     val->fsn = seq;
 
-    /* short circuit if sequence timing not enabled */
-    if (!qof_rtt_ring_sz) return;
-    
-    /* create ring if we don't have one */
-    if (!val->seqtime) {
-        val->seqtime = rgaAlloc(sizeof(qfSeqTime_t), qof_rtt_ring_sz);
+    /* track seqtime if configured to do so */
+    if (val->seqtime) {
+        stent = (qfSeqTime_t *)rgaForceHead(val->seqtime);
+        stent->ms = ms;
+        stent->seq = seq;
     }
-    
-    /* get buffer and fill it in */
-    stent = (qfSeqTime_t *)rgaForceHead(val->seqtime);
-    stent->ms = ms;
-    stent->seq = seq;
 }

@@ -785,7 +785,7 @@ static void yfFlowPktTCP(
         /* Initial flags */
         val->iflags = tcpinfo->flags;
         /* Initialize sequence number tracking */
-        qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
+        qfRttSeqInit(val, flowtab->ctime, tcpinfo->seq);
         val->isn = val->fsn;
     }
     
