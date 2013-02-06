@@ -71,7 +71,7 @@ while arg = ARGV.shift
 if (argm = /^model:(\S+)/.match(arg))
         modelfiles.push(argm[1])
     else
-        fixfiles.push(argm[1])
+        fixfiles.push(arg)
     end
 end
 

@@ -22,8 +22,8 @@
 
 #include "qofctx.h"
 
-// FIXME replace this with GError
-static void qfYamlError(const yaml_parser_t     *parser,
+static gboolean qfYamlError(GError                  **err,
+                        const yaml_parser_t     *parser,
                         const char              *filename,
                         const char              *errmsg)
 {    
@@ -32,44 +32,55 @@ static void qfYamlError(const yaml_parser_t     *parser,
     }
     
     if (errmsg) {
-        g_warning("QoF config error: %s at line %zd, column %zd in file %s\n",
-                errmsg, parser->mark.line, parser->mark.column, filename);
+        g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                    "QoF config error: %s at line %zd, column %zd in file %s\n",
+                    errmsg, parser->mark.line, parser->mark.column, filename);
     } else {
         switch (parser->error) {
             case YAML_MEMORY_ERROR:
-                g_warning("YAML parser out of memory in file %s.\n", filename);
+                g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                            "YAML parser out of memory in file %s.\n", filename);
                 break;
             case YAML_READER_ERROR:
                 if (parser->problem_value != -1) {
-                    g_warning("YAML reader error: %s: #%X at %zd in file %s\n",
-                            parser->problem, parser->problem_value,
-                            parser->problem_offset, filename);
+                    g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                                "YAML reader error: %s: #%X at %zd in file %s\n",
+                                parser->problem, parser->problem_value,
+                                parser->problem_offset, filename);
                 } else {
-                    g_warning("YAML reader error: %s at %zd in file %s\n",
-                            parser->problem, parser->problem_offset, filename);
+                    g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                                "YAML reader error: %s at %zd in file %s\n",
+                                parser->problem, parser->problem_offset, filename);
                 }
                 break;
             case YAML_SCANNER_ERROR:
             case YAML_PARSER_ERROR:
                 if (parser->context) {
-                    g_warning("YAML parser error: %s at line %ld, column %ld\n"
-                            "%s at line %ld, column %ld in file %s\n",
-                            parser->context, parser->context_mark.line+1,
-                            parser->context_mark.column+1,
-                            parser->problem, parser->problem_mark.line+1,
-                            parser->problem_mark.column+1,
-                            filename);
+                    g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                                "YAML parser error: %s at line %ld, column %ld\n"
+                                "%s at line %ld, column %ld in file %s\n",
+                                parser->context, parser->context_mark.line+1,
+                                parser->context_mark.column+1,
+                                parser->problem, parser->problem_mark.line+1,
+                                parser->problem_mark.column+1,
+                                filename);
                 } else {
-                    g_warning("YAML parser error: %s at line %ld, column %ld in file %s\n",
-                            parser->problem, parser->problem_mark.line+1,
-                            parser->problem_mark.column+1,
-                            filename);
+                    g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                                "YAML parser error: %s at line %ld, "
+                                "column %ld in file %s\n",
+                                parser->problem, parser->problem_mark.line+1,
+                                parser->problem_mark.column+1,
+                                filename);
                 }
                 break;
             default:
-                fprintf(stderr, "YAML parser internal error in file %s.\n", filename);
+                g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                            "YAML parser internal error in file %s.\n",
+                            filename);
         }
     }
+    
+    return FALSE;
 }
 
 /* States for the YAF configuration parser */
@@ -94,8 +105,7 @@ typedef enum {
 
 #define QCP_REQUIRE_SCALAR(_e_) \
     if (event.type != YAML_SCALAR_EVENT) { \
-        qfYamlError(&parser, filename, (_e_)); \
-        return FALSE; \
+        return qfYamlError(err, &parser, filename, (_e_)); \
     }
 
 #define QCP_SCALAR_NEXT_STATE(_v_, _s_) \
@@ -111,11 +121,11 @@ typedef enum {
     }
 
 #define QCP_DEFAULT(_e_) \
-    qfYamlError(&parser, filename, (_e_)); \
-    return FALSE; \
+    return qfYamlError(err, &parser, filename, (_e_));
 
 gboolean qfParseYamlConfig(yfContext_t           *ctx,
-                           const char            *filename)
+                           const char            *filename,
+                           GError                **err)
 {
     FILE            *cfgfile;
     yaml_parser_t   parser;
@@ -142,22 +152,22 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
     
     // open file and initialize parser
     if (!(cfgfile = fopen(filename,"r"))) {
-        g_warning("cannot open YAML configuration file %s: %s", filename, strerror(errno));
+        g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                    "cannot open YAML configuration file %s: %s",
+                    filename, strerror(errno));
         return FALSE;
     }
     
     memset(&parser, 0, sizeof(parser));
     if (!yaml_parser_initialize(&parser)) {
-        qfYamlError(&parser, NULL, NULL);
-        return FALSE;
+        return qfYamlError(err, &parser, NULL, NULL);
     }
     yaml_parser_set_input_file(&parser, cfgfile);
 
     while (1) {
         // get next event
         if (!yaml_parser_parse(&parser, &event)) {
-            qfYamlError(&parser, filename, NULL);
-            return FALSE;
+            return qfYamlError(err, &parser, NULL, NULL);
         }
         
         // switch based on state
@@ -244,28 +254,24 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     if (rv == 1) {
                         pfx4 = 32; // implicit single host
                     } else if (rv != 2) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            "invalid IPv4 network");
-                        return FALSE;
                     }
                     
                     if (pfx4 > 32) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            "invalid IPv4 prefix length");
-                        return FALSE;
                     }
                     
                     fprintf(stderr, "ip4-net: %s/%u\n", addr4buf, pfx4);
                     
                     rv = inet_pton(AF_INET, addr4buf, &addr4);
                     if (rv == 0) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            "invalid IPv4 address");
-                        return FALSE;
                     } else if (rv == -1) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            strerror(errno));
-                        return FALSE;
                     }
                     
                     addr4 = ntohl(addr4);
@@ -273,9 +279,8 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     addr4 = addr4;
                     
                 } else {
-                    qfYamlError(&parser, filename,
+                    return qfYamlError(err, &parser, filename,
                                        "missing value for ip4-net");
-                    return FALSE;
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
@@ -286,34 +291,29 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     if (rv == 1) {
                         pfx6 = 128; // implicit single host
                     } else if (rv != 2) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            "invalid IPv6 network");
-                        return FALSE;
                     }
                     
                     if (pfx6 > 128) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            "invalid IPv6 prefix length");
-                        return FALSE;
                     }
                     
                     fprintf(stderr, "ip6-net: %s/%u\n", addr6buf, pfx6);
                     
                     rv = inet_pton(AF_INET6, addr6buf, &addr6);
                     if (rv == 0) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            "invalid IPv6 address");
-                        return FALSE;
                     } else if (rv == -1) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            strerror(errno));
-                        return FALSE;
                     }
                     
                 } else {
-                    qfYamlError(&parser, filename,
+                    return qfYamlError(err, &parser, filename,
                                        "missing value for ip6-net");
-                    return FALSE;
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
@@ -322,15 +322,13 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 if (event.type == YAML_SCALAR_EVENT) {
                     rv = sscanf(QCP_SV, "%u", &ingress);
                     if (rv != 1 || ingress > 255) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            "invalid ingress interface number");
                         return FALSE;
                     }
                 } else {
-                    qfYamlError(&parser, filename,
+                    return qfYamlError(err, &parser, filename,
                                        "missing value for ingress-if");
-                    return FALSE;
-                    
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
@@ -339,14 +337,12 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 if (event.type == YAML_SCALAR_EVENT) {
                     rv = sscanf(QCP_SV, "%u", &egress);
                     if (rv != 1 || egress > 255) {
-                        qfYamlError(&parser, filename,
+                        return qfYamlError(err, &parser, filename,
                                            "invalid egress interface number");
-                        return FALSE;
                     }
                 } else {
-                    qfYamlError(&parser, filename,
+                    return qfYamlError(err, &parser, filename,
                                        "missing value for egress-if");
-                    return FALSE;
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
@@ -358,9 +354,8 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                         yfWriterExportAnon(TRUE);
                     }
                 } else {
-                    qfYamlError(&parser, filename,
-                                "missing value for anon-mode");
-                    return FALSE;
+                    return qfYamlError(err, &parser, filename,
+                                       "missing value for anon-mode");
                 }
                 qcpstate = QCP_IN_DOC_MAP;
                 break;
@@ -374,13 +369,13 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 QCP_EVENT_NEXT_STATE(YAML_SEQUENCE_END_EVENT, QCP_IN_DOC_MAP)
                 QCP_REQUIRE_SCALAR("template must be a sequence of IE names")
                 
-                // FIXME add GError support
-                yfWriterSpecifyExportIE(QCP_SV);
+                if (!yfWriterSpecifyExportIE(QCP_SV, err)) {
+                    return FALSE;
+                }
                 
             default:
-                qfYamlError(&parser, filename,
+                return qfYamlError(err, &parser, filename,
                                    "internal error: invalid parser state");
-                return FALSE;
         }
         // clean up
         yaml_event_delete(&event);

@@ -128,6 +128,7 @@ typedef struct yfContext_st {
 #define YF_CTX_INIT {NULL, NULL, NULL, NULL, NULL, NULL, QF_IFMAP_INIT, 0, AIR_LOCK_INIT, NULL, 0, NULL}
 
 gboolean qfParseYamlConfig(yfContext_t           *ctx,
-                           const char            *filename);
+                           const char            *filename,
+                           GError                **err);
 
 #endif

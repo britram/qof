@@ -669,8 +669,8 @@ int main (
     /* FIXME, options parsing needs to be refactored in order to properly
        integrate YAML configuration; as long as this is only for interface
        maps, we're good, though. */
-    if (!qfParseYamlConfig(&ctx, qof_cfgfile)) {
-        g_warning("terminating on YAML parse error");
+    if (!qfParseYamlConfig(&ctx, qof_cfgfile, &err)) {
+        g_warning("terminating on YAML parse error: %s", err->message);
         exit(1);
     }
     

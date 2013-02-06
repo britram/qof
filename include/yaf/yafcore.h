@@ -367,22 +367,11 @@ void yfAlignmentCheck(void);
 /**
  * Prepare a static flow buffer for use with yaf_flow_read(). Call this before
  * the first yaf_flow_read() call; subsequent reads do not need initialization.
- * This is used to prepare storage for payload information.
  *
  * @param flow  a yfFlow_t to initialize
  */
 
 void yfFlowPrepare(
-    yfFlow_t          *flow);
-
-/**
- * Clean up after a static flow buffer prepared by yfFlowPrepare.
- * This is used to free storage for payload information.
- *
- * @param flow  a yfFlow_t to free
- */
-
-void yfFlowCleanup(
     yfFlow_t          *flow);
 
 /**
@@ -510,7 +499,7 @@ void yfWriterExportAnon(gboolean anon_mode);
  * FIXME doc
  */
 
-void yfWriterSpecifyExportIE(const char *iename);
+gboolean yfWriterSpecifyExportIE(const char *iename, GError **err);
 
 /**
  * Get an IPFIX message buffer for reading YAF flows from an open file pointer.
