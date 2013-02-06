@@ -139,6 +139,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseOctetDeltaCount",             8, YTF_FLE | YTF_BIF },
     { "packetDeltaCount",                   8, YTF_FLE },
     { "reversePacketDeltaCount",            8, YTF_FLE | YTF_BIF },
+    { "octetDeltaCount",                    4, YTF_RLE },
+    { "reverseOctetDeltaCount",             4, YTF_RLE | YTF_BIF },
+    { "packetDeltaCount",                   4, YTF_RLE },
+    { "reversePacketDeltaCount",            4, YTF_RLE | YTF_BIF },
     /* Addresses */
     { "sourceIPv4Address",                  4, YTF_IP4 | YTF_KEY },
     { "destinationIPv4Address",             4, YTF_IP4 | YTF_KEY },
@@ -151,6 +155,12 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "initiatorOctets",                    4, YTF_TCP | YTF_RLE },
+    { "responderOctets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
+    { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
+    { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
     { "maxTcpFlightSize",                   4, YTF_TCP | YTF_BIF | YTF_RTT },
@@ -180,7 +190,7 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
 FB_IESPEC_NULL
 };
 
-#define QOF_EXPORT_SPEC_SZ 51 /* all IES plus 2x all FLE IEs */
+#define QOF_EXPORT_SPEC_SZ 51
 static fbInfoElementSpec_t qof_export_spec[QOF_EXPORT_SPEC_SZ];
 static size_t qof_export_spec_count = 0;
 
@@ -434,6 +444,7 @@ void yfWriterExportAnon(
 
 gboolean yfWriterSpecifyExportIE(const char *iename, GError **err) {
     int i;
+    gboolean rv = FALSE;
     
     /* initialize export spec if we need to */
     if (qof_export_spec_count) {
@@ -448,29 +459,28 @@ gboolean yfWriterSpecifyExportIE(const char *iename, GError **err) {
     }
     
     /* search the internal spec for the entry to copy */
-    for (i = 0; qof_internal_spec[i].name; i++) {
+    /* copy all matches to handle FLE/RLE */
+    for (i = 0;
+         qof_internal_spec[i].name &&
+         (qof_export_spec_count >= QOF_EXPORT_SPEC_SZ - 1);
+         i++)
+    {
         if (strcmp(qof_internal_spec[i].name, iename) == 0) {
             /* match, copy */
             memcpy(&qof_export_spec[qof_export_spec_count],
                    &qof_internal_spec[i], sizeof(fbInfoElementSpec_t));
             qof_export_spec_count++;
-            
-            /* copy an RLE version of the same if necessary */
-            if (qof_internal_spec[i].flags & YTF_FLE) {
-                memcpy(&qof_export_spec[qof_export_spec_count],
-                       &qof_internal_spec[i], sizeof(fbInfoElementSpec_t));
-                qof_export_spec[qof_export_spec_count].len_override = 4;
-                qof_export_spec[qof_export_spec_count].flags &= ~YTF_FLE;
-                qof_export_spec[qof_export_spec_count].flags |= YTF_RLE;
-            }
         }
-        return TRUE;
+        rv = TRUE;
     }
     
-    /* if we're here, we didn't find it */
-    g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
-                "qof can't export %s", iename);
-    return FALSE;
+    /* set error if we didn't find the requested IE */
+    if (!rv) {
+        g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                    "qof can't export %s", iename);
+    }
+    
+    return rv;
 }
 
 /**
