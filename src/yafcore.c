@@ -132,11 +132,6 @@ static uint64_t yaf_start_time = 0;
    Must match  */
  
 static fbInfoElementSpec_t qof_internal_spec[] = {
-    /* Addresses */
-    { "sourceIPv4Address",                  4, YTF_IP4 | YTF_KEY },
-    { "destinationIPv4Address",             4, YTF_IP4 | YTF_KEY },
-    { "sourceIPv6Address",                  16, YTF_IP6 | YTF_KEY },
-    { "destinationIPv6Address",             16, YTF_IP6 | YTF_KEY },
     /* Timers and counters */
     { "flowStartMilliseconds",              8, 0 },
     { "flowEndMilliseconds",                8, 0 },
@@ -144,6 +139,11 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseOctetDeltaCount",             8, YTF_FLE | YTF_BIF },
     { "packetDeltaCount",                   8, YTF_FLE },
     { "reversePacketDeltaCount",            8, YTF_FLE | YTF_BIF },
+    /* Addresses */
+    { "sourceIPv4Address",                  4, YTF_IP4 | YTF_KEY },
+    { "destinationIPv4Address",             4, YTF_IP4 | YTF_KEY },
+    { "sourceIPv6Address",                  16, YTF_IP6 | YTF_KEY },
+    { "destinationIPv6Address",             16, YTF_IP6 | YTF_KEY },
     /* Extended TCP counters and performance info */
     { "initiatorOctets",                    8, YTF_TCP | YTF_FLE },
     { "responderOctets",                    8, YTF_TCP | YTF_FLE | YTF_BIF },
@@ -237,11 +237,6 @@ static uint8_t yaf_ip6map_pfx[12] =
 
 /* Full YAF flow record. */
 typedef struct yfIpfixFlow_st {
-    /* Addresses */
-    uint32_t    sourceIPv4Address;
-    uint32_t    destinationIPv4Address;
-    uint8_t     sourceIPv6Address[16];
-    uint8_t     destinationIPv6Address[16];
     /* Timers and counters */
     uint64_t    flowStartMilliseconds;
     uint64_t    flowEndMilliseconds;
@@ -249,6 +244,11 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseOctetCount;
     uint64_t    packetCount;
     uint64_t    reversePacketCount;
+    /* Addresses */
+    uint32_t    sourceIPv4Address;
+    uint32_t    destinationIPv4Address;
+    uint8_t     sourceIPv6Address[16];
+    uint8_t     destinationIPv6Address[16];
     /* Extended TCP counters and performance info */
     uint64_t    initiatorOctets;
     uint64_t    responderOctets;
@@ -346,16 +346,16 @@ void yfAlignmentCheck()
                 offsetof(S_,F_)+DO_SIZE(S_,F_));*/                      \
     }
 
-    RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,1);
     RUN_CHECKS(yfIpfixFlow_t,flowStartMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,flowEndMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,octetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseOctetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,packetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reversePacketCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
+    RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,0); // arrays don't need alignment
+    RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,0); // arrays don't need alignment
     RUN_CHECKS(yfIpfixFlow_t,initiatorOctets,1);
     RUN_CHECKS(yfIpfixFlow_t,responderOctets,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceCount,1);
