@@ -447,7 +447,7 @@ gboolean yfWriterSpecifyExportIE(const char *iename, GError **err) {
     gboolean rv = FALSE;
     
     /* initialize export spec if we need to */
-    if (qof_export_spec_count) {
+    if (!qof_export_spec_count) {
         memset(qof_export_spec, 0, sizeof(qof_export_spec));
     }
     
@@ -462,7 +462,7 @@ gboolean yfWriterSpecifyExportIE(const char *iename, GError **err) {
     /* copy all matches to handle FLE/RLE */
     for (i = 0;
          qof_internal_spec[i].name &&
-         (qof_export_spec_count >= QOF_EXPORT_SPEC_SZ - 1);
+         (qof_export_spec_count < QOF_EXPORT_SPEC_SZ - 1);
          i++)
     {
         if (strcmp(qof_internal_spec[i].name, iename) == 0) {

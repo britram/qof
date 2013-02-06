@@ -372,6 +372,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 if (!yfWriterSpecifyExportIE(QCP_SV, err)) {
                     return FALSE;
                 }
+                break;
                 
             default:
                 return qfYamlError(err, &parser, filename,
