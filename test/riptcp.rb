@@ -60,7 +60,7 @@ def fixread(c)
         
         if h[:reverseMeanTcpRttMilliseconds] > 0
           puts [sip, dip, 
-            h[:reverseFlowDeltaMilliseconds],
+            0,
             h[:reverseOctetDeltaCount],
             h[:responderOctets],
             h[:reverseTcpSequenceCount],

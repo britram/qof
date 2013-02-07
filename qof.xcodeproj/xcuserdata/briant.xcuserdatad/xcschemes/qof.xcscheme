@@ -64,6 +64,14 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--idle-timeout 15"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--active-timeout 300"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--yaml test/test_template.yaml"
             isEnabled = "YES">
          </CommandLineArgument>
