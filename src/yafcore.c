@@ -971,7 +971,7 @@ gboolean yfWriteFlow(
         if ((flow->val.rttcount >= QOF_MIN_RTT_COUNT) ||
             (flow->rval.rttcount >= QOF_MIN_RTT_COUNT))
         {
-            wtid != YTF_RTT;
+            wtid |= YTF_RTT;
             rec.maxTcpFlightSize = flow->val.maxflight;
             rec.reverseMaxTcpFlightSize = flow->rval.maxflight;
             rec.meanTcpRttMilliseconds = flow->val.rttcount ?
@@ -1039,30 +1039,12 @@ gboolean yfWriteFlow(
         return FALSE;
     }
 
+    /* FIXME where'd UDP template retransmit go? */
+    
+    /* Now append the record to the buffer */
     if (!fBufAppend(fbuf, (uint8_t *)&rec, sizeof(rec), err)) {
         return FALSE;
     }
-
-    /* IF UDP - Check to see if we need to re-export templates */
-    /* We do not advise in using UDP (nicer than saying you're stupid) */
- 
-    /* Now append the record to the buffer */
-
-    /* more 6313 stuff to throw out */
-#if 0
-    if (ctx->cfg->macmode) {
-        tmplcount++;
-    }
-
-    if (ctx->cfg->statsmode) {
-        if (flow->val.stats.payoct || flow->rval.stats.payoct ||
-            (flow->val.stats.aitime > flow->val.pkt) ||
-            (flow->rval.stats.aitime > flow->rval.pkt))
-        {
-            tmplcount++;
-        }
-    }
-#endif
 
 
 /* Flow statistics FIXME rework this into the main flow record if necessary */

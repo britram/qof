@@ -24,20 +24,22 @@ def fixread(c)
     c.session.on_bad_sequence do |message, expected|
         STDERR.puts " **** bad sequence for domain #{message.domain}: got #{message.sequence}, expected #{expected} ****"
     end
+    
+    puts ["sip","dip","firstrtt",
+          "l3oct","l4oct","l7oct","meanrtt","maxrtt","maxflight"].join(", ")
 
     # iterate over records
     c.each do |h, m|
-        
         # skip if no rtt information
-        if !defined? h[:meanTcpRttMilliseconds]
-            return
+        unless h[:meanTcpRttMilliseconds]
+          next
         end
         
         # get address
-        if defined?(h[:sourceIPv4Address])
+        if (h[:sourceIPv4Address])
             sip = h[:sourceIPv4Address]
             dip = h[:destinationIPv4Address]
-        elsif defined?(h[:sourceIPv6Address])
+        elsif (h[:sourceIPv6Address])
             sip = h[:sourceIPv6Address]
             dip = h[:destinationIPv6Address]
         else
@@ -45,20 +47,27 @@ def fixread(c)
             return
         end
         
-        puts [sip, dip,
+        if h[:meanTcpRttMilliseconds] > 0
+          puts [sip, dip,
+            h[:reverseFlowDeltaMilliseconds],
             h[:octetDeltaCount],
             h[:initiatorOctets],
             h[:tcpSequenceCount],
             h[:meanTcpRttMilliseconds],
             h[:maxTcpRttMilliseconds],
-            h[:maxTcpFlightSize],
+            h[:maxTcpFlightSize]].join(", ")
+        end
+        
+        if h[:reverseMeanTcpRttMilliseconds] > 0
+          puts [sip, dip, 
+            h[:reverseFlowDeltaMilliseconds],
             h[:reverseOctetDeltaCount],
             h[:responderOctets],
             h[:reverseTcpSequenceCount],
-            h[:reverseFlowDeltaMilliseconds],
             h[:reverseMeanTcpRttMilliseconds],
             h[:reverseMaxTcpRttMilliseconds],
             h[:reverseMaxTcpFlightSize]].join(", ")
+        end
     end
 end
 
