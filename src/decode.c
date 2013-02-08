@@ -7,6 +7,7 @@
  ** Copyright (C) 2012-2013 Brian Trammell.             All Rights Reserved
  ** ------------------------------------------------------------------------
  ** Authors: Brian Trammell <brian@trammell.ch>
+ ** QoF redesign by Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
  ** @OPENSOURCE_HEADER_START@
  ** Use of the YAF system and related source code is subject to the terms
@@ -311,7 +312,21 @@ typedef struct yfHdrTcp_st {
     uint16_t        th_urp;
 } yfHdrTcp_t;
 
-// FIXME add options parsing here
+/** Length of a TCP header without options */
+#define YF_TCP_HLEN 20
+
+typedef struct yfHdrTcpOptTs_st {
+    uint32_t         ts_val;
+    uint32_t         ts_ecr;
+} yfHdrTcpOptTs_t;
+
+#define YF_TOK_EOL      0
+#define YF_TOK_NOP      1
+#define YF_TOK_MSS      2
+#define YF_TOK_WS       3
+#define YF_TOK_SACKOK   4
+#define YF_TOK_SACK     5
+#define YF_TOK_TS       8
 
 /**
  * UDP header structure.
@@ -717,6 +732,7 @@ static const uint8_t *yfDecodeIPv4(
     const uint8_t           *pkt,
     yfFlowKey_t             *key,
     uint16_t                *iplen,
+    yfIPInfo_t              *ipinfo,
     yfIPFragInfo_t          *fraginfo)
 {
     const yfHdrIPv4_t       *iph = (const yfHdrIPv4_t *)pkt;
@@ -775,8 +791,10 @@ static const uint8_t *yfDecodeIPv4(
         }
     }
 
-
-
+    /* Decode TTL and ECN */
+    ipinfo->ttl = iph->ip_ttl;
+    ipinfo->ecn = (iph->ip_tos & 0xC0) >> 6;
+    
     /* Advance packet pointer */
     *caplen -= iph_len;
     return pkt + iph_len;
@@ -795,6 +813,7 @@ static const uint8_t *yfDecodeIPv6(
     const uint8_t           *pkt,
     yfFlowKey_t             *key,
     uint16_t                *iplen,
+    yfIPInfo_t              *ipinfo,
     yfIPFragInfo_t          *fraginfo)
 {
     const yfHdrIPv6_t       *iph = (const yfHdrIPv6_t *)pkt;
@@ -900,8 +919,6 @@ static const uint8_t *yfDecodeIPv6(
 
         }
     }
-
-
 }
 
 /**
@@ -919,10 +936,12 @@ static const uint8_t *yfDecodeTCP(
     yfTCPInfo_t             *tcpinfo)
 {
     const yfHdrTcp_t        *tcph = (const yfHdrTcp_t *)pkt;
+    uint8_t to_kind, to_len;
+    const yfHdrTcpOptTs_t   *tsopt;
     size_t                  tcph_len;
 
-    /* Verify we have a full TCP header */
-    if (*caplen < 13) {
+    /* Verify we have enough of a  TCP header to get flags */
+    if (*caplen < YF_TCP_HLEN) {
         if (fraginfo && fraginfo->frag) {
             /* will have to do TCP stuff later */
             return pkt;
@@ -956,8 +975,43 @@ static const uint8_t *yfDecodeTCP(
     if (fraginfo && fraginfo->frag) {
         fraginfo->l4hlen = tcph_len;
     }
-
-    /* Advance packet pointer */
+    
+    /* Skip to start of options */
+    *caplen -= YF_TCP_HLEN;
+    tcph_len -= YF_TCP_HLEN;
+    pkt += YF_TCP_HLEN;
+    
+    /* Parse options while we still have them */
+    while (tcph_len && *caplen)
+    {
+        to_kind = *(pkt);
+        switch (to_kind) {
+            case YF_TOK_EOL:
+                tcph_len = 0; /* pretend we have no more options */
+            case YF_TOK_NOP:
+                to_len = 1;
+                break;
+            case YF_TOK_TS:
+                if (*caplen >= 2) to_len = *(pkt + 1);
+                if (*caplen >= (to_len + 2)) {
+                    tsopt = (const yfHdrTcpOptTs_t*)(pkt + 2);
+                    tcpinfo->tsval = g_ntohl(tsopt->ts_val);
+                    tcpinfo->tsecr = g_ntohl(tsopt->ts_ecr);
+                }
+                break;
+            default:
+                if (*caplen >= 2) to_len = *(pkt + 1);
+                break;
+        }
+        
+        /* go to next option */
+        if (*caplen < to_len) to_len = *caplen;
+        *caplen -= to_len;
+        tcph_len -= to_len;
+        pkt += to_len;
+    }
+    
+    /* Advance beyond any skipped options */
     *caplen -= tcph_len;
     return pkt + tcph_len;
 }
@@ -965,7 +1019,7 @@ static const uint8_t *yfDecodeTCP(
 /**
  * yfDefragTCP
  *
- *
+ * FIXME figure out how to reintegrate this into yfDecodeTCP.
  */
 gboolean yfDefragTCP(
     uint8_t             *pkt,
@@ -980,7 +1034,7 @@ gboolean yfDefragTCP(
     size_t              tcph_len;
 
     /* Verify we have a full TCP header */
-    if (*caplen < 13) {
+    if (*caplen < 20) {
         return FALSE;
     }
 
@@ -1094,6 +1148,7 @@ static const uint8_t *yfDecodeIP(
     const uint8_t           *pkt,
     yfFlowKey_t             *key,
     uint16_t                *iplen,
+    yfIPInfo_t              *ipinfo,
     yfTCPInfo_t             *tcpinfo,
     yfIPFragInfo_t          *fraginfo);
 
@@ -1110,8 +1165,9 @@ static const uint8_t *yfDecodeGRE(
     const uint8_t           *pkt,
     yfFlowKey_t             *key,
     uint16_t                *iplen,
-    yfIPFragInfo_t          *fraginfo,
-    yfTCPInfo_t             *tcpinfo)
+    yfIPInfo_t              *ipinfo,
+    yfTCPInfo_t             *tcpinfo,
+    yfIPFragInfo_t          *fraginfo)
 {
     const yfHdrGre_t        *greh = (const yfHdrGre_t *)pkt;
     size_t                  greh_len = 4;
@@ -1207,7 +1263,7 @@ static const uint8_t *yfDecodeGRE(
 
     /* We are now at the next layer header.Try to decode it as an IP header.*/
     return yfDecodeIP(ctx, g_ntohs(greh->gh_type), caplen, pkt,
-                      key, iplen, tcpinfo, fraginfo);
+                      key, iplen, ipinfo, tcpinfo, fraginfo);
 }
 
 /**
@@ -1223,6 +1279,7 @@ static const uint8_t *yfDecodeIP(
     const uint8_t           *pkt,
     yfFlowKey_t             *key,
     uint16_t                *iplen,
+    yfIPInfo_t              *ipinfo,
     yfTCPInfo_t             *tcpinfo,
     yfIPFragInfo_t          *fraginfo)
 {
@@ -1236,12 +1293,16 @@ static const uint8_t *yfDecodeIP(
     /* Unwrap and decode IP headers */
     switch (type) {
      case YF_TYPE_IPv4:
-        if (!(pkt = yfDecodeIPv4(ctx, caplen, pkt, key, iplen, fraginfo))) {
+        if (!(pkt = yfDecodeIPv4(ctx, caplen, pkt, key,
+                                 iplen, ipinfo, fraginfo)))
+        {
             return NULL;
         }
         break;
       case YF_TYPE_IPv6:
-         if (!(pkt = yfDecodeIPv6(ctx, caplen, pkt, key, iplen, fraginfo))) {
+         if (!(pkt = yfDecodeIPv6(ctx, caplen, pkt, key,
+                                  iplen, ipinfo, fraginfo)))
+         {
             return NULL;
         }
         break;
@@ -1253,7 +1314,7 @@ static const uint8_t *yfDecodeIP(
         return NULL;
     }
 
-        /* Skip layer 4 decode unless we're the first fragment */
+    /* Skip layer 4 decode unless we're the first fragment */
     if (fraginfo && fraginfo->frag && fraginfo->offset) {
         return pkt;
     }
@@ -1279,7 +1340,7 @@ static const uint8_t *yfDecodeIP(
       case YF_PROTO_GRE:
         if (ctx->gremode) {
             if (!(pkt = yfDecodeGRE(ctx, caplen, pkt, key,
-                                    iplen, fraginfo, tcpinfo))) {
+                                    iplen, ipinfo, tcpinfo, fraginfo))) {
                 return NULL;
             }
         } else {
@@ -1316,6 +1377,7 @@ gboolean yfDecodeToPBuf(
     yfFlowKey_t             *key = &(pbuf->key);
     uint16_t                *iplen = &(pbuf->iplen);
     yfTCPInfo_t             *tcpinfo = &(pbuf->tcpinfo);
+    yfIPInfo_t              *ipinfo = &(pbuf->ipinfo);
     yfL2Info_t              *l2info = &(pbuf->l2info);
     const uint8_t           *ipTcpHeaderStart = NULL;
     size_t                  capb4l2 = caplen;
@@ -1340,7 +1402,7 @@ gboolean yfDecodeToPBuf(
 
     /* Now we should have an IP packet. Decode it. */
     if (!(pkt = yfDecodeIP(ctx, type, &caplen, pkt, key, iplen,
-                           tcpinfo, fraginfo))) {
+                           ipinfo, tcpinfo, fraginfo))) {
         return FALSE;
     }
 
@@ -1368,7 +1430,7 @@ yfDecodeCtx_t *yfDecodeCtxAlloc(
 {
     yfDecodeCtx_t   *ctx = NULL;
 
-    /* Allocate a flow table */
+    /* Allocate a decode context */
     ctx = yg_slice_new0(yfDecodeCtx_t);
 
     /* Fill in the configuration */

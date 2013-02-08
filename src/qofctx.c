@@ -142,8 +142,6 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
     
     unsigned int    ingress;
     unsigned int    egress;
-
-    char            iebuf[80];
     
     int             rv;
     

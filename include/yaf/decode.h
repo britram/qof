@@ -124,6 +124,8 @@ typedef struct yfL2Info_st {
 
 /** IP additional information structure */
 typedef struct yfIPInfo_st {
+    /** IP time to live / hop count */
+    uint8_t         ttl;
     /** ECT(1) and ECT(0) in low-order bits */
     uint8_t         ecn;
 } yfIPInfo_t;
