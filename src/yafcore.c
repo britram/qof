@@ -178,11 +178,17 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "flowEndReason",                      1, 0 },
     { "ingressInterface",                   1, YTF_PHY },
     { "egressInterface",                    1, YTF_PHY },
-    /* Layer 2 and Layer 4 information */
+    /* Layer 2 information */
     { "sourceMacAddress",                   6, YTF_MAC },
     { "destinationMacAddress",              6, YTF_MAC },
     { "vlanId",                             2, YTF_MAC },
     { "reverseVlanId",                      2, YTF_MAC | YTF_BIF },
+    /* Layer 3 information */
+    { "minimumTTL",                         1, 0},
+    { "maximumTTL",                         1, 0},
+    { "reverseMinimumTTL",                  1, YTF_BIF },
+    { "reverseMaximumTTL",                  1, YTF_BIF },
+    /* Layer 4 information */
     { "initialTCPFlags",                    1, YTF_TCP },
     { "reverseInitialTCPFlags",             1, YTF_TCP | YTF_BIF },
     { "unionTCPFlags",                      1, YTF_TCP },
@@ -211,36 +217,6 @@ static fbInfoElementSpec_t yaf_stats_option_spec[] = {
     { "meanPacketRate",                     0, 0 },
     FB_IESPEC_NULL
 };
-
-#if 0
-typedef struct yfFlowStatsRecord_st {
-    uint64_t dataByteCount;
-    uint64_t averageInterarrivalTime;
-    uint64_t standardDeviationInterarrivalTime;
-    uint32_t tcpUrgTotalCount;
-    uint32_t smallPacketCount;
-    uint32_t nonEmptyPacketCount;
-    uint32_t largePacketCount;
-    uint16_t firstNonEmptyPacketSize;
-    uint16_t maxPacketSize;
-    uint16_t standardDeviationPayloadLength;
-    uint8_t  firstEightNonEmptyPacketDirections;
-    uint8_t  padding[1];
-    /* reverse Fields */
-    uint64_t reverseDataByteCount;
-    uint64_t reverseAverageInterarrivalTime;
-    uint64_t reverseStandardDeviationInterarrivalTime;
-    uint32_t reverseTcpUrgTotalCount;
-    uint32_t reverseSmallPacketCount;
-    uint32_t reverseNonEmptyPacketCount;
-    uint32_t reverseLargePacketCount;
-    uint16_t reverseFirstNonEmptyPacketSize;
-    uint16_t reverseMaxPacketSize;
-    uint16_t reverseStandardDeviationPayloadLength;
-    uint8_t  padding2[2];
-} yfFlowStatsRecord_t;
-#endif 
-
 /* IPv6-mapped IPv4 address prefix */
 static uint8_t yaf_ip6map_pfx[12] =
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF };
@@ -283,11 +259,17 @@ typedef struct yfIpfixFlow_st {
     uint8_t     flowEndReason;
     uint8_t     ingressInterface;
     uint8_t     egressInterface;
-    /* Layer 2/4 Information */
+    /* Layer 2 Information */
     uint8_t     sourceMacAddress[6];
     uint8_t     destinationMacAddress[6];
     uint16_t    vlanId;
     uint16_t    reverseVlanId;
+    /* Layer 3 Information */
+    uint8_t     minimumTTL;
+    uint8_t     maximumTTL;
+    uint8_t     reverseMinimumTTL;
+    uint8_t     reverseMaximumTTL;
+    /* Layer 4 Information */
     uint8_t     initialTCPFlags;
     uint8_t     reverseInitialTCPFlags;
     uint8_t     unionTCPFlags;
@@ -391,6 +373,10 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,destinationMacAddress,0); // 6-byte arrays do not need to be aligned.
     RUN_CHECKS(yfIpfixFlow_t,vlanId,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseVlanId,1);
+    RUN_CHECKS(yfIpfixFlow_t,minimumTTL, 1);
+    RUN_CHECKS(yfIpfixFlow_t,maximumTTL, 1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMinimumTTL, 1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMaximumTTL, 1);
     RUN_CHECKS(yfIpfixFlow_t,initialTCPFlags,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseInitialTCPFlags,1);
     RUN_CHECKS(yfIpfixFlow_t,unionTCPFlags,1);
@@ -899,6 +885,10 @@ gboolean yfWriteFlow(
 
     /* fill in fields that are always present FIXME check these */
     rec.flowEndReason = flow->reason;
+    rec.minimumTTL = flow->val.minttl;
+    rec.reverseMinimumTTL = flow->rval.minttl;
+    rec.maximumTTL = flow->val.maxttl;
+    rec.reverseMaximumTTL = flow->rval.maxttl;
     rec.octetCount = flow->val.oct;
     rec.reverseOctetCount = flow->rval.oct;
     rec.packetCount = flow->val.pkt;
@@ -1939,5 +1929,37 @@ static fbInfoElementSpec_t yaf_flow_stats_spec[] = {
     FB_IESPEC_NULL
 };
 #endif
+
+
+#if 0
+typedef struct yfFlowStatsRecord_st {
+    uint64_t dataByteCount;
+    uint64_t averageInterarrivalTime;
+    uint64_t standardDeviationInterarrivalTime;
+    uint32_t tcpUrgTotalCount;
+    uint32_t smallPacketCount;
+    uint32_t nonEmptyPacketCount;
+    uint32_t largePacketCount;
+    uint16_t firstNonEmptyPacketSize;
+    uint16_t maxPacketSize;
+    uint16_t standardDeviationPayloadLength;
+    uint8_t  firstEightNonEmptyPacketDirections;
+    uint8_t  padding[1];
+    /* reverse Fields */
+    uint64_t reverseDataByteCount;
+    uint64_t reverseAverageInterarrivalTime;
+    uint64_t reverseStandardDeviationInterarrivalTime;
+    uint32_t reverseTcpUrgTotalCount;
+    uint32_t reverseSmallPacketCount;
+    uint32_t reverseNonEmptyPacketCount;
+    uint32_t reverseLargePacketCount;
+    uint16_t reverseFirstNonEmptyPacketSize;
+    uint16_t reverseMaxPacketSize;
+    uint16_t reverseStandardDeviationPayloadLength;
+    uint8_t  padding2[2];
+} yfFlowStatsRecord_t;
+#endif
+
+
 
 

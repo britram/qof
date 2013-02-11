@@ -306,16 +306,20 @@ typedef struct yfFlowVal_st {
     uint64_t    rttsum;
     /** rtt count */
     uint64_t    rttcount;
+    /** minimum ttl */
+    uint8_t     minttl;
+    /** maximum ttl */
+    uint8_t     maxttl;
     /** Initial TCP flags */
     uint8_t     iflags;
     /** Union of remaining TCP flags */
     uint8_t     uflags;
     /** Real or virtual network interface */
     uint8_t     netIf;
-    /** Sequence number timestamp ring */
+    /** Sequence number/timestamp ring (for RTT calculation */
     rgaRing_t   *seqtime;
     /** yaf flow statistics */
-    yfFlowStats_t stats;
+    //yfFlowStats_t stats;
 } yfFlowVal_t;
 
 

@@ -708,6 +708,40 @@ static yfFlowNode_t *yfFlowGetNode(
 }
 
 /**
+ * yfFlowPktIP
+ *
+ * process a TCP packet into the flow table specially, capture
+ * all the special TCP information, flags, seq, etc.
+ *
+ * @param flowtab pointer to the flow table
+ * @param fn pointer to the node for the relevent flow in the flow table
+ * @param val
+ * @param rval
+ * @param tcpinfo pointer to the parsed tcp information
+ *
+ */
+
+static void yfFlowPktIP(
+                         yfFlowTab_t                 *flowtab,
+                         yfFlowNode_t                *fn,
+                         yfFlowVal_t                 *val,
+                         yfFlowVal_t                 *rval,
+                         yfIPInfo_t                  *ipinfo)
+{
+    /* track TTL */
+    if (!val->minttl || (ipinfo->ttl < val->minttl)) {
+        fprintf(stderr, "new minttl %hhu\n", val->minttl);
+        val->minttl = ipinfo->ttl;
+    }
+    
+    if (ipinfo->ttl > val->maxttl) {
+        val->maxttl = ipinfo->ttl;
+        fprintf(stderr, "new maxttl %hhu\n", val->minttl);
+    }
+    
+}
+
+/**
  * yfFlowPktTCP
  *
  * process a TCP packet into the flow table specially, capture
@@ -786,254 +820,7 @@ static void yfFlowPktTCP(
         fn->state |= YAF_STATE_RST;
     }
 
-    /* Count urgent flags (FIXME do we want this?) */
-    if (flowtab->stats_mode && (tcpinfo->flags & YF_TF_URG)) {
-        val->stats.tcpurgct++;
-    }
 }
-
-/* maybe bring this back, but for now move stuff directly into the values... */
-#if 0
-static void
-yfFlowStatistics(
-    yfFlowNode_t            *fn,
-    yfFlowVal_t             *val,
-    uint64_t                ptime,
-    uint16_t                datalen)
-{
-
-    if (val->stats.ltime) {
-        val->stats.aitime += (ptime - val->stats.ltime);
-    }
-
-    if (val->pkt > 1 && val->pkt < 12) {
-        val->stats.iaarray[val->pkt -2] = (ptime - val->stats.ltime);
-    }
-
-    val->stats.ltime = fn->f.etime;
-
-    if (datalen) {
-        /* that means there is some payload */
-        if (val == &(fn->f.rval)) {
-            fn->f.pktdir |= (1 << (fn->f.val.stats.nonemptypktct +
-                                   val->stats.nonemptypktct));
-        }
-        if (val->stats.nonemptypktct < 10) {
-            val->stats.pktsize[val->stats.nonemptypktct] = datalen;
-        }
-        val->stats.nonemptypktct++;
-        if (datalen < 60) {
-            val->stats.smallpktct++;
-        } else if (datalen > 225) {
-            val->stats.largepktct++;
-        }
-        val->stats.payoct += datalen;
-        if (val->stats.firstpktsize== 0) {
-            val->stats.firstpktsize= datalen;
-        }
-        if (datalen> val->stats.maxpktsize) {
-            val->stats.maxpktsize =datalen;
-        }
-    }
-
-}
-#endif 
-
-#if 0
-static void
-yfAddOutOfSequence(
-    yfFlowTab_t             *flowtab,
-    yfFlowKey_t             *key,
-    size_t                  pbuflen,
-    yfPBuf_t                *pbuf)
-{
-    yfFlowNode_t            *fn = NULL;
-    yfFlowNode_t            *tn = NULL;
-    yfFlowNode_t            *nfn = NULL;
-    yfFlowKey_t             rkey;
-    uint64_t                end;
-    yfFlowVal_t             *val = NULL;
-    yfTCPInfo_t             *tcpinfo = &(pbuf->tcpinfo);
-    yfL2Info_t              *l2info = &(pbuf->l2info);
-    uint8_t                 *payload = (pbuflen >= YF_PBUFLEN_BASE) ?
-                                       pbuf->payload : NULL;
-    size_t                  paylen = (pbuflen >= YF_PBUFLEN_BASE) ?
-                                     pbuf->paylen : 0;
-    uint16_t                datalen = (pbuf->paylen - pbuf->allHeaderLen +
-                                       l2info->l2hlen);
-    uint32_t                pcap_len = 0;
-    uint32_t                hash;
-    gboolean                rev = FALSE;
-
-    /* Count the packet and its octets */
-    ++(flowtab->stats.stat_packets);
-    flowtab->stats.stat_octets += pbuf->iplen;
-
-    if (payload) {
-        if (paylen >= pbuf->allHeaderLen) {
-            paylen -= pbuf->allHeaderLen;
-            payload += pbuf->allHeaderLen;
-        } else {
-            paylen = 0;
-            payload = NULL;
-        }
-    }
-
-    /* Look for flow in table */
-    if ((fn = g_hash_table_lookup(flowtab->table, key))) {
-        /* Forward flow found. */
-        val = &(fn->f.val);
-    }
-
-    if (fn == NULL) {
-        /* Okay. Check for reverse flow. */
-        yfFlowKeyReverse(key, &rkey);
-        rev = TRUE;
-        if ((fn = g_hash_table_lookup(flowtab->table, &rkey))) {
-            /* Reverse flow found. */
-            val = &(fn->f.rval);
-        }
-    }
-
-    if (fn == NULL) {
-        /* Neither exists. Create a new flow and put it in the table. */
-#if YAF_ENABLE_COMPACT_IP4
-        if (key->version == 4) {
-            fn = (yfFlowNode_t *)yg_slice_new0(yfFlowNodeIPv4_t);
-        } else {
-#endif
-            fn = yg_slice_new0(yfFlowNode_t);
-#if YAF_ENABLE_COMPACT_IP4
-        }
-#endif
-        /* Copy key */
-        yfFlowKeyCopy(key, &(fn->f.key));
-
-        /* set flow start time */
-        fn->f.stime = pbuf->ptime;
-
-        /* set flow end time as start time */
-        fn->f.etime = pbuf->ptime;
-
-        /* stuff the flow in the table */
-        g_hash_table_insert(flowtab->table, &(fn->f.key), fn);
-
-        /* This is a forward flow */
-        val = &(fn->f.val);
-
-        /* Count it */
-        ++(flowtab->count);
-        if (flowtab->count > flowtab->stats.stat_peak) {
-            flowtab->stats.stat_peak = flowtab->count;
-        }
-
-    }
-    /* packet exists now, update info */
-
-    /* Do payload and TCP stuff */
-    if (fn->f.key.proto == YF_PROTO_TCP) {
-        /* Handle TCP flows specially (flags, ISN, sequenced payload) */
-        yfFlowPktTCP(flowtab, fn, val, payload, paylen, tcpinfo);
-
-    }
-
-    if (val->pkt == 0) {
-        val->first_pkt_size = pbuf->iplen;
-        /* Note Mac Addr */
-        if (flowtab->macmode && (val == &(fn->f.val))) {
-            if (l2info) {
-                memcpy(fn->f.sourceMacAddr, l2info->smac,
-                       ETHERNET_MAC_ADDR_LENGTH);
-                memcpy(fn->f.destinationMacAddr, l2info->dmac,
-                       ETHERNET_MAC_ADDR_LENGTH);
-            }
-        }
-    } else {
-        /* compare packet sizes */
-        if ( pbuf->iplen == val->first_pkt_size ) {
-            if (val->pkt == 1) {
-                val->attributes = YAF_SAME_SIZE;
-            }
-        } else {
-            val->attributes &= 0xFE;
-        }
-    }
-
-    /* set flow attributes - this flow is out of order */
-    val->attributes |= YAF_OUT_OF_SEQUENCE;
-
-    /* Count packets and octets */
-    val->oct += pbuf->iplen;
-    val->pkt += 1;
-
-    /* don't update end time - stime could be greater than etime */
-
-    /* Update stats */
-    if (flowtab->stats_mode) {
-        yfFlowStatistics(fn, val, pbuf->ptime, datalen);
-    }
-
-
-    pcap_len = pbuf->pcap_hdr.caplen + 16;
-
-    /* close flow, or move it to head of queue */
-    if ((fn->state & YAF_STATE_FIN) == YAF_STATE_FIN ||
-        fn->state & YAF_STATE_RST)
-    {
-        yfFlowClose(flowtab, fn, YAF_END_CLOSED);
-        return;
-    }
-
-    /* Check for inactive timeout - this flow might be idled out on arrival */
-    if ((flowtab->ctime - pbuf->ptime) > flowtab->idle_ms) {
-        yfFlowClose(flowtab, fn, YAF_END_IDLE);
-        return;
-    }
-
-    if (flowtab->aq.head == NULL) {
-        yfFlowTick(flowtab, fn);
-        return;
-    }
-
-    /* rip through the active queue and put this in the right spot */
-    /* first remove the node */
-    piqPick(&flowtab->aq, fn);
-
-    for (tn = flowtab->aq.head; tn; tn=nfn)
-    {
-        end = tn->f.etime;
-        nfn = tn->p;
-        if (end <= fn->f.etime) {
-            /* nfn is previous node */
-            nfn = tn->n;
-            /* point previous (next) to new node */
-            nfn->p = fn;
-            /* point current previous to new node */
-            tn->n = fn;
-            /* point new node's next to current */
-            fn->p = tn;
-            /* point new node's previous to previous */
-            fn->n = nfn;
-            /*yfFlowTabVerifyIdleOrder(flowtab);*/
-            return;
-        }
-    }
-
-    /* if this happens, we are at the tail */
-    if (flowtab->aq.tail) {
-        nfn = flowtab->aq.tail;
-        /* this flow's next (in non-Brian land - previous) is the tail */
-        fn->n = nfn;
-        /* the tail's previous (next) now points to new node */
-        nfn->p = fn;
-        /* tail is now new node */
-        flowtab->aq.tail = fn;
-    } else {
-        /* shouldn't get here but if we do,just get rid of this troublemaker.*/
-        yfFlowClose(flowtab, fn, YAF_END_IDLE);
-    }
-}
-#endif
 
 /**
  * yfFlowPBuf
@@ -1058,6 +845,7 @@ void yfFlowPBuf(
     yfFlowVal_t                 *val = NULL;
     yfFlowVal_t                 *rval = NULL;
     yfFlowNode_t                *fn = NULL;
+    yfIPInfo_t                  *ipinfo = &(pbuf->ipinfo);
     yfTCPInfo_t                 *tcpinfo = &(pbuf->tcpinfo);
     yfL2Info_t                  *l2info = &(pbuf->l2info);
     uint16_t                    datalen = (pbuf->iplen - pbuf->allHeaderLen +
@@ -1109,7 +897,10 @@ void yfFlowPBuf(
         fn->f.rdtime = (uint32_t)(pbuf->ptime - fn->f.stime);
     }
 
-    /* Do payload and TCP stuff */
+    /* Do IP stuff */
+    yfFlowPktIP(flowtab, fn, val, rval, ipinfo);
+    
+    /* Do TCP stuff */
     if (fn->f.key.proto == YF_PROTO_TCP) {
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
         yfFlowPktTCP(flowtab, fn, val, rval, tcpinfo);
@@ -1383,3 +1174,250 @@ uint64_t yfFlowDumpStats(
 
     return flowtab->stats.stat_packets;
 }
+
+/*
+ * Code Graveyard 
+ */
+
+/* maybe bring this back, but for now move stuff directly into the values... */
+#if 0
+static void
+yfFlowStatistics(
+                 yfFlowNode_t            *fn,
+                 yfFlowVal_t             *val,
+                 uint64_t                ptime,
+                 uint16_t                datalen)
+{
+    
+    if (val->stats.ltime) {
+        val->stats.aitime += (ptime - val->stats.ltime);
+    }
+    
+    if (val->pkt > 1 && val->pkt < 12) {
+        val->stats.iaarray[val->pkt -2] = (ptime - val->stats.ltime);
+    }
+    
+    val->stats.ltime = fn->f.etime;
+    
+    if (datalen) {
+        /* that means there is some payload */
+        if (val == &(fn->f.rval)) {
+            fn->f.pktdir |= (1 << (fn->f.val.stats.nonemptypktct +
+                                   val->stats.nonemptypktct));
+        }
+        if (val->stats.nonemptypktct < 10) {
+            val->stats.pktsize[val->stats.nonemptypktct] = datalen;
+        }
+        val->stats.nonemptypktct++;
+        if (datalen < 60) {
+            val->stats.smallpktct++;
+        } else if (datalen > 225) {
+            val->stats.largepktct++;
+        }
+        val->stats.payoct += datalen;
+        if (val->stats.firstpktsize== 0) {
+            val->stats.firstpktsize= datalen;
+        }
+        if (datalen> val->stats.maxpktsize) {
+            val->stats.maxpktsize =datalen;
+        }
+    }
+    
+}
+#endif
+
+#if 0
+static void
+yfAddOutOfSequence(
+                   yfFlowTab_t             *flowtab,
+                   yfFlowKey_t             *key,
+                   size_t                  pbuflen,
+                   yfPBuf_t                *pbuf)
+{
+    yfFlowNode_t            *fn = NULL;
+    yfFlowNode_t            *tn = NULL;
+    yfFlowNode_t            *nfn = NULL;
+    yfFlowKey_t             rkey;
+    uint64_t                end;
+    yfFlowVal_t             *val = NULL;
+    yfTCPInfo_t             *tcpinfo = &(pbuf->tcpinfo);
+    yfL2Info_t              *l2info = &(pbuf->l2info);
+    uint8_t                 *payload = (pbuflen >= YF_PBUFLEN_BASE) ?
+    pbuf->payload : NULL;
+    size_t                  paylen = (pbuflen >= YF_PBUFLEN_BASE) ?
+    pbuf->paylen : 0;
+    uint16_t                datalen = (pbuf->paylen - pbuf->allHeaderLen +
+                                       l2info->l2hlen);
+    uint32_t                pcap_len = 0;
+    uint32_t                hash;
+    gboolean                rev = FALSE;
+    
+    /* Count the packet and its octets */
+    ++(flowtab->stats.stat_packets);
+    flowtab->stats.stat_octets += pbuf->iplen;
+    
+    if (payload) {
+        if (paylen >= pbuf->allHeaderLen) {
+            paylen -= pbuf->allHeaderLen;
+            payload += pbuf->allHeaderLen;
+        } else {
+            paylen = 0;
+            payload = NULL;
+        }
+    }
+    
+    /* Look for flow in table */
+    if ((fn = g_hash_table_lookup(flowtab->table, key))) {
+        /* Forward flow found. */
+        val = &(fn->f.val);
+    }
+    
+    if (fn == NULL) {
+        /* Okay. Check for reverse flow. */
+        yfFlowKeyReverse(key, &rkey);
+        rev = TRUE;
+        if ((fn = g_hash_table_lookup(flowtab->table, &rkey))) {
+            /* Reverse flow found. */
+            val = &(fn->f.rval);
+        }
+    }
+    
+    if (fn == NULL) {
+        /* Neither exists. Create a new flow and put it in the table. */
+#if YAF_ENABLE_COMPACT_IP4
+        if (key->version == 4) {
+            fn = (yfFlowNode_t *)yg_slice_new0(yfFlowNodeIPv4_t);
+        } else {
+#endif
+            fn = yg_slice_new0(yfFlowNode_t);
+#if YAF_ENABLE_COMPACT_IP4
+        }
+#endif
+        /* Copy key */
+        yfFlowKeyCopy(key, &(fn->f.key));
+        
+        /* set flow start time */
+        fn->f.stime = pbuf->ptime;
+        
+        /* set flow end time as start time */
+        fn->f.etime = pbuf->ptime;
+        
+        /* stuff the flow in the table */
+        g_hash_table_insert(flowtab->table, &(fn->f.key), fn);
+        
+        /* This is a forward flow */
+        val = &(fn->f.val);
+        
+        /* Count it */
+        ++(flowtab->count);
+        if (flowtab->count > flowtab->stats.stat_peak) {
+            flowtab->stats.stat_peak = flowtab->count;
+        }
+        
+    }
+    /* packet exists now, update info */
+    
+    /* Do payload and TCP stuff */
+    if (fn->f.key.proto == YF_PROTO_TCP) {
+        /* Handle TCP flows specially (flags, ISN, sequenced payload) */
+        yfFlowPktTCP(flowtab, fn, val, payload, paylen, tcpinfo);
+        
+    }
+    
+    if (val->pkt == 0) {
+        val->first_pkt_size = pbuf->iplen;
+        /* Note Mac Addr */
+        if (flowtab->macmode && (val == &(fn->f.val))) {
+            if (l2info) {
+                memcpy(fn->f.sourceMacAddr, l2info->smac,
+                       ETHERNET_MAC_ADDR_LENGTH);
+                memcpy(fn->f.destinationMacAddr, l2info->dmac,
+                       ETHERNET_MAC_ADDR_LENGTH);
+            }
+        }
+    } else {
+        /* compare packet sizes */
+        if ( pbuf->iplen == val->first_pkt_size ) {
+            if (val->pkt == 1) {
+                val->attributes = YAF_SAME_SIZE;
+            }
+        } else {
+            val->attributes &= 0xFE;
+        }
+    }
+    
+    /* set flow attributes - this flow is out of order */
+    val->attributes |= YAF_OUT_OF_SEQUENCE;
+    
+    /* Count packets and octets */
+    val->oct += pbuf->iplen;
+    val->pkt += 1;
+    
+    /* don't update end time - stime could be greater than etime */
+    
+    /* Update stats */
+    if (flowtab->stats_mode) {
+        yfFlowStatistics(fn, val, pbuf->ptime, datalen);
+    }
+    
+    
+    pcap_len = pbuf->pcap_hdr.caplen + 16;
+    
+    /* close flow, or move it to head of queue */
+    if ((fn->state & YAF_STATE_FIN) == YAF_STATE_FIN ||
+        fn->state & YAF_STATE_RST)
+    {
+        yfFlowClose(flowtab, fn, YAF_END_CLOSED);
+        return;
+    }
+    
+    /* Check for inactive timeout - this flow might be idled out on arrival */
+    if ((flowtab->ctime - pbuf->ptime) > flowtab->idle_ms) {
+        yfFlowClose(flowtab, fn, YAF_END_IDLE);
+        return;
+    }
+    
+    if (flowtab->aq.head == NULL) {
+        yfFlowTick(flowtab, fn);
+        return;
+    }
+    
+    /* rip through the active queue and put this in the right spot */
+    /* first remove the node */
+    piqPick(&flowtab->aq, fn);
+    
+    for (tn = flowtab->aq.head; tn; tn=nfn)
+    {
+        end = tn->f.etime;
+        nfn = tn->p;
+        if (end <= fn->f.etime) {
+            /* nfn is previous node */
+            nfn = tn->n;
+            /* point previous (next) to new node */
+            nfn->p = fn;
+            /* point current previous to new node */
+            tn->n = fn;
+            /* point new node's next to current */
+            fn->p = tn;
+            /* point new node's previous to previous */
+            fn->n = nfn;
+            /*yfFlowTabVerifyIdleOrder(flowtab);*/
+            return;
+        }
+    }
+    
+    /* if this happens, we are at the tail */
+    if (flowtab->aq.tail) {
+        nfn = flowtab->aq.tail;
+        /* this flow's next (in non-Brian land - previous) is the tail */
+        fn->n = nfn;
+        /* the tail's previous (next) now points to new node */
+        nfn->p = fn;
+        /* tail is now new node */
+        flowtab->aq.tail = fn;
+    } else {
+        /* shouldn't get here but if we do,just get rid of this troublemaker.*/
+        yfFlowClose(flowtab, fn, YAF_END_IDLE);
+    }
+}
+#endif

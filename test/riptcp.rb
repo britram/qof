@@ -26,7 +26,7 @@ def fixread(c)
     end
     
     puts ["sip","dip","firstrtt",
-          "l3oct","l4oct","l7oct","meanrtt","maxrtt","maxflight"].join(", ")
+          "l3oct","l4oct","l7oct","meanrtt","maxrtt","maxflight","minttl","maxttl"].join(", ")
 
     # iterate over records
     c.each do |h, m|
@@ -55,7 +55,9 @@ def fixread(c)
             h[:tcpSequenceCount],
             h[:meanTcpRttMilliseconds],
             h[:maxTcpRttMilliseconds],
-            h[:maxTcpFlightSize]].join(", ")
+            h[:maxTcpFlightSize],
+            h[:minimumTTL],
+            h[:maximumTTL]].join(", ")
         end
         
         if h[:reverseMeanTcpRttMilliseconds] > 0
@@ -66,7 +68,9 @@ def fixread(c)
             h[:reverseTcpSequenceCount],
             h[:reverseMeanTcpRttMilliseconds],
             h[:reverseMaxTcpRttMilliseconds],
-            h[:reverseMaxTcpFlightSize]].join(", ")
+            h[:reverseMaxTcpFlightSize],
+            h[:reverseMinimumTTL],
+            h[:reverseMaximumTTL]].join(", ")
         end
     end
 end
