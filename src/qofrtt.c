@@ -88,3 +88,20 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
         sval->maxflight = sval->fsn - aval->lack;
     }
 }
+
+unsigned int qfPathDistance(yfFlowVal_t *val) {
+    // minttl mod 64
+    return val->minttl & 0x3F;
+}
+
+unsigned int qfCurrentRtt(yfFlow_t *f) {
+    /* FIXME this is really dumb. 
+       use path distance, synack rtt. cache crtt.
+       we probably also want a running weighted average. */
+
+    if (f->val.lrtt > f->rval.lrtt) {
+        return f->val.lrtt;
+    } else {
+        return f->rval.lrtt;
+    }
+}
