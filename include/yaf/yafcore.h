@@ -300,6 +300,8 @@ typedef struct yfFlowVal_st {
     uint32_t    maxflight;
     /** last rtt (milliseconds) */
     uint32_t    lrtt;
+    /** smoothed rtt (milliseconds) */
+    uint32_t    srtt;
     /** maximum rtt (milliseconds) */
     uint32_t    maxrtt;
     /** rtt sum (milliseconds) */

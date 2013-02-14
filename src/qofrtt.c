@@ -69,9 +69,20 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
         } while (stent && stent->seq < ack);
         
         if (stent) {
+            /* last RTT */
             sval->lrtt = (uint32_t)(ms - stent->ms);
+            
+            /* smoothed RTT */
+            /* FIXME hardcoded for alpha = 1/8 -- what is this, 1990? */
+            sval->srtt = sval->srtt ? ((sval->srtt * 7) + sval->lrtt)/8
+                                    : sval->lrtt;
+            
+            /* sum and count for average */
+            /* FIXME should we just export srtt instead? */
             sval->rttsum += sval->lrtt;
             sval->rttcount += 1;
+            
+            /* maximum */
             if (sval->lrtt > sval->maxrtt) sval->maxrtt = sval->lrtt;
         }
     }
@@ -95,13 +106,10 @@ unsigned int qfPathDistance(yfFlowVal_t *val) {
 }
 
 unsigned int qfCurrentRtt(yfFlow_t *f) {
-    /* FIXME this is really dumb. 
-       use path distance, synack rtt. cache crtt.
-       we probably also want a running weighted average. */
-
-    if (f->val.lrtt > f->rval.lrtt) {
-        return f->val.lrtt;
+    /* FIXME incorporate path distance? */
+    if (f->val.srtt > f->rval.srtt) {
+        return f->val.srtt;
     } else {
-        return f->rval.lrtt;
+        return f->rval.srtt;
     }
 }
