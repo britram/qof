@@ -308,6 +308,14 @@ typedef struct yfFlowVal_st {
     uint64_t    rttsum;
     /** rtt count */
     uint64_t    rttcount;
+    /** timestamp of last burst start */
+    uint64_t    blossbegin;
+    /** burst loss count */
+    uint32_t    blosscount;
+    /** last burst size */
+    uint32_t    lbloss;
+    /** last burst size */
+    uint32_t    maxbloss;
     /** minimum ttl */
     uint8_t     minttl;
     /** maximum ttl */

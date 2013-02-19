@@ -113,3 +113,16 @@ unsigned int qfCurrentRtt(yfFlow_t *f) {
         return f->rval.srtt;
     }
 }
+
+void qfLose(yfFlow_t *f, yfFlowVal_t *val, uint64_t ms) {
+    /* begin new burst? */
+    if (val->blossbegin < ms + qfCurrentRtt(f)) {
+        val->blossbegin = ms;
+        val->blosscount += 1;
+        if (val->maxbloss < val->lbloss) val->maxbloss = val->lbloss;
+        val->lbloss = 0;
+    }
+    
+    /* add to current burst */
+    val->lbloss++;
+}

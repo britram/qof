@@ -28,4 +28,6 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack);
 unsigned int qfPathDistance(yfFlowVal_t *val);
 unsigned int qfCurrentRtt(yfFlow_t *f);
 
+void qfLose(yfFlow_t *f, yfFlowVal_t *val, uint64_t ms);
+
 #endif

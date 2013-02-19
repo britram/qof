@@ -730,13 +730,13 @@ static void yfFlowPktIP(
 {
     /* track TTL */
     if (!val->minttl || (ipinfo->ttl < val->minttl)) {
-        fprintf(stderr, "new minttl %hhu\n", val->minttl);
+        //fprintf(stderr, "new minttl %hhu\n", val->minttl);
         val->minttl = ipinfo->ttl;
     }
     
     if (ipinfo->ttl > val->maxttl) {
         val->maxttl = ipinfo->ttl;
-        fprintf(stderr, "new maxttl %hhu\n", val->minttl);
+        //fprintf(stderr, "new maxttl %hhu\n", val->minttl);
     }
     
 }
