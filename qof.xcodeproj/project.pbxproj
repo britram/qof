@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		D38872B716946DDF00E66A70 /* qofifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922211672388F00514165 /* qofifmap.c */; };
-		D3FECD0816B9043500EF95BB /* qofifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922211672388F00514165 /* qofifmap.c */; };
-		D3FECD1016B9044100EF95BB /* test_ifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = D31013E416A94BA80068059F /* test_ifmap.c */; };
 		F519223B1672388F00514165 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = F519221A1672388F00514165 /* decode.c */; };
 		F519223E1672388F00514165 /* picq.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922201672388F00514165 /* picq.c */; };
 		F51922401672388F00514165 /* ring.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922221672388F00514165 /* ring.c */; };
@@ -43,18 +41,13 @@
 		F5192344167238A400514165 /* privconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192303167238A400514165 /* privconfig.c */; };
 		F52331DB16BC130400A3FA81 /* qofctx.c in Sources */ = {isa = PBXBuildFile; fileRef = F52331DA16BC130400A3FA81 /* qofctx.c */; };
 		F54A49E216C12DAF004D5B5C /* qofrtt.c in Sources */ = {isa = PBXBuildFile; fileRef = F54A49E116C12DAF004D5B5C /* qofrtt.c */; };
+		F5EF14DC16D4CF6A00A4358E /* libpcap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */; };
+		F5EF14DE16D4D26800A4358E /* libyaml-0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */; };
+		F5EF14E016D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */; };
+		F5EF14E216D4D2E600A4358E /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14E116D4D2E600A4358E /* libglib-2.0.0.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		D3FECD0A16B9043500EF95BB /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		F52D56BE16723812006D32A1 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -69,7 +62,6 @@
 /* Begin PBXFileReference section */
 		D31013E116A926230068059F /* qofifmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qofifmap.h; sourceTree = "<group>"; };
 		D31013E416A94BA80068059F /* test_ifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_ifmap.c; sourceTree = "<group>"; };
-		D3FECD0E16B9043500EF95BB /* test_ifmap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_ifmap; sourceTree = BUILT_PRODUCTS_DIR; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F519221F1672388F00514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
@@ -183,20 +175,21 @@
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
 		F54A49E116C12DAF004D5B5C /* qofrtt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrtt.c; sourceTree = "<group>"; };
 		F54A49E416C130C5004D5B5C /* qofrtt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrtt.h; sourceTree = "<group>"; };
+		F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
+		F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libyaml-0.2.dylib"; path = "../../../../opt/local/lib/libyaml-0.2.dylib"; sourceTree = "<group>"; };
+		F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libfixbuf-1.2.0.8.dylib"; path = "../../opt/lib/libfixbuf-1.2.0.8.dylib"; sourceTree = "<group>"; };
+		F5EF14E116D4D2E600A4358E /* libglib-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libglib-2.0.0.dylib"; path = "../../../../opt/local/lib/libglib-2.0.0.dylib"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		D3FECD0916B9043500EF95BB /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		F52D56BD16723812006D32A1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5EF14E216D4D2E600A4358E /* libglib-2.0.0.dylib in Frameworks */,
+				F5EF14E016D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib in Frameworks */,
+				F5EF14DE16D4D26800A4358E /* libyaml-0.2.dylib in Frameworks */,
+				F5EF14DC16D4CF6A00A4358E /* libpcap.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -388,6 +381,10 @@
 		F52D56B516723812006D32A1 = {
 			isa = PBXGroup;
 			children = (
+				F5EF14E116D4D2E600A4358E /* libglib-2.0.0.dylib */,
+				F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */,
+				F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */,
+				F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */,
 				D31013E316A949350068059F /* test */,
 				F5192261167238A400514165 /* airframe */,
 				F519224F1672389900514165 /* include */,
@@ -400,7 +397,6 @@
 			isa = PBXGroup;
 			children = (
 				F52D56C016723812006D32A1 /* qof */,
-				D3FECD0E16B9043500EF95BB /* test_ifmap */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -408,23 +404,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D3FECCE716B9043500EF95BB /* test_ifmap */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D3FECD0B16B9043500EF95BB /* Build configuration list for PBXNativeTarget "test_ifmap" */;
-			buildPhases = (
-				D3FECCE816B9043500EF95BB /* Sources */,
-				D3FECD0916B9043500EF95BB /* Frameworks */,
-				D3FECD0A16B9043500EF95BB /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = test_ifmap;
-			productName = qof;
-			productReference = D3FECD0E16B9043500EF95BB /* test_ifmap */;
-			productType = "com.apple.product-type.tool";
-		};
 		F52D56BF16723812006D32A1 /* qof */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F52D56CA16723812006D32A1 /* Build configuration list for PBXNativeTarget "qof" */;
@@ -464,21 +443,11 @@
 			projectRoot = "";
 			targets = (
 				F52D56BF16723812006D32A1 /* qof */,
-				D3FECCE716B9043500EF95BB /* test_ifmap */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D3FECCE816B9043500EF95BB /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D3FECD0816B9043500EF95BB /* qofifmap.c in Sources */,
-				D3FECD1016B9044100EF95BB /* test_ifmap.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		F52D56BC16723812006D32A1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -523,70 +492,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		D3FECD0C16B9043500EF95BB /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-					"HAVE_CONFIG_H=1",
-					"YAF_SOURCE=1",
-				);
-				HEADER_SEARCH_PATHS = (
-					./include,
-					./airframe/include,
-					/opt/local/include,
-					"/opt/local/include/glib-2.0",
-					"/opt/local/lib/glib-2.0/include",
-					"$(HOME)/opt/include",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/airframe/src/.libs\"",
-					"$(HOME)/opt/lib",
-					/opt/local/lib,
-				);
-				OTHER_LDFLAGS = (
-					"-lfixbuf",
-					"-lglib-2.0",
-					"-lpcap",
-					"-lyaml",
-				);
-				PRODUCT_NAME = test_ifmap;
-			};
-			name = Debug;
-		};
-		D3FECD0D16B9043500EF95BB /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"HAVE_CONFIG_H=1",
-					"YAF_SOURCE=1",
-				);
-				HEADER_SEARCH_PATHS = (
-					./include,
-					./airframe/include,
-					/opt/local/include,
-					"/opt/local/include/glib-2.0",
-					"/opt/local/lib/glib-2.0/include",
-					"$(HOME)/opt/include",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/airframe/src/.libs\"",
-					"$(HOME)/opt/lib",
-					/opt/local/lib,
-				);
-				OTHER_LDFLAGS = (
-					"-lfixbuf",
-					"-lglib-2.0",
-					"-lpcap",
-					"-lyaml",
-				);
-				PRODUCT_NAME = test_ifmap;
-			};
-			name = Release;
-		};
 		F52D56C816723812006D32A1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -661,12 +566,7 @@
 					"$(HOME)/opt/lib",
 					/opt/local/lib,
 				);
-				OTHER_LDFLAGS = (
-					"-lfixbuf",
-					"-lglib-2.0",
-					"-lpcap",
-					"-lyaml",
-				);
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -692,12 +592,7 @@
 					"$(HOME)/opt/lib",
 					/opt/local/lib,
 				);
-				OTHER_LDFLAGS = (
-					"-lfixbuf",
-					"-lglib-2.0",
-					"-lpcap",
-					"-lyaml",
-				);
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -705,15 +600,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D3FECD0B16B9043500EF95BB /* Build configuration list for PBXNativeTarget "test_ifmap" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D3FECD0C16B9043500EF95BB /* Debug */,
-				D3FECD0D16B9043500EF95BB /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		F52D56BA16723812006D32A1 /* Build configuration list for PBXProject "qof" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -771,8 +771,10 @@ static void yfFlowPktTCP(
         /* not the first packet; handle final sequence number and rtx count */
         if (tcpinfo->seq > val->fsn) {
             if (tcpinfo->seq - val->fsn > k2e31) {
-                /* retransmission after wrap */
+                /* count retransmission after wrap */
                 val->rtx += 1;
+                /* FIXME not quite right, detect loss better */
+                qfLose(&(fn->f), val, flowtab->ctime);
             } else {
                 /* normal advance */
                 qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
@@ -782,8 +784,10 @@ static void yfFlowPktTCP(
                 /* advance with sequence number wrap */
                 qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
             } else {
-                /* simple retransmission */
+                /* count simple retransmission */
                 val->rtx += 1;
+                /* FIXME not quite right, detect loss better */
+                qfLose(&(fn->f), val, flowtab->ctime);
             }
         }
     } else {

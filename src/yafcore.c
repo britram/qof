@@ -155,20 +155,24 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "tcpBurstLossCount",                  8, YTF_RTT | YTF_FLE },
+    { "reverseTcpBurstLossCount",           8, YTF_RTT | YTF_FLE },
     { "initiatorOctets",                    4, YTF_TCP | YTF_RLE },
     { "responderOctets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpBurstLossCount",                  4, YTF_RTT | YTF_RLE },
+    { "reverseTcpBurstLossCount",           4, YTF_RTT | YTF_RLE },
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
-    { "maxTcpFlightSize",                   4, YTF_TCP | YTF_BIF | YTF_RTT },
-    { "reverseMaxTcpFlightSize",            4, YTF_TCP | YTF_BIF | YTF_RTT },
-    { "meanTcpRttMilliseconds",             2, YTF_TCP | YTF_BIF | YTF_RTT },
-    { "reverseMeanTcpRttMilliseconds",      2, YTF_TCP | YTF_BIF | YTF_RTT },
-    { "maxTcpRttMilliseconds",              2, YTF_TCP | YTF_BIF | YTF_RTT },
-    { "reverseMaxTcpRttMilliseconds",       2, YTF_TCP | YTF_BIF | YTF_RTT },
+    { "maxTcpFlightSize",                   4, YTF_RTT },
+    { "reverseMaxTcpFlightSize",            4, YTF_RTT },
+    { "meanTcpRttMilliseconds",             2, YTF_RTT },
+    { "reverseMeanTcpRttMilliseconds",      2, YTF_RTT },
+    { "maxTcpRttMilliseconds",              2, YTF_RTT },
+    { "reverseMaxTcpRttMilliseconds",       2, YTF_RTT },
     /* First-packet RTT (for all biflows) */
     { "reverseFlowDeltaMilliseconds",       4, YTF_BIF },
     /* port, protocol, flow status, interfaces */
@@ -242,6 +246,8 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSequenceCount;
     uint64_t    tcpRetransmitCount;
     uint64_t    reverseTcpRetransmitCount;
+    uint64_t    tcpBurstLossCount;
+    uint64_t    reverseTcpBurstLossCount;
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
     uint32_t    maxTcpFlightSize;
@@ -354,6 +360,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpRetransmitCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpRetransmitCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,tcpBurstLossCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTcpBurstLossCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
@@ -970,6 +978,8 @@ gboolean yfWriteFlow(
             (uint32_t)(flow->rval.rttsum / flow->rval.rttcount) : 0;
             rec.maxTcpRttMilliseconds = flow->val.maxrtt;
             rec.reverseMaxTcpRttMilliseconds = flow->rval.maxrtt;
+            rec.tcpBurstLossCount = flow->val.blosscount;
+            rec.reverseTcpBurstLossCount = flow->rval.blosscount;
         }
     }
     
