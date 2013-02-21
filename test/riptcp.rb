@@ -26,7 +26,7 @@ def fixread(c)
     end
     
     puts ["sip","dip","firstrtt",
-          "l3oct","l4oct","l7oct","meanrtt","maxrtt","maxflight","minttl","maxttl"].join(", ")
+          "l3oct","l4oct","l7oct","rtx","burst","meanrtt","maxrtt","maxflight","minttl","maxttl"].join(", ")
 
     # iterate over records
     c.each do |h, m|
@@ -53,6 +53,8 @@ def fixread(c)
             h[:octetDeltaCount],
             h[:initiatorOctets],
             h[:tcpSequenceCount],
+            h[:tcpRetransmitCount],
+            h[:tcpBurstLossCount],
             h[:meanTcpRttMilliseconds],
             h[:maxTcpRttMilliseconds],
             h[:maxTcpFlightSize],
@@ -66,6 +68,8 @@ def fixread(c)
             h[:reverseOctetDeltaCount],
             h[:responderOctets],
             h[:reverseTcpSequenceCount],
+            h[:reverseTcpRetransmitCount],
+            h[:reverseTcpBurstLossCount],
             h[:reverseMeanTcpRttMilliseconds],
             h[:reverseMaxTcpRttMilliseconds],
             h[:reverseMaxTcpFlightSize],

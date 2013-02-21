@@ -760,15 +760,15 @@ static void yfFlowPktTCP(
     yfFlowNode_t                *fn,
     yfFlowVal_t                 *val,
     yfFlowVal_t                 *rval,
-    yfTCPInfo_t                 *tcpinfo)
+    yfTCPInfo_t                 *tcpinfo,
+    size_t                      datalen)
 {
-
     /* handle flags and sequence number */
     if (val->pkt) {
-        /* Union flags */
+        /* Not the first packet. Union flags. */
         val->uflags |= tcpinfo->flags;
-         
-        /* not the first packet; handle final sequence number and rtx count */
+        
+        /* Advance sequence number */
         if (tcpinfo->seq > val->fsn) {
             if (tcpinfo->seq - val->fsn > k2e31) {
                 /* count retransmission after wrap */
@@ -783,13 +783,15 @@ static void yfFlowPktTCP(
             if (val->fsn - tcpinfo->seq > k2e31) {
                 /* advance with sequence number wrap */
                 qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
-            } else {
-                /* count simple retransmission */
+            } else if (datalen) {
+                /* count simple retransmission if not empty ACK */
                 val->rtx += 1;
                 /* FIXME not quite right, detect loss better */
                 qfLose(&(fn->f), val, flowtab->ctime);
             }
         }
+        
+        
     } else {
         /* Initial flags */
         val->iflags = tcpinfo->flags;
@@ -907,7 +909,7 @@ void yfFlowPBuf(
     /* Do TCP stuff */
     if (fn->f.key.proto == YF_PROTO_TCP) {
         /* Handle TCP flows specially (flags, ISN, sequenced payload) */
-        yfFlowPktTCP(flowtab, fn, val, rval, tcpinfo);
+        yfFlowPktTCP(flowtab, fn, val, rval, tcpinfo, datalen);
     } 
 
     if (val->pkt == 0) {
