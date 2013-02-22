@@ -59,6 +59,13 @@ void qfRttSeqAdvance(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
     }
 }
 
+static void qfSmoothRtt(yfFlowVal_t *sval) {
+    static const unsigned int alpha = 8;
+    
+    sval->srtt = sval->srtt ? ((sval->srtt * (alpha-1)) + sval->lrtt) / alpha
+                            : sval->lrtt;
+}
+
 void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
     qfSeqTime_t *stent;
 
@@ -69,13 +76,13 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
         } while (stent && stent->seq < ack);
         
         if (stent) {
-            /* last RTT */
+            /* calculate last RTT */
+            /* FIXME we have to add a mechanism to add the delay of the 
+               _next_ packet here to adjust for the unseen part of the path. */
             sval->lrtt = (uint32_t)(ms - stent->ms);
             
-            /* smoothed RTT */
-            /* FIXME hardcoded for alpha = 1/8 -- what is this, 1990? */
-            sval->srtt = sval->srtt ? ((sval->srtt * 7) + sval->lrtt)/8
-                                    : sval->lrtt;
+            /* smooth RTT */
+            qfSmoothRtt(sval);
             
             /* sum and count for average */
             /* FIXME should we just export srtt instead? */
@@ -106,7 +113,6 @@ unsigned int qfPathDistance(yfFlowVal_t *val) {
 }
 
 unsigned int qfCurrentRtt(yfFlow_t *f) {
-    /* FIXME incorporate path distance? */
     if (f->val.srtt > f->rval.srtt) {
         return f->val.srtt;
     } else {
