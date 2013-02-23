@@ -35,75 +35,90 @@ void qfRttSeqInit(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
 
     /* initialize seqtime buffer if configured to do so */
     if (qof_rtt_ring_sz) {
-        val->seqtime = rgaAlloc(sizeof(qfSeqTime_t), qof_rtt_ring_sz);
-        stent = (qfSeqTime_t *)rgaForceHead(val->seqtime);
+        val->rtt.seqtime = rgaAlloc(sizeof(qfSeqTime_t), qof_rtt_ring_sz);
+        stent = (qfSeqTime_t *)rgaForceHead(val->rtt.seqtime);
         stent->ms = ms;
         stent->seq = seq;
     }
 }
 
-void qfRttSeqAdvance(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
+void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t seq) {
     qfSeqTime_t *stent;
     
     /* set final sequence number, counting wraps */
-    if (seq < val->fsn) {
-        val->wrapct += 1;
+    if (seq < sval->fsn) {
+        sval->wrapct += 1;
     }
-    val->fsn = seq;
+    sval->fsn = seq;
 
-    /* track seqtime if configured to do so */
-    if (val->seqtime) {
-        stent = (qfSeqTime_t *)rgaForceHead(val->seqtime);
-        stent->ms = ms;
-        stent->seq = seq;
+    /* do RTT stuff if enabled */
+    if (sval->rtt.seqtime) {
+        /* add entry if we got a new sequence number */
+        stent = (qfSeqTime_t *)rgaPeekTail(sval->rtt.seqtime);
+        if ((seq > stent->seq) || ((stent->seq - seq) > k2e31)) {
+            stent = (qfSeqTime_t *)rgaForceHead(sval->rtt.seqtime);
+            stent->ms = ms;
+            stent->seq = seq;
+        }
+        
+        /* generate a new RTT correction if necessary */
+        if (!aval->rtt.rttcorr &&
+            aval->rtt.lastack &&
+            seq > aval->rtt.lastack)
+        {
+            aval->rtt.rttcorr = (uint32_t)(ms - aval->rtt.lacktime);
+        }
     }
 }
 
 static void qfSmoothRtt(yfFlowVal_t *sval) {
     static const unsigned int alpha = 8;
     
-    sval->srtt = sval->srtt ? ((sval->srtt * (alpha-1)) + sval->lrtt) / alpha
-                            : sval->lrtt;
+    sval->rtt.smoothrtt = sval->rtt.smoothrtt ?
+                          ((sval->rtt.smoothrtt * (alpha-1)) +
+                            sval->rtt.lastrtt) / alpha
+                          : sval->rtt.lastrtt;
 }
 
 void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
     qfSeqTime_t *stent;
 
     /* track RTT if configured to do so */
-    if (sval->seqtime && ack > aval->lack) {
+    if (sval->rtt.seqtime && ack > aval->rtt.lastack) {
         do {
-            stent = (qfSeqTime_t *)rgaNextTail(sval->seqtime);
+            stent = (qfSeqTime_t *)rgaNextTail(sval->rtt.seqtime);
         } while (stent && stent->seq < ack);
         
         if (stent) {
             /* calculate last RTT */
-            /* FIXME we have to add a mechanism to add the delay of the 
-               _next_ packet here to adjust for the unseen part of the path. */
-            sval->lrtt = (uint32_t)(ms - stent->ms);
+            sval->rtt.lastrtt = (uint32_t)(ms - stent->ms);
             
             /* smooth RTT */
             qfSmoothRtt(sval);
             
             /* sum and count for average */
-            /* FIXME should we just export srtt instead? */
-            sval->rttsum += sval->lrtt;
+            /* FIXME should we just export rtt.smoothrtt instead? */
+            sval->rttsum += sval->rtt.lastrtt;
             sval->rttcount += 1;
             
             /* maximum */
-            if (sval->lrtt > sval->maxrtt) sval->maxrtt = sval->lrtt;
+            if (sval->rtt.lastrtt > sval->rtt.maxrtt) {
+                sval->rtt.maxrtt = sval->rtt.lastrtt;
+            }
         }
     }
 
     /* track last ACK */
-    aval->lack = ack;
+    aval->rtt.lastack = ack;
+    aval->rtt.lacktime = ms;
     
     /* track inflight high-water mark */
     // FIXME does not handle wraparound
     // FIXME also doesn't handle a valid ACK value of 0
-    if ((sval->fsn > aval->lack) &&
-        ((sval->fsn - aval->lack) > sval->maxflight))
+    if ((sval->fsn > aval->rtt.lastack) &&
+        ((sval->fsn - aval->rtt.lastack) > sval->rtt.maxflight))
     {
-        sval->maxflight = sval->fsn - aval->lack;
+        sval->rtt.maxflight = sval->fsn - aval->rtt.lastack;
     }
 }
 
@@ -113,22 +128,22 @@ unsigned int qfPathDistance(yfFlowVal_t *val) {
 }
 
 unsigned int qfCurrentRtt(yfFlow_t *f) {
-    if (f->val.srtt > f->rval.srtt) {
-        return f->val.srtt;
+    if (f->val.rtt.smoothrtt > f->rval.rtt.smoothrtt) {
+        return f->val.rtt.smoothrtt;
     } else {
-        return f->rval.srtt;
+        return f->rval.rtt.smoothrtt;
     }
 }
 
 void qfLose(yfFlow_t *f, yfFlowVal_t *val, uint64_t ms) {
     /* begin new burst? */
-    if (val->blossbegin < ms + qfCurrentRtt(f)) {
-        val->blossbegin = ms;
-        val->blosscount += 1;
-        if (val->maxbloss < val->lbloss) val->maxbloss = val->lbloss;
-        val->lbloss = 0;
+    if (val->rtt.blosstime < ms + qfCurrentRtt(f)) {
+        val->rtt.blosstime = ms;
+        val->rtt.blosscount += 1;
+        if (val->rtt.maxbloss < val->rtt.lastbloss) val->rtt.maxbloss = val->rtt.lastbloss;
+        val->rtt.lastbloss = 0;
     }
     
     /* add to current burst */
-    val->lbloss++;
+    val->rtt.lastbloss++;
 }

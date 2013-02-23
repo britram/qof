@@ -276,6 +276,37 @@ typedef struct yfFlowStats_st {
 } yfFlowStats_t;
 
 /**
+ * QoF RTT-derived TCP statistics
+ *
+ */
+typedef struct qfRttInfo_st {
+    /** Sequence number/timestamp ring (for RTT calculation) */
+    rgaRing_t   *seqtime;
+    /** Last acknowledgement time */
+    uint64_t    lacktime;
+    /** timestamp of last burst start */
+    uint64_t    blosstime;
+    /** Last acknowledgement number */
+    uint32_t    lastack;
+    /** last rtt (milliseconds) */
+    uint32_t    lastrtt;
+    /** smoothed rtt (milliseconds) */
+    uint32_t    smoothrtt;
+    /** rtt correction factor (milliseconds) */
+    uint32_t    rttcorr;
+    /** maximum rtt (milliseconds) */
+    uint32_t    maxrtt;
+    /** burst loss count */
+    uint32_t    blosscount;
+    /** last burst size */
+    uint32_t    lastbloss;
+    /** last burst size */
+    uint32_t    maxbloss;
+    /** maximum inflight octets */
+    uint32_t    maxflight;
+} qfRttInfo_t;
+
+/**
  * A YAF uniflow value. Contains directional packet header fields and counters;
  * two of these are used to build a biflow.
  */
@@ -294,28 +325,10 @@ typedef struct yfFlowVal_st {
     uint32_t    isn;
     /** Sequence number wraparound count */
     uint32_t    wrapct;
-    /** Last acknowledgement number */
-    uint32_t    lack;
-    /** maximum inflight octets */
-    uint32_t    maxflight;
-    /** last rtt (milliseconds) */
-    uint32_t    lrtt;
-    /** smoothed rtt (milliseconds) */
-    uint32_t    srtt;
-    /** maximum rtt (milliseconds) */
-    uint32_t    maxrtt;
-    /** rtt sum (milliseconds) */
+    /** rtt sum (milliseconds) FIXME think about removing this */
     uint64_t    rttsum;
-    /** rtt count */
+    /** rtt count FIXME think about removing this */
     uint64_t    rttcount;
-    /** timestamp of last burst start */
-    uint64_t    blossbegin;
-    /** burst loss count */
-    uint32_t    blosscount;
-    /** last burst size */
-    uint32_t    lbloss;
-    /** last burst size */
-    uint32_t    maxbloss;
     /** minimum ttl */
     uint8_t     minttl;
     /** maximum ttl */
@@ -326,8 +339,8 @@ typedef struct yfFlowVal_st {
     uint8_t     uflags;
     /** Real or virtual network interface */
     uint8_t     netIf;
-    /** Sequence number/timestamp ring (for RTT calculation */
-    rgaRing_t   *seqtime;
+    /** qof RTT statistics */
+    qfRttInfo_t rtt;
     /** yaf flow statistics */
     //yfFlowStats_t stats;
 } yfFlowVal_t;

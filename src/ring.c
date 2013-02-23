@@ -328,6 +328,22 @@ uint8_t *rgaNextTail(
     return tail;
 }
 
+/**
+ * rgaPeekTail
+ */
+
+uint8_t *rgaPeekTail(
+    rgaRing_t       *ring)
+{
+    /* return null if buffer empty */
+    if (ring->count <= ring->hrsv) {
+        return NULL;
+    }
+
+    /* return tail pointer */
+    return ring->tail;
+}
+
 #if YAF_RING_THREAD
 /**
  * rgaWaitTail

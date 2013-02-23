@@ -83,6 +83,9 @@ void rgaRewindHead(
 uint8_t *rgaNextTail(
     rgaRing_t       *ring);
 
+uint8_t *rgaPeekTail(
+    rgaRing_t       *ring);
+
 size_t rgaCount(
     rgaRing_t       *ring);
 

@@ -940,7 +940,7 @@ static const uint8_t *yfDecodeTCP(
     const yfHdrTcpOptTs_t   *tsopt;
     size_t                  tcph_len;
 
-    /* Verify we have enough of a  TCP header to get flags */
+    /* Verify we have enough of a TCP header to get flags */
     if (*caplen < YF_TCP_HLEN) {
         if (fraginfo && fraginfo->frag) {
             /* will have to do TCP stuff later */

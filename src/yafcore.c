@@ -970,16 +970,16 @@ gboolean yfWriteFlow(
             (flow->rval.rttcount >= QOF_MIN_RTT_COUNT))
         {
             wtid |= YTF_RTT;
-            rec.maxTcpFlightSize = flow->val.maxflight;
-            rec.reverseMaxTcpFlightSize = flow->rval.maxflight;
+            rec.maxTcpFlightSize = flow->val.rtt.maxflight;
+            rec.reverseMaxTcpFlightSize = flow->rval.rtt.maxflight;
             rec.meanTcpRttMilliseconds = flow->val.rttcount ?
             (uint32_t)(flow->val.rttsum / flow->val.rttcount) : 0;
             rec.reverseMeanTcpRttMilliseconds = flow->rval.rttcount ?
             (uint32_t)(flow->rval.rttsum / flow->rval.rttcount) : 0;
-            rec.maxTcpRttMilliseconds = flow->val.maxrtt;
-            rec.reverseMaxTcpRttMilliseconds = flow->rval.maxrtt;
-            rec.tcpBurstLossCount = flow->val.blosscount;
-            rec.reverseTcpBurstLossCount = flow->rval.blosscount;
+            rec.maxTcpRttMilliseconds = flow->val.rtt.maxrtt;
+            rec.reverseMaxTcpRttMilliseconds = flow->rval.rtt.maxrtt;
+            rec.tcpBurstLossCount = flow->val.rtt.blosscount;
+            rec.reverseTcpBurstLossCount = flow->rval.rtt.blosscount;
         }
     }
     

@@ -22,7 +22,7 @@
 void qfRttRingSize(size_t ring_sz);
 
 void qfRttSeqInit(yfFlowVal_t *val, uint64_t ms, uint32_t seq);
-void qfRttSeqAdvance(yfFlowVal_t *val, uint64_t ms, uint32_t seq);
+void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t seq);
 void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack);
 
 unsigned int qfPathDistance(yfFlowVal_t *val);

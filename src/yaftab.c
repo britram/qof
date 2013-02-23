@@ -489,8 +489,8 @@ static void yfFlowFree(
 {
 
     /* free sequence ring if present */
-    if (fn->f.val.seqtime) rgaFree(fn->f.val.seqtime);
-    if (fn->f.rval.seqtime) rgaFree(fn->f.rval.seqtime);
+    if (fn->f.val.rtt.seqtime) rgaFree(fn->f.val.rtt.seqtime);
+    if (fn->f.rval.rtt.seqtime) rgaFree(fn->f.rval.rtt.seqtime);
     
     /* free flow */
 #if YAF_ENABLE_COMPACT_IP4
@@ -777,12 +777,12 @@ static void yfFlowPktTCP(
                 qfLose(&(fn->f), val, flowtab->ctime);
             } else {
                 /* normal advance */
-                qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
+                qfRttSeqAdvance(val, rval, flowtab->ctime, tcpinfo->seq);
             }
         } else {
             if (val->fsn - tcpinfo->seq > k2e31) {
                 /* advance with sequence number wrap */
-                qfRttSeqAdvance(val, flowtab->ctime, tcpinfo->seq);
+                qfRttSeqAdvance(val, rval, flowtab->ctime, tcpinfo->seq);
             } else if (datalen) {
                 /* count simple retransmission if not empty ACK */
                 val->rtx += 1;
@@ -803,7 +803,8 @@ static void yfFlowPktTCP(
     /* handle ack */
     // FIXME make this handle SACK too once we decode SACK
     if (tcpinfo->flags & YF_TF_ACK) {
-        if ((tcpinfo->ack > val->lack) || ((val->lack - tcpinfo->ack) > k2e31)) {
+        if ((tcpinfo->ack > val->rtt.lastack) ||
+            ((val->rtt.lastack - tcpinfo->ack) > k2e31)) {
             qfRttAck(val, rval, flowtab->ctime, tcpinfo->ack);
         }
     }
