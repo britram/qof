@@ -289,7 +289,7 @@ typedef struct qfRttInfo_st {
     /** Last acknowledgement number */
     uint32_t    lastack;
     /** last rtt (milliseconds) */
-    uint32_t    lastrtt;
+    uint32_t    rawrtt;
     /** smoothed rtt (milliseconds) */
     uint32_t    smoothrtt;
     /** rtt correction factor (milliseconds) */

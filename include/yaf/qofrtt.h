@@ -21,6 +21,8 @@
 
 void qfRttRingSize(size_t ring_sz);
 
+int qfWrapGT(uint32_t a, uint32_t b);
+
 void qfRttSeqInit(yfFlowVal_t *val, uint64_t ms, uint32_t seq);
 void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t seq);
 void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack);

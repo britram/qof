@@ -23,6 +23,10 @@ typedef struct qfSeqTime_st {
     uint32_t    seq;
 } qfSeqTime_t;
 
+int qfWrapGT(uint32_t a, uint32_t b) {
+    return ((a > b) || ((b - a) > k2e31)) ? 1 : 0;
+}
+
 void qfRttRingSize(size_t ring_sz) {
     qof_rtt_ring_sz = ring_sz;
 }
@@ -55,18 +59,18 @@ void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t
     if (sval->rtt.seqtime) {
         /* add entry if we got a new sequence number */
         stent = (qfSeqTime_t *)rgaPeekTail(sval->rtt.seqtime);
-        if ((seq > stent->seq) || ((stent->seq - seq) > k2e31)) {
+        if (qfWrapGT(seq, stent->seq)) {
             stent = (qfSeqTime_t *)rgaForceHead(sval->rtt.seqtime);
             stent->ms = ms;
             stent->seq = seq;
         }
         
         /* generate a new RTT correction if necessary */
-        if (!aval->rtt.rttcorr &&
+        if (!sval->rtt.rttcorr &&
             aval->rtt.lastack &&
             seq > aval->rtt.lastack)
         {
-            aval->rtt.rttcorr = (uint32_t)(ms - aval->rtt.lacktime);
+            sval->rtt.rttcorr = (uint32_t)(ms - aval->rtt.lacktime);
         }
     }
 }
@@ -74,10 +78,17 @@ void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t
 static void qfSmoothRtt(yfFlowVal_t *sval) {
     static const unsigned int alpha = 8;
     
+    /* don't smooth if we have no correction term */
+    if (!sval->rtt.rttcorr) return;
+    
+    uint32_t rtt = sval->rtt.rawrtt + sval->rtt.rttcorr;
+    
     sval->rtt.smoothrtt = sval->rtt.smoothrtt ?
                           ((sval->rtt.smoothrtt * (alpha-1)) +
-                            sval->rtt.lastrtt) / alpha
-                          : sval->rtt.lastrtt;
+                            rtt) / alpha
+                          : rtt;
+    
+    /* FIXME: how to update correction term? */
 }
 
 void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
@@ -91,19 +102,18 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
         
         if (stent) {
             /* calculate last RTT */
-            sval->rtt.lastrtt = (uint32_t)(ms - stent->ms);
+            sval->rtt.rawrtt = (uint32_t)(ms - stent->ms);
             
             /* smooth RTT */
             qfSmoothRtt(sval);
             
             /* sum and count for average */
-            /* FIXME should we just export rtt.smoothrtt instead? */
-            sval->rttsum += sval->rtt.lastrtt;
+            sval->rttsum += sval->rtt.smoothrtt;
             sval->rttcount += 1;
             
             /* maximum */
-            if (sval->rtt.lastrtt > sval->rtt.maxrtt) {
-                sval->rtt.maxrtt = sval->rtt.lastrtt;
+            if (sval->rtt.smoothrtt > sval->rtt.maxrtt) {
+                sval->rtt.maxrtt = sval->rtt.smoothrtt;
             }
         }
     }
