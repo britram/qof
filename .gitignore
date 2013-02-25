@@ -15,3 +15,7 @@
 *.exe
 *.out
 *.app
+
+# Xcode project state
+project.xcworkspace
+xcuserdata
