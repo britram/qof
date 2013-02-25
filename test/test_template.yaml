@@ -1,0 +1,29 @@
+template:
+    - flowStartMilliseconds
+    - flowEndMilliseconds
+    - reverseFlowDeltaMilliseconds
+    - sourceIPv4Address
+    - destinationIPv4Address
+    - sourceIPv6Address
+    - destinationIPv6Address
+    - octetDeltaCount
+    - reverseOctetDeltaCount
+    - initiatorOctets
+    - responderOctets
+    - tcpSequenceCount
+    - reverseTcpSequenceCount
+    - meanTcpRttMilliseconds
+    - reverseMeanTcpRttMilliseconds
+    - maxTcpRttMilliseconds
+    - reverseMaxTcpRttMilliseconds
+    - maxTcpFlightSize
+    - reverseMaxTcpFlightSize 
+    - minimumTTL
+    - reverseMinimumTTL
+    - maximumTTL
+    - reverseMaximumTTL
+    - tcpRetransmitCount
+    - reverseTcpRetransmitCount
+    - tcpBurstLossCount
+    - reverseTcpBurstLossCount
+

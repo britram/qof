@@ -59,18 +59,22 @@ void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t
     if (sval->rtt.seqtime) {
         /* add entry if we got a new sequence number */
         stent = (qfSeqTime_t *)rgaPeekTail(sval->rtt.seqtime);
-        if (qfWrapGT(seq, stent->seq)) {
+        if (!stent || qfWrapGT(seq, stent->seq)) {
             stent = (qfSeqTime_t *)rgaForceHead(sval->rtt.seqtime);
             stent->ms = ms;
             stent->seq = seq;
-        }
-        
-        /* generate a new RTT correction if necessary */
-        if (!sval->rtt.rttcorr &&
-            aval->rtt.lastack &&
-            seq > aval->rtt.lastack)
-        {
-            sval->rtt.rttcorr = (uint32_t)(ms - aval->rtt.lacktime);
+
+            // minimize RTT correction if necessary
+            if (aval->rtt.lacktime &&
+                qfWrapGT(seq, aval->rtt.lastack)) {
+                // new seq, greater than last ack
+                if (!sval->rtt.rttcorr ||
+                    (sval->rtt.rttcorr > (uint32_t)(ms - aval->rtt.lacktime)))
+                {
+                    // new rtt correction term, or less than previous best
+                    sval->rtt.rttcorr = (uint32_t)(ms - aval->rtt.lacktime);
+                }
+            }
         }
     }
 }
@@ -87,8 +91,6 @@ static void qfSmoothRtt(yfFlowVal_t *sval) {
                           ((sval->rtt.smoothrtt * (alpha-1)) +
                             rtt) / alpha
                           : rtt;
-    
-    /* FIXME: how to update correction term? */
 }
 
 void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
