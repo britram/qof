@@ -65,7 +65,7 @@
 #include <yaf/yafrag.h>
 #include <yaf/decode.h>
 #include <yaf/ring.h>
-#include <yaf/qofifmap.h>
+#include "qofifmap.h"
 #include <airframe/airlock.h>
 
 #include <yaml.h>

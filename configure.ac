@@ -104,7 +104,7 @@ dnl ----------------------------------------------------------------------
 
 AC_CHECK_PROGS(POD2MAN, [pod2man true])
 
-YAF_POD2MAN_ARGS="--center='Yet Another Flowmeter' --release='"${PACKAGE_VERSION}"' --date='"`date +"%v"`"'"
+YAF_POD2MAN_ARGS="--center='QoF' --release='"${PACKAGE_VERSION}"' --date='"`date +"%v"`"'"
 AIRFRAME_POD2MAN_ARGS="--center='airframe' --release='"${PACKAGE_VERSION}"' --date='"`date +"%v"`"'"
 
 AC_SUBST(YAF_POD2MAN_ARGS)
@@ -239,8 +239,9 @@ PKG_CHECK_MODULES(libfixbuf, [libfixbuf >= 1.0.0],
                     OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"fixbuf "${yfpkg_ver}" "${yfpkg_lpath}"|"
                   ],
                   [AC_MSG_ERROR([Cannot find a suitable libfixbuf (>= 1.0.0) (Try setting PKG_CONFIG_PATH): $libfixbuf_PKG_ERRORS])
-])
+])               
 
+PKG_CHECK_MODULES(yaml, [yaml-0.1])
 
 
 dnl ----------------------------------------------------------------------

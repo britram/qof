@@ -47,7 +47,7 @@ bin_PROGRAMS = yaf yafscii yafcollect
 INCLUDES = $(LTDLINCL)
 LIBS += $(LIBLTDL)
 
-libyaf_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c 
+libyaf_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c qofrtt.c
 
 if PLUGINENABLE
 libyaf_la_SOURCES += yafhooks.c
@@ -58,13 +58,13 @@ libyaf_la_SOURCES += yafcygwin.c
 endif
 
 libyaf_la_LIBADD = @GLIB_LDADD@ 
-libyaf_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@-version-info @LIBCOMPAT@ -release ${VERSION}
+libyaf_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@ -version-info @LIBCOMPAT@ -release ${VERSION}
 libyaf_la_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
-yaf_SOURCES = yaf.c yafstat.c yafdag.c yafcap.c yafout.c yaflush.c yafpcapx.c
+yaf_SOURCES = yaf.c yafstat.c yafdag.c yafcap.c yafout.c yaflush.c yafpcapx.c qofctx.c qofifmap.c
 yaf_LDADD   =  libyaf.la @GLIB_LDADD@
-yaf_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ -export-dynamic
-yaf_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@  -DYAF_CONF_DIR='"$(sysconfdir)"'
+yaf_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ @yaml_LIBS@ -export-dynamic
+yaf_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ @yaml_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
 yafscii_SOURCES = yafscii.c
 yafscii_LDADD = libyaf.la @GLIB_LDADD@ 
@@ -76,5 +76,5 @@ yafcollect_LDADD = libyaf.la @GLIB_LDADD@
 yafcollect_LDFLAGS =  -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@
 yafcollect_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@
 
-noinst_HEADERS = yafdag.h yafcap.h yafpcapx.h yafstat.h yafout.h yaflush.h qofctx.h
+noinst_HEADERS = yafdag.h yafcap.h yafpcapx.h yafstat.h yafout.h yaflush.h qofctx.h qofrtt.h qofifmap.h
 

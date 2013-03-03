@@ -60,8 +60,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		D31013E116A926230068059F /* qofifmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qofifmap.h; sourceTree = "<group>"; };
 		D31013E416A94BA80068059F /* test_ifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_ifmap.c; sourceTree = "<group>"; };
+		D36F0F4716E3B5720028EDAE /* qofifmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofifmap.h; sourceTree = "<group>"; };
+		D36F0F4816E3B5D90028EDAE /* qofrtt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrtt.h; sourceTree = "<group>"; };
+		D36F0F4916E3B6B80028EDAE /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
+		D36F0F4A16E3B6B80028EDAE /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		D36F0F4B16E3BA480028EDAE /* acinclude.m4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = acinclude.m4; sourceTree = "<group>"; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F519221F1672388F00514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
@@ -174,7 +178,6 @@
 		F52331DA16BC130400A3FA81 /* qofctx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofctx.c; sourceTree = "<group>"; };
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
 		F54A49E116C12DAF004D5B5C /* qofrtt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrtt.c; sourceTree = "<group>"; };
-		F54A49E416C130C5004D5B5C /* qofrtt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrtt.h; sourceTree = "<group>"; };
 		F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
 		F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libyaml-0.2.dylib"; path = "../../../../opt/local/lib/libyaml-0.2.dylib"; sourceTree = "<group>"; };
 		F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libfixbuf-1.2.0.8.dylib"; path = "../../opt/lib/libfixbuf-1.2.0.8.dylib"; sourceTree = "<group>"; };
@@ -207,6 +210,8 @@
 		F51922041672388F00514165 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				D36F0F4816E3B5D90028EDAE /* qofrtt.h */,
+				D36F0F4716E3B5720028EDAE /* qofifmap.h */,
 				F519221A1672388F00514165 /* decode.c */,
 				F519221E1672388F00514165 /* Makefile.am */,
 				F519221F1672388F00514165 /* Makefile.in */,
@@ -267,8 +272,6 @@
 				F519225D1672389900514165 /* yafcore.h */,
 				F519225E1672389900514165 /* yafrag.h */,
 				F519225F1672389900514165 /* yaftab.h */,
-				D31013E116A926230068059F /* qofifmap.h */,
-				F54A49E416C130C5004D5B5C /* qofrtt.h */,
 			);
 			path = yaf;
 			sourceTree = "<group>";
@@ -383,6 +386,9 @@
 			children = (
 				F5EF14E116D4D2E600A4358E /* libglib-2.0.0.dylib */,
 				F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */,
+				D36F0F4916E3B6B80028EDAE /* configure.ac */,
+				D36F0F4B16E3BA480028EDAE /* acinclude.m4 */,
+				D36F0F4A16E3B6B80028EDAE /* Makefile.am */,
 				F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */,
 				F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */,
 				D31013E316A949350068059F /* test */,

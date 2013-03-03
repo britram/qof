@@ -14,7 +14,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/qofifmap.h>
+#include "qofifmap.h"
 
 #include <arpa/inet.h>
 
@@ -35,15 +35,17 @@ static int qfIp6Compare(uint8_t *a, uint8_t *b) {
 }
 
 static void qfIp6Mask(uint8_t *ma, uint8_t *a, uint8_t *mask) {
-    for (int i = 0; i < 16; i++) {
+    int i;
+    for (i = 0; i < 16; i++) {
         ma[i] = a[i] & mask[i];
     }
 }
 
 static uint32_t qfPrefixMask4(uint8_t p) {
+    int i;
     uint32_t o = 0;
     
-    for (int i = 0; i < p; i++) {
+    for (i = 0; i < p; i++) {
         o >>= 1;
         o |= 0x80000000U;
     }
@@ -68,15 +70,18 @@ static void qfPrefixMask6(uint8_t *mask, uint8_t p) {
 }
 
 static void qfIp6BitInvert(uint8_t *addr) {
-    for (int i = 0; i < 16; i++) addr[i] = ~addr[i];
+    int i;
+    for (i = 0; i < 16; i++) addr[i] = ~addr[i];
 }
 
 static void qfIp6BitAnd(uint8_t *lhs, uint8_t *a, uint8_t *b) {
-    for (int i = 0; i < 16; i++) lhs[i] = a[i] & b[i];
+    int i;
+    for (i = 0; i < 16; i++) lhs[i] = a[i] & b[i];
 }
 
 static void qfIp6BitOr(uint8_t *lhs, uint8_t *a, uint8_t *b) {
-    for (int i = 0; i < 16; i++) lhs[i] = a[i] | b[i];
+    int i;
+    for (i = 0; i < 16; i++) lhs[i] = a[i] | b[i];
 }
 
 

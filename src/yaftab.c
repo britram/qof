@@ -68,7 +68,7 @@
 #include <yaf/picq.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
-#include <yaf/qofrtt.h>
+#include "qofrtt.h"
 
 #include "qofctx.h"
 #include "decode.h"

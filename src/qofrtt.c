@@ -14,7 +14,7 @@
 
 #define _YAF_SOURCE_
 #include <yaf/autoinc.h>
-#include <yaf/qofrtt.h>
+#include "qofrtt.h"
 
 static size_t qof_rtt_ring_sz = 0;
 

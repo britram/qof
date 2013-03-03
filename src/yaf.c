@@ -65,7 +65,7 @@
 #include <yaf/yafcore.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
-#include <yaf/qofrtt.h>
+#include "qofrtt.h"
 
 #include "yafcap.h"
 #include "yafstat.h"
