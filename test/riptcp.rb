@@ -26,7 +26,7 @@ def fixread(c)
     end
     
     puts ["sip","dip","firstrtt",
-          "l3oct","l4oct","l7oct","rtx","burst","meanrtt","maxrtt","maxflight","minttl","maxttl"].join(", ")
+          "l3oct","l4oct","l7oct","rtx","burst","meanrtt","minrtt","maxflight","minttl","maxttl"].join(", ")
 
     # iterate over records
     c.each do |h, m|
@@ -43,8 +43,8 @@ def fixread(c)
             sip = h[:sourceIPv6Address]
             dip = h[:destinationIPv6Address]
         else
-            STDERR.puts "ignoring record without an address"
-            return
+            sip = "0.0.0.0"
+            dip = "0.0.0.0"
         end
         
         if h[:meanTcpRttMilliseconds] > 0
@@ -56,7 +56,7 @@ def fixread(c)
             h[:tcpRetransmitCount],
             h[:tcpBurstLossCount],
             h[:meanTcpRttMilliseconds],
-            h[:maxTcpRttMilliseconds],
+            h[:minTcpRttMilliseconds],
             h[:maxTcpFlightSize],
             h[:minimumTTL],
             h[:maximumTTL]].join(", ")
@@ -71,7 +71,7 @@ def fixread(c)
             h[:reverseTcpRetransmitCount],
             h[:reverseTcpBurstLossCount],
             h[:reverseMeanTcpRttMilliseconds],
-            h[:reverseMaxTcpRttMilliseconds],
+            h[:reverseMinTcpRttMilliseconds],
             h[:reverseMaxTcpFlightSize],
             h[:reverseMinimumTTL],
             h[:reverseMaximumTTL]].join(", ")

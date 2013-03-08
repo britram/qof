@@ -281,7 +281,7 @@ typedef struct yfFlowStats_st {
  */
 typedef struct qfRttInfo_st {
     /** Sequence number/timestamp ring (for RTT calculation) */
-    rgaRing_t   *seqtime;
+    rgaRing_t   *seqring;
     /** Last acknowledgement time */
     uint64_t    lacktime;
     /** timestamp of last burst start */
@@ -294,8 +294,8 @@ typedef struct qfRttInfo_st {
     uint32_t    smoothrtt;
     /** rtt correction factor (milliseconds) */
     uint32_t    rttcorr;
-    /** maximum rtt (milliseconds) */
-    uint32_t    maxrtt;
+    /** minimum rtt (milliseconds) */
+    uint32_t    minrtt;
     /** burst loss count */
     uint32_t    blosscount;
     /** last burst size */
@@ -304,6 +304,12 @@ typedef struct qfRttInfo_st {
     uint32_t    maxbloss;
     /** maximum inflight octets */
     uint32_t    maxflight;
+    /** last inflight octets */
+    uint32_t    lastflight;
+    /** sequence ring sampling period */
+    uint16_t    srperiod;
+    /** sequence ring sampling period */
+    uint16_t    srskipped;
 } qfRttInfo_t;
 
 /**
@@ -329,6 +335,8 @@ typedef struct yfFlowVal_st {
     uint64_t    rttsum;
     /** rtt count FIXME think about removing this */
     uint64_t    rttcount;
+    /** max observed packet size */
+    uint16_t    maxiplen;
     /** minimum ttl */
     uint8_t     minttl;
     /** maximum ttl */

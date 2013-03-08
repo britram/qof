@@ -225,6 +225,9 @@ uint8_t *rgaForceHead(
     if (ring->head > ring->end) {
         ring->head = ring->base;
     }
+
+    /* count addition */
+    ++(ring->count);
     
     /* advance tail pointer if buffer full */
     if (ring->count >= (ring->cap - ring->trsv)) {
@@ -232,13 +235,15 @@ uint8_t *rgaForceHead(
         if (ring->tail > ring->end) {
             ring->tail = ring->base;
         }
+        --(ring->count);
     }
     
-    /* keep count and peak */
-    ++(ring->count);
+    /* track post-force peak */
     if (ring->count > ring->peak) {
         ring->peak = ring->count;
     }
+
+    
     
     /* return head pointer */
     return head;

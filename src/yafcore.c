@@ -171,8 +171,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMaxTcpFlightSize",            4, YTF_RTT },
     { "meanTcpRttMilliseconds",             2, YTF_RTT },
     { "reverseMeanTcpRttMilliseconds",      2, YTF_RTT },
-    { "maxTcpRttMilliseconds",              2, YTF_RTT },
-    { "reverseMaxTcpRttMilliseconds",       2, YTF_RTT },
+    { "minTcpRttMilliseconds",              2, YTF_RTT },
+    { "reverseMinTcpRttMilliseconds",       2, YTF_RTT },
     /* First-packet RTT (for all biflows) */
     { "reverseFlowDeltaMilliseconds",       4, YTF_BIF },
     /* port, protocol, flow status, interfaces */
@@ -254,8 +254,8 @@ typedef struct yfIpfixFlow_st {
     uint32_t    reverseMaxTcpFlightSize;
     uint16_t    meanTcpRttMilliseconds;
     uint16_t    reverseMeanTcpRttMilliseconds;
-    uint16_t    maxTcpRttMilliseconds;
-    uint16_t    reverseMaxTcpRttMilliseconds;
+    uint16_t    minTcpRttMilliseconds;
+    uint16_t    reverseMinTcpRttMilliseconds;
     /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
@@ -368,8 +368,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);
     RUN_CHECKS(yfIpfixFlow_t,meanTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,maxTcpRttMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpRttMilliseconds,1);
+    RUN_CHECKS(yfIpfixFlow_t,minTcpRttMilliseconds,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMinTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceTransportPort,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationTransportPort,1);
@@ -891,7 +891,7 @@ gboolean yfWriteFlow(
     /* choose options for basic template */
     wtid = YAF_FLOW_BASE_TID;
 
-    /* fill in fields that are always present FIXME check these */
+    /* fill in fields that are always present */
     rec.flowEndReason = flow->reason;
     rec.minimumTTL = flow->val.minttl;
     rec.reverseMinimumTTL = flow->rval.minttl;
@@ -901,6 +901,9 @@ gboolean yfWriteFlow(
     rec.reverseOctetCount = flow->rval.oct;
     rec.packetCount = flow->val.pkt;
     rec.reversePacketCount = flow->rval.pkt;
+    
+    /* FIXME write maximum IP length as well once we figure out 
+             what the IE for it is */
 
     /* Select optional features based on flow properties and export mode */
     
@@ -976,8 +979,8 @@ gboolean yfWriteFlow(
             (uint32_t)(flow->val.rttsum / flow->val.rttcount) : 0;
             rec.reverseMeanTcpRttMilliseconds = flow->rval.rttcount ?
             (uint32_t)(flow->rval.rttsum / flow->rval.rttcount) : 0;
-            rec.maxTcpRttMilliseconds = flow->val.rtt.maxrtt;
-            rec.reverseMaxTcpRttMilliseconds = flow->rval.rtt.maxrtt;
+            rec.minTcpRttMilliseconds = flow->val.rtt.minrtt;
+            rec.reverseMinTcpRttMilliseconds = flow->rval.rtt.minrtt;
             rec.tcpBurstLossCount = flow->val.rtt.blosscount;
             rec.reverseTcpBurstLossCount = flow->rval.rtt.blosscount;
         }

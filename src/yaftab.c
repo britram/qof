@@ -489,8 +489,8 @@ static void yfFlowFree(
 {
 
     /* free sequence ring if present */
-    if (fn->f.val.rtt.seqtime) rgaFree(fn->f.val.rtt.seqtime);
-    if (fn->f.rval.rtt.seqtime) rgaFree(fn->f.rval.rtt.seqtime);
+    if (fn->f.val.rtt.seqring) rgaFree(fn->f.val.rtt.seqring);
+    if (fn->f.rval.rtt.seqring) rgaFree(fn->f.rval.rtt.seqring);
     
     /* free flow */
 #if YAF_ENABLE_COMPACT_IP4
@@ -942,6 +942,7 @@ void yfFlowPBuf(
     /* Count packets and octets */
     val->appoct += datalen;
     val->oct += pbuf->iplen;
+    if (pbuf->iplen > val->maxiplen) val->maxiplen = pbuf->iplen;
     val->pkt += 1;
 
     /* update flow end time */

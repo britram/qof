@@ -39,11 +39,36 @@ void qfRttSeqInit(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
 
     /* initialize seqtime buffer if configured to do so */
     if (qof_rtt_ring_sz) {
-        val->rtt.seqtime = rgaAlloc(sizeof(qfSeqTime_t), qof_rtt_ring_sz);
-        stent = (qfSeqTime_t *)rgaForceHead(val->rtt.seqtime);
+        val->rtt.seqring = rgaAlloc(sizeof(qfSeqTime_t), qof_rtt_ring_sz);
+        stent = (qfSeqTime_t *)rgaForceHead(val->rtt.seqring);
         stent->ms = ms;
         stent->seq = seq;
     }
+}
+
+/* Return true if we should sample a sequence number */
+
+/* Calcuate a deterministic sequence number sampling rate based upon the 
+   RTT buffer size (maxflight / maxip) / bufsz, and set this for the next
+   sample. count down. */
+
+static gboolean qfRttSeqSampleP(yfFlowVal_t *sval) {
+    /* keep skipping until we've eaten up the period */
+     if (sval->rtt.srskipped < sval->rtt.srperiod) {
+        sval->rtt.srskipped++;
+        return FALSE;
+    }
+    
+    /* calculate next period */
+    fprintf(stderr, "lf %u maxlen %u ringct %u ", sval->rtt.lastflight, sval->maxiplen, rgaCount(sval->rtt.seqring));
+    sval->rtt.srperiod = (sval->rtt.lastflight / sval->maxiplen ) /
+                         (qof_rtt_ring_sz + 1 - rgaCount(sval->rtt.seqring));
+    if (sval->rtt.srperiod) sval->rtt.srperiod -= 1;
+    fprintf(stderr, "srp %u\n", sval->rtt.srperiod);
+    
+    /* and return */
+    sval->rtt.srskipped = 0;
+    return TRUE;
 }
 
 void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t seq) {
@@ -55,26 +80,30 @@ void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t
     }
     sval->fsn = seq;
 
-    /* do RTT stuff if enabled */
-    if (sval->rtt.seqtime) {
+    /* Everything after this point requires RTT to be configured */
+    if (!sval->rtt.seqring) return;
+    
+    /* Take an RTT sample if we should */
+    if (qfRttSeqSampleP(sval)) {
         /* add entry if we got a new sequence number */
-        stent = (qfSeqTime_t *)rgaPeekTail(sval->rtt.seqtime);
+        stent = (qfSeqTime_t *)rgaPeekTail(sval->rtt.seqring);
         if (!stent || qfWrapGT(seq, stent->seq)) {
-            stent = (qfSeqTime_t *)rgaForceHead(sval->rtt.seqtime);
+            stent = (qfSeqTime_t *)rgaForceHead(sval->rtt.seqring);
             stent->ms = ms;
             stent->seq = seq;
-
-            // minimize RTT correction if necessary
-            if (aval->rtt.lacktime &&
-                qfWrapGT(seq, aval->rtt.lastack)) {
-                // new seq, greater than last ack
-                if (!sval->rtt.rttcorr ||
-                    (sval->rtt.rttcorr > (uint32_t)(ms - aval->rtt.lacktime)))
-                {
-                    // new rtt correction term, or less than previous best
-                    sval->rtt.rttcorr = (uint32_t)(ms - aval->rtt.lacktime);
-                }
-            }
+        }
+    }
+    
+    /* Minimize RTT correction factor */
+    if (aval->rtt.lacktime &&
+        qfWrapGT(seq, aval->rtt.lastack))
+    {
+        // new seq, greater than last ack
+        if (!sval->rtt.rttcorr ||
+            (sval->rtt.rttcorr > (uint32_t)(ms - aval->rtt.lacktime)))
+        {
+            // new rtt correction term, or less than previous best
+            sval->rtt.rttcorr = (uint32_t)(ms - aval->rtt.lacktime);
         }
     }
 }
@@ -97,9 +126,9 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
     qfSeqTime_t *stent;
 
     /* track RTT if configured to do so */
-    if (sval->rtt.seqtime && ack > aval->rtt.lastack) {
+    if (sval->rtt.seqring && ack > aval->rtt.lastack) {
         do {
-            stent = (qfSeqTime_t *)rgaNextTail(sval->rtt.seqtime);
+            stent = (qfSeqTime_t *)rgaNextTail(sval->rtt.seqring);
         } while (stent && stent->seq < ack);
         
         if (stent) {
@@ -113,24 +142,25 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
             sval->rttsum += sval->rtt.smoothrtt;
             sval->rttcount += 1;
             
-            /* maximum */
-            if (sval->rtt.smoothrtt > sval->rtt.maxrtt) {
-                sval->rtt.maxrtt = sval->rtt.smoothrtt;
+            /* minimum */
+            if (!sval->rtt.minrtt || sval->rtt.minrtt > sval->rtt.smoothrtt) {
+                sval->rtt.minrtt = sval->rtt.smoothrtt;
             }
         }
     }
 
     /* track last ACK */
-    aval->rtt.lastack = ack;
-    aval->rtt.lacktime = ms;
+    if (qfWrapGT(ack, aval->rtt.lastack)) {
+        aval->rtt.lastack = ack;
+        aval->rtt.lacktime = ms;
+    }
     
     /* track inflight high-water mark */
-    // FIXME does not handle wraparound
-    // FIXME also doesn't handle a valid ACK value of 0
-    if ((sval->fsn > aval->rtt.lastack) &&
-        ((sval->fsn - aval->rtt.lastack) > sval->rtt.maxflight))
-    {
-        sval->rtt.maxflight = sval->fsn - aval->rtt.lastack;
+    if (qfWrapGT(sval->fsn, aval->rtt.lastack)) {
+        sval->rtt.lastflight = sval->fsn - aval->rtt.lastack;
+        if (sval->rtt.maxflight > sval->rtt.lastflight) {
+            sval->rtt.maxflight = sval->rtt.lastflight;
+        }
     }
 }
 

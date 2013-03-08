@@ -23,7 +23,7 @@ static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("tcpRetransmitCount", TCH_PEN, 1025, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("maxTcpFlightSize", TCH_PEN, 1027, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("meanTcpRttMilliseconds", TCH_PEN, 1028, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
-     FB_IE_INIT("maxTcpRttMilliseconds", TCH_PEN, 1029, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("minTcpRttMilliseconds", TCH_PEN, 1029, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("tcpBurstLossCount", TCH_PEN, 1030, 8,  FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_NULL
 };
