@@ -47,11 +47,6 @@ void qfRttSeqInit(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
 }
 
 /* Return true if we should sample a sequence number */
-
-/* Calcuate a deterministic sequence number sampling rate based upon the 
-   RTT buffer size (maxflight / maxip) / bufsz, and set this for the next
-   sample. count down. */
-
 static gboolean qfRttSeqSampleP(yfFlowVal_t *sval) {
     /* keep skipping until we've eaten up the period */
      if (sval->rtt.srskipped < sval->rtt.srperiod) {
@@ -60,11 +55,11 @@ static gboolean qfRttSeqSampleP(yfFlowVal_t *sval) {
     }
     
     /* calculate next period */
-    fprintf(stderr, "lf %u maxlen %u ringct %u ", sval->rtt.lastflight, sval->maxiplen, rgaCount(sval->rtt.seqring));
+    //fprintf(stderr, "lf %u maxlen %u ringct %u ", sval->rtt.lastflight, sval->maxiplen, rgaCount(sval->rtt.seqring));
     sval->rtt.srperiod = (sval->rtt.lastflight / sval->maxiplen ) /
                          (qof_rtt_ring_sz + 1 - rgaCount(sval->rtt.seqring));
     if (sval->rtt.srperiod) sval->rtt.srperiod -= 1;
-    fprintf(stderr, "srp %u\n", sval->rtt.srperiod);
+    //fprintf(stderr, "srp %u\n", sval->rtt.srperiod);
     
     /* and return */
     sval->rtt.srskipped = 0;
