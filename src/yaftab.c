@@ -763,6 +763,8 @@ static void yfFlowPktTCP(
     yfTCPInfo_t                 *tcpinfo,
     size_t                      datalen)
 {
+    uint32_t                    ooo;
+    
     /* handle flags and sequence number */
     if (val->pkt) {
         /* Not the first packet. Union flags. */
@@ -789,6 +791,11 @@ static void yfFlowPktTCP(
                 /* FIXME not quite right, detect loss better */
                 qfLose(&(fn->f), val, flowtab->ctime);
             }
+        }
+        
+        /* High-water mark for out-of-order octets */
+        if (val->fsn - tcpinfo->seq > val->rtt.maxooo) {
+            val->rtt.maxooo = val->fsn - tcpinfo->seq;
         }
         
         

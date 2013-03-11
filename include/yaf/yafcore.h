@@ -306,6 +306,8 @@ typedef struct qfRttInfo_st {
     uint32_t    maxflight;
     /** last inflight octets */
     uint32_t    lastflight;
+    /** maximum octets out of order */
+    uint32_t    maxooo;
     /** sequence ring sampling period */
     uint16_t    srperiod;
     /** sequence ring sampling period */

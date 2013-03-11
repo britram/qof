@@ -169,6 +169,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
     { "maxTcpFlightSize",                   4, YTF_RTT },
     { "reverseMaxTcpFlightSize",            4, YTF_RTT },
+    { "maxTcpReorderSize",                  4, YTF_RTT },
+    { "reverseMaxTcpReorderSize",           4, YTF_RTT },
     { "meanTcpRttMilliseconds",             2, YTF_RTT },
     { "reverseMeanTcpRttMilliseconds",      2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
@@ -252,6 +254,8 @@ typedef struct yfIpfixFlow_st {
     uint32_t    reverseTcpSequenceNumber;
     uint32_t    maxTcpFlightSize;
     uint32_t    reverseMaxTcpFlightSize;
+    uint32_t    maxTcpReorderSize;
+    uint32_t    reverseMaxTcpReorderSize;
     uint16_t    meanTcpRttMilliseconds;
     uint16_t    reverseMeanTcpRttMilliseconds;
     uint16_t    minTcpRttMilliseconds;
@@ -366,6 +370,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,maxTcpReorderSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpReorderSize,1);
     RUN_CHECKS(yfIpfixFlow_t,meanTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,minTcpRttMilliseconds,1);
@@ -975,6 +981,8 @@ gboolean yfWriteFlow(
             wtid |= YTF_RTT;
             rec.maxTcpFlightSize = flow->val.rtt.maxflight;
             rec.reverseMaxTcpFlightSize = flow->rval.rtt.maxflight;
+            rec.maxTcpReorderSize = flow->val.rtt.maxooo;
+            rec.reverseMaxTcpReorderSize = flow->rval.rtt.maxooo;
             rec.meanTcpRttMilliseconds = flow->val.rttcount ?
             (uint32_t)(flow->val.rttsum / flow->val.rttcount) : 0;
             rec.reverseMeanTcpRttMilliseconds = flow->rval.rttcount ?
