@@ -80,6 +80,9 @@ uint8_t *rgaForceHead(
 void rgaRewindHead(
     rgaRing_t       *ring);
 
+uint8_t *rgaPeekHead(
+    rgaRing_t       *ring);
+
 uint8_t *rgaNextTail(
     rgaRing_t       *ring);
 

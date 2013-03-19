@@ -249,6 +249,22 @@ uint8_t *rgaForceHead(
     return head;
 }
 
+/**
+ * rgaPeekHead
+ */
+
+uint8_t *rgaPeekHead(rgaRing_t       *ring)
+{
+    /* return null if buffer empty */
+    if (ring->count <= 0) {
+        return NULL;
+    }
+    
+    /* return head pointer */
+    return ring->head;
+}
+
+
 
 #if YAF_RING_THREAD
 /**
@@ -341,7 +357,7 @@ uint8_t *rgaPeekTail(
     rgaRing_t       *ring)
 {
     /* return null if buffer empty */
-    if (ring->count <= ring->hrsv) {
+    if (ring->count <= 0) {
         return NULL;
     }
 

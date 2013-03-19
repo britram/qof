@@ -18,6 +18,10 @@
 
 static size_t qof_rtt_ring_sz = 0;
 
+static const unsigned int kSmoothAlpha = 8;
+static const unsigned int kSamplePeriodMs = 1;
+
+
 typedef struct qfSeqTime_st {
     uint64_t    ms;
     uint32_t    seq;
@@ -47,12 +51,22 @@ void qfRttSeqInit(yfFlowVal_t *val, uint64_t ms, uint32_t seq) {
 }
 
 /* Return true if we should sample a sequence number */
-static gboolean qfRttSeqSampleP(yfFlowVal_t *sval) {
+static gboolean qfRttSeqSampleP(yfFlowVal_t *sval, uint64_t ms, uint32_t seq) {
+    qfSeqTime_t *stent;
+    
     /* keep skipping until we've eaten up the period */
      if (sval->rtt.srskipped < sval->rtt.srperiod) {
         sval->rtt.srskipped++;
         return FALSE;
     }
+    
+    /* don't sample same seqno or higher than sample rate */
+    stent = (qfSeqTime_t *)rgaPeekHead(sval->rtt.seqring);
+    if (!stent || !qfWrapGT(seq, stent->seq)
+               || ms <= stent->ms + kSamplePeriodMs) {
+        return FALSE;
+    }
+
     
     /* calculate next period */
     //fprintf(stderr, "lf %u maxlen %u ringct %u ", sval->rtt.lastflight, sval->maxiplen, rgaCount(sval->rtt.seqring));
@@ -79,14 +93,10 @@ void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t
     if (!sval->rtt.seqring) return;
     
     /* Take an RTT sample if we should */
-    if (qfRttSeqSampleP(sval)) {
-        /* add entry if we got a new sequence number */
-        stent = (qfSeqTime_t *)rgaPeekTail(sval->rtt.seqring);
-        if (!stent || qfWrapGT(seq, stent->seq)) {
-            stent = (qfSeqTime_t *)rgaForceHead(sval->rtt.seqring);
-            stent->ms = ms;
-            stent->seq = seq;
-        }
+    if (qfRttSeqSampleP(sval, ms, seq)) {
+        stent = (qfSeqTime_t *)rgaForceHead(sval->rtt.seqring);
+        stent->ms = ms;
+        stent->seq = seq;
     }
     
     /* Minimize RTT correction factor */
@@ -104,7 +114,6 @@ void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t
 }
 
 static void qfSmoothRtt(yfFlowVal_t *sval) {
-    static const unsigned int alpha = 8;
     
     /* don't smooth if we have no correction term */
     if (!sval->rtt.rttcorr) return;
@@ -112,8 +121,8 @@ static void qfSmoothRtt(yfFlowVal_t *sval) {
     uint32_t rtt = sval->rtt.rawrtt + sval->rtt.rttcorr;
     
     sval->rtt.smoothrtt = sval->rtt.smoothrtt ?
-                          ((sval->rtt.smoothrtt * (alpha-1)) +
-                            rtt) / alpha
+                          ((sval->rtt.smoothrtt * (kSmoothAlpha-1)) +
+                            rtt) / kSmoothAlpha
                           : rtt;
 }
 
@@ -124,7 +133,7 @@ void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
     if (sval->rtt.seqring && ack > aval->rtt.lastack) {
         do {
             stent = (qfSeqTime_t *)rgaNextTail(sval->rtt.seqring);
-        } while (stent && stent->seq < ack);
+        } while (stent && stent->seq < (ack - 1));
         
         if (stent) {
             /* calculate last RTT */
