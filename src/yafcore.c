@@ -120,7 +120,7 @@
 
 #define YF_PRINT_DELIM  "|"
 
-#define QOF_MIN_RTT_COUNT 10
+#define QOF_MIN_RTT_COUNT 3
 
 /** include enterprise-specific Information Elements for YAF */
 #include "yaf/CERT_IE.h"

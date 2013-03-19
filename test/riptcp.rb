@@ -25,8 +25,9 @@ def fixread(c)
         STDERR.puts " **** bad sequence for domain #{message.domain}: got #{message.sequence}, expected #{expected} ****"
     end
     
-    puts ["sip","dip","firstrtt",
-          "l3oct","l4oct","l7oct","rtx","burst","meanrtt","minrtt","maxflight","minttl","maxttl"].join(", ")
+    puts ["firstrtt","l3oct","l4oct","l7oct",
+          "rtx","burst","meanrtt","minrtt",
+          "maxflight","minttl","maxttl"].join(", ")
 
     # iterate over records
     c.each do |h, m|
@@ -35,20 +36,8 @@ def fixread(c)
           next
         end
         
-        # get address
-        if (h[:sourceIPv4Address])
-            sip = h[:sourceIPv4Address]
-            dip = h[:destinationIPv4Address]
-        elsif (h[:sourceIPv6Address])
-            sip = h[:sourceIPv6Address]
-            dip = h[:destinationIPv6Address]
-        else
-            sip = "0.0.0.0"
-            dip = "0.0.0.0"
-        end
-        
         if h[:meanTcpRttMilliseconds] > 0
-          puts [sip, dip,
+          puts [
             h[:reverseFlowDeltaMilliseconds],
             h[:octetDeltaCount],
             h[:initiatorOctets],
@@ -63,7 +52,7 @@ def fixread(c)
         end
         
         if h[:reverseMeanTcpRttMilliseconds] > 0
-          puts [sip, dip, 
+          puts [ 
             0,
             h[:reverseOctetDeltaCount],
             h[:responderOctets],
