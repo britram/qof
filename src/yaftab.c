@@ -168,6 +168,7 @@ struct yfFlowTabStats_st {
 
 struct yfFlowTab_st {
     /* State */
+    uint64_t        next_fid;
     uint64_t        ctime;
     uint64_t        flushtime;
     GHashTable      *table;
@@ -587,6 +588,9 @@ yfFlowTab_t *yfFlowTabAlloc(
 
     /* Allocate a flow table */
     flowtab = yg_slice_new0(yfFlowTab_t);
+    
+    /* Set state */
+    flowtab->next_fid = 1;
 
 /* FIXME consider a better mode selection interface */
 
@@ -649,7 +653,8 @@ static yfFlowNode_t *yfFlowGetNode(
     yfFlowTab_t             *flowtab,
     yfFlowKey_t             *key,
     yfFlowVal_t             **valp,
-    yfFlowVal_t             **rvalp)
+    yfFlowVal_t             **rvalp,
+    uint64_t                cont_fid)
 {
     yfFlowKey_t             rkey;
     yfFlowNode_t            *fn;
@@ -684,6 +689,13 @@ static yfFlowNode_t *yfFlowGetNode(
     /* Copy key */
     yfFlowKeyCopy(key, &(fn->f.key));
 
+    /* set flow ID */
+    if (cont_fid) {
+        fn->f.key.fid = cont_fid;
+    } else {
+        fn->f.key.fid = flowtab->next_fid++;
+    }
+    
     /* set flow start time */
     fn->f.stime = flowtab->ctime;
 
@@ -763,8 +775,6 @@ static void yfFlowPktTCP(
     yfTCPInfo_t                 *tcpinfo,
     size_t                      datalen)
 {
-    uint32_t                    ooo;
-    
     /* handle flags and sequence number */
     if (val->pkt) {
         /* Not the first packet. Union flags. */
@@ -864,6 +874,7 @@ void yfFlowPBuf(
     yfL2Info_t                  *l2info = &(pbuf->l2info);
     uint16_t                    datalen = (pbuf->iplen - pbuf->allHeaderLen +
                                            l2info->l2hlen);
+    uint64_t                    cont_fid = 0;
 
     /* skip and count out of sequence packets */
     if (pbuf->ptime < flowtab->ctime) {
@@ -886,27 +897,29 @@ void yfFlowPBuf(
     flowtab->stats.stat_octets += pbuf->iplen;
 
     /* Get a flow node for this flow */
-    fn = yfFlowGetNode(flowtab, key, &val, &rval);
+    fn = yfFlowGetNode(flowtab, key, &val, &rval, 0);
 
     /* Check for active timeout or counter overflow */
     if (((pbuf->ptime - fn->f.stime) > flowtab->active_ms) ||
         (flowtab->silkmode && (val->oct + pbuf->iplen > UINT32_MAX)))
     {
+        cont_fid = fn->f.key.fid;
         yfFlowClose(flowtab, fn, YAF_END_ACTIVE);
         /* get a new flow node containing this packet */
-        fn = yfFlowGetNode(flowtab, key, &val, &rval);
+        fn = yfFlowGetNode(flowtab, key, &val, &rval, cont_fid);
         /* set continuation flag in silk mode */
         if (flowtab->silkmode) fn->f.reason = YAF_ENDF_ISCONT;
     }
 
     /* Check for inactive timeout - esp when reading from pcap */
     if ((pbuf->ptime - fn->f.etime) > flowtab->idle_ms) {
+        cont_fid = fn->f.key.fid;
         yfFlowClose(flowtab, fn, YAF_END_IDLE);
         /* get a new flow node for the current packet */
-        fn = yfFlowGetNode(flowtab, key, &val, &rval);
+        fn = yfFlowGetNode(flowtab, key, &val, &rval, cont_fid);
     }
 
-    /* Calculate reverse RTT */
+    /* Calculate reverse SYN/ACK RTT */
     if (val->pkt == 0 && val == &(fn->f.rval)) {
         fn->f.rdtime = (uint32_t)(pbuf->ptime - fn->f.stime);
     }

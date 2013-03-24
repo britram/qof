@@ -18,9 +18,8 @@
 
 static size_t qof_rtt_ring_sz = 0;
 
-static const unsigned int kSmoothAlpha = 8;
-static const unsigned int kSamplePeriodMs = 1;
-
+static const unsigned int kSmoothAlpha = 8;  /* weighting for rtt smoothing */
+static const unsigned int kSamplePeriodMs = 1;     /* seq sample resolution */
 
 typedef struct qfSeqTime_st {
     uint64_t    ms;
@@ -64,22 +63,35 @@ static gboolean qfRttSeqSampleP(yfFlowVal_t *sval, uint64_t ms, uint32_t seq) {
     stent = (qfSeqTime_t *)rgaPeekHead(sval->rtt.seqring);
     if (!stent || !qfWrapGT(seq, stent->seq)
                || ms <= stent->ms + kSamplePeriodMs) {
+        sval->rtt.srskipped++;
         return FALSE;
     }
-
     
     /* calculate next period */
-    //fprintf(stderr, "lf %u maxlen %u ringct %u ", sval->rtt.lastflight, sval->maxiplen, rgaCount(sval->rtt.seqring));
+    fprintf(stderr, "lf %u maxlen %u ringct %u ",
+                    sval->rtt.lastflight,
+                    sval->maxiplen,
+                    rgaCount(sval->rtt.seqring));
     sval->rtt.srperiod = (sval->rtt.lastflight / sval->maxiplen ) /
                          (qof_rtt_ring_sz + 1 - rgaCount(sval->rtt.seqring));
     if (sval->rtt.srperiod) sval->rtt.srperiod -= 1;
-    //fprintf(stderr, "srp %u\n", sval->rtt.srperiod);
+    fprintf(stderr, "srp %u\n", sval->rtt.srperiod);
     
     /* and return */
     sval->rtt.srskipped = 0;
     return TRUE;
 }
 
+/**
+ * Advance sequence number on a flow. May lead to a sequence number sample
+ * being taken for RTT calculation. Calculates RTT correction term,
+ * updates maximum inflight octets.
+ *
+ * @param sval value structure for the flow's forward (SEQ) direction.
+ * @param aval value structure for the flow's reverse (ACK) direction.
+ * @param ms   time in milliseconds of observed packet.
+ * @param seq  sequence number of observed packet; must be greater than FSN.
+ */
 void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t seq) {
     qfSeqTime_t *stent;
     
@@ -113,6 +125,9 @@ void qfRttSeqAdvance(yfFlowVal_t *sval, yfFlowVal_t *aval, uint64_t ms, uint32_t
     }
 }
 
+/** 
+ * Calculate smoothed RTT 
+ */
 static void qfSmoothRtt(yfFlowVal_t *sval) {
     
     /* don't smooth if we have no correction term */
@@ -125,6 +140,15 @@ static void qfSmoothRtt(yfFlowVal_t *sval) {
                             rtt) / kSmoothAlpha
                           : rtt;
 }
+
+/**
+ * Advance last ack on a flow. Updates RTT, calculates current inflight octets.
+ *
+ * @param aval value structure for the flow's reverse (ACK) direction.
+ * @param sval value structure for the flow's forward (SEQ) direction.
+ * @param ms   time in milliseconds of observed packet.
+ * @param ack  ack number on observed packet (next expected octet at receiver)
+ */
 
 void qfRttAck(yfFlowVal_t *aval, yfFlowVal_t *sval, uint64_t ms, uint32_t ack) {
     qfSeqTime_t *stent;
