@@ -213,8 +213,6 @@ labeling is enabled */
  * Contains a flow's five-tuple; used at runtime in the flow table.
  */
 typedef struct yfFlowKey_st {
-    /** Flow serial number */
-    uint64_t            fid;
     /** Source transport port */
     uint16_t            sp;
     /** Destination transport port. Contains type and code for ICMP */
@@ -365,6 +363,8 @@ typedef struct yfFlowVal_st {
  * corresponding edit of the yfFlowIPv4_t structure in yaftab.c
  */
 typedef struct yfFlow_st {
+    /** Flow identifier */
+    uint64_t        fid;
     /** Flow start time in epoch milliseconds */
     uint64_t        stime;
     /** Flow end time in epoch milliseconds */

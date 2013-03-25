@@ -691,9 +691,9 @@ static yfFlowNode_t *yfFlowGetNode(
 
     /* set flow ID */
     if (cont_fid) {
-        fn->f.key.fid = cont_fid;
+        fn->f.fid = cont_fid;
     } else {
-        fn->f.key.fid = flowtab->next_fid++;
+        fn->f.fid = flowtab->next_fid++;
     }
     
     /* set flow start time */
@@ -903,7 +903,7 @@ void yfFlowPBuf(
     if (((pbuf->ptime - fn->f.stime) > flowtab->active_ms) ||
         (flowtab->silkmode && (val->oct + pbuf->iplen > UINT32_MAX)))
     {
-        cont_fid = fn->f.key.fid;
+        cont_fid = fn->f.fid;
         yfFlowClose(flowtab, fn, YAF_END_ACTIVE);
         /* get a new flow node containing this packet */
         fn = yfFlowGetNode(flowtab, key, &val, &rval, cont_fid);
@@ -913,7 +913,7 @@ void yfFlowPBuf(
 
     /* Check for inactive timeout - esp when reading from pcap */
     if ((pbuf->ptime - fn->f.etime) > flowtab->idle_ms) {
-        cont_fid = fn->f.key.fid;
+        cont_fid = fn->f.fid;
         yfFlowClose(flowtab, fn, YAF_END_IDLE);
         /* get a new flow node for the current packet */
         fn = yfFlowGetNode(flowtab, key, &val, &rval, cont_fid);

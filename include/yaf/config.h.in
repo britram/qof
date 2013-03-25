@@ -34,6 +34,9 @@
 /* Define to 1 if you have the `wpcap' library (-lwpcap). */
 #undef HAVE_LIBWPCAP
 
+/* Define to 1 if you have the `yaml' library (-lyaml). */
+#undef HAVE_LIBYAML
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
@@ -116,6 +119,9 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <yaml.h> header file. */
+#undef HAVE_YAML_H
 
 /* Define to 1 on Linux for privilege drop hack */
 #undef LINUX_PRIVHACK

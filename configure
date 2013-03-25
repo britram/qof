@@ -664,8 +664,6 @@ PLUGINENABLE_TRUE
 YAF_REQ_PLUG_CONF
 YAF_HAS_NAPATECH
 YAF_HAS_DAG
-yaml_LIBS
-yaml_CFLAGS
 libfixbuf_LIBS
 libfixbuf_CFLAGS
 YAF_REQ_FIXBUF_VER
@@ -776,10 +774,6 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
-AM_BACKSLASH
-AM_DEFAULT_VERBOSITY
-AM_DEFAULT_V
-AM_V
 am__untar
 am__tar
 AMTAR
@@ -856,7 +850,6 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-enable_silent_rules
 enable_dependency_tracking
 enable_shared
 enable_static
@@ -878,6 +871,7 @@ enable_doxygen_pdf
 enable_glibtest
 with_glib_static
 with_popt
+with_libyaml
 with_libpcap
 with_dag
 with_napatech
@@ -906,9 +900,7 @@ PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 libfixbuf_CFLAGS
-libfixbuf_LIBS
-yaml_CFLAGS
-yaml_LIBS'
+libfixbuf_LIBS'
 ac_subdirs_all='libltdl'
 
 # Initialize some variables set by options.
@@ -1528,8 +1520,6 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-silent-rules   less verbose build output (undo: "make V=1")
-  --disable-silent-rules  verbose build output (undo: "make V=0")
   --enable-dependency-tracking
                           do not reject slow dependency extractors
   --disable-dependency-tracking
@@ -1575,6 +1565,8 @@ Optional Packages:
   --with-glib-static=prefix
                           use static glib tree
   --with-popt=path        location of popt
+  --with-libyaml=YAML_DIR find yaml.h in YAML_DIR/include, libyaml in
+                          YAML_DIR/lib
   --with-libpcap=PCAP_DIR find pcap.h in PCAP_DIR/include, libpcap in
                           PCAP_DIR/lib
   --with-dag=prefix       include Endace DAG support
@@ -1609,8 +1601,6 @@ Some influential environment variables:
               C compiler flags for libfixbuf, overriding pkg-config
   libfixbuf_LIBS
               linker flags for libfixbuf, overriding pkg-config
-  yaml_CFLAGS C compiler flags for yaml, overriding pkg-config
-  yaml_LIBS   linker flags for yaml, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -2541,7 +2531,7 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
-am__api_version='1.13'
+am__api_version='1.12'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -2725,8 +2715,8 @@ if test x"${MISSING+set}" != xset; then
   esac
 fi
 # Use eval to expand $SHELL
-if eval "$MISSING --is-lightweight"; then
-  am_missing_run="$MISSING "
+if eval "$MISSING --run true"; then
+  am_missing_run="$MISSING --run "
 else
   am_missing_run=
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: 'missing' script is too old or missing" >&5
@@ -2965,45 +2955,6 @@ else
   am__leading_dot=_
 fi
 rmdir .tst 2>/dev/null
-
-# Check whether --enable-silent-rules was given.
-if test "${enable_silent_rules+set}" = set; then :
-  enableval=$enable_silent_rules;
-fi
-
-case $enable_silent_rules in # (((
-  yes) AM_DEFAULT_VERBOSITY=0;;
-   no) AM_DEFAULT_VERBOSITY=1;;
-    *) AM_DEFAULT_VERBOSITY=1;;
-esac
-am_make=${MAKE-make}
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
-$as_echo_n "checking whether $am_make supports nested variables... " >&6; }
-if ${am_cv_make_support_nested_variables+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if $as_echo 'TRUE=$(BAR$(V))
-BAR0=false
-BAR1=true
-V=1
-am__doit:
-	@$(TRUE)
-.PHONY: am__doit' | $am_make -f - >/dev/null 2>&1; then
-  am_cv_make_support_nested_variables=yes
-else
-  am_cv_make_support_nested_variables=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_make_support_nested_variables" >&5
-$as_echo "$am_cv_make_support_nested_variables" >&6; }
-if test $am_cv_make_support_nested_variables = yes; then
-    AM_V='$(V)'
-  AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
-else
-  AM_V=$AM_DEFAULT_VERBOSITY
-  AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY
-fi
-AM_BACKSLASH='\'
 
 if test "`cd $srcdir && pwd`" != "`pwd`"; then
   # Use -I$(srcdir) only when $(srcdir) != ., so that make's output
@@ -16266,8 +16217,6 @@ $as_echo "#define SIZE_T_CAST uint64_t" >>confdefs.h
 
 
 
-
-
 YAF_REQ_FIXBUF_VER=1.0.0
 
 
@@ -16355,94 +16304,159 @@ $as_echo "yes" >&6; }
 fi
 
 
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for yaml" >&5
-$as_echo_n "checking for yaml... " >&6; }
-
-if test -n "$yaml_CFLAGS"; then
-    pkg_cv_yaml_CFLAGS="$yaml_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"yaml-0.1\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "yaml-0.1") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_yaml_CFLAGS=`$PKG_CONFIG --cflags "yaml-0.1" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$yaml_LIBS"; then
-    pkg_cv_yaml_LIBS="$yaml_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"yaml-0.1\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "yaml-0.1") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_yaml_LIBS=`$PKG_CONFIG --libs "yaml-0.1" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        yaml_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "yaml-0.1" 2>&1`
-        else
-	        yaml_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "yaml-0.1" 2>&1`
+# Check whether --with-libyaml was given.
+if test "${with_libyaml+set}" = set; then :
+  withval=$with_libyaml;
+    if test "x$withval" != "xno"; then
+        if test -d ${withval}; then
+            if test -d ${withval}/lib; then
+                CFLAGS="-I${withval}/include $CFLAGS"
+                CPPFLAGS="-I${withval}/include $CPPFLAGS"
+                LIBS="-L${withval}/lib -lpcap $LIBS"
+                if test "x$target_os" = "xlinux" -o \
+                        "x$target_os" = "xlinux-gnu"; then
+                    LIBS="-Wl,--rpath -Wl,${withval}/lib $LIBS"
+                fi
+            else
+                LIBS="-L${withval} -lpcap $LIBS"
+                if test "x$target_os" = "xlinux" -o \
+                        "x$target_os" = "xlinux-gnu"; then
+                    LIBS="-Wl,--rpath -Wl,${withval} $LIBS"
+                fi
+            fi
+            OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libyaml from ${withval}|"
+            RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libyaml=${withval}"
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$yaml_PKG_ERRORS" >&5
-
-	as_fn_error $? "Package requirements (yaml-0.1) were not met:
-
-$yaml_PKG_ERRORS
-
-Consider adjusting the PKG_CONFIG_PATH environment variable if you
-installed software in a non-standard prefix.
-
-Alternatively, you may set the environment variables yaml_CFLAGS
-and yaml_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details." "$LINENO" 5
-elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
-is in your PATH or set the PKG_CONFIG environment variable to the full
-path to pkg-config.
-
-Alternatively, you may set the environment variables yaml_CFLAGS
-and yaml_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
-See \`config.log' for more details" "$LINENO" 5; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for yaml_parser_initialize in -lyaml" >&5
+$as_echo_n "checking for yaml_parser_initialize in -lyaml... " >&6; }
+if ${ac_cv_lib_yaml_yaml_parser_initialize+:} false; then :
+  $as_echo_n "(cached) " >&6
 else
-	yaml_CFLAGS=$pkg_cv_yaml_CFLAGS
-	yaml_LIBS=$pkg_cv_yaml_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lyaml  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char yaml_parser_initialize ();
+int
+main ()
+{
+return yaml_parser_initialize ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_yaml_yaml_parser_initialize=yes
+else
+  ac_cv_lib_yaml_yaml_parser_initialize=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_yaml_yaml_parser_initialize" >&5
+$as_echo "$ac_cv_lib_yaml_yaml_parser_initialize" >&6; }
+if test "x$ac_cv_lib_yaml_yaml_parser_initialize" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBYAML 1
+_ACEOF
+
+  LIBS="-lyaml $LIBS"
+
+else
+  as_fn_error $? "cannot locate libyaml, try --with-libyaml" "$LINENO" 5
+fi
+
+
+        for ac_header in yaml.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "yaml.h" "ac_cv_header_yaml_h" "$ac_includes_default"
+if test "x$ac_cv_header_yaml_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_YAML_H 1
+_ACEOF
+
+else
+  as_fn_error $? "cannot locate yaml.h, try --with-libyaml" "$LINENO" 5
+fi
+
+done
+
+    fi
+
+else
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for yaml_parser_initialize in -lyaml" >&5
+$as_echo_n "checking for yaml_parser_initialize in -lyaml... " >&6; }
+if ${ac_cv_lib_yaml_yaml_parser_initialize+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lyaml  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char yaml_parser_initialize ();
+int
+main ()
+{
+return yaml_parser_initialize ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_yaml_yaml_parser_initialize=yes
+else
+  ac_cv_lib_yaml_yaml_parser_initialize=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_yaml_yaml_parser_initialize" >&5
+$as_echo "$ac_cv_lib_yaml_yaml_parser_initialize" >&6; }
+if test "x$ac_cv_lib_yaml_yaml_parser_initialize" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBYAML 1
+_ACEOF
+
+  LIBS="-lyaml $LIBS"
+
+else
+  as_fn_error $? "cannot locate libyaml, try --with-libyaml" "$LINENO" 5
+fi
+
+
+    for ac_header in yaml.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "yaml.h" "ac_cv_header_yaml_h" "$ac_includes_default"
+if test "x$ac_cv_header_yaml_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_YAML_H 1
+_ACEOF
+
+else
+  as_fn_error $? "cannot locate yaml.h, try --with-libyaml" "$LINENO" 5
+fi
+
+done
+
+
 
 fi
 
@@ -16453,34 +16467,34 @@ if test "${with_libpcap+set}" = set; then :
   withval=$with_libpcap;
     if test "x$withval" != "xno"; then
         if test -d ${withval}; then
-     	    if test -d ${withval}/lib; then
+            if test -d ${withval}/lib; then
                 CFLAGS="-I${withval}/include $CFLAGS"
                 CPPFLAGS="-I${withval}/include $CPPFLAGS"
-		if test "x$target_os" = "xcygwin"; then
-			LIBS="-L${withval}/lib -lwpcap $LIBS"
-		else
-			LIBS="-L${withval}/lib -lpcap $LIBS"
-                	if test "x$target_os" = "xlinux" -o \
-                        	"x$target_os" = "xlinux-gnu"; then
-                    	    LIBS="-Wl,--rpath -Wl,${withval}/lib $LIBS"
-                	fi
-		fi
+                if test "x$target_os" = "xcygwin"; then
+                    LIBS="-L${withval}/lib -lwpcap $LIBS"
+                else
+                    LIBS="-L${withval}/lib -lpcap $LIBS"
+                    if test "x$target_os" = "xlinux" -o \
+                            "x$target_os" = "xlinux-gnu"; then
+                        LIBS="-Wl,--rpath -Wl,${withval}/lib $LIBS"
+                    fi
+                fi
             else
-		if test "x$target_os" = "xcygwin"; then
-			LIBS="-L${withval} -lwpcap $LIBS"
-		else
-			LIBS="-L${withval} -lpcap $LIBS"
-			if test "x$target_os" = "xlinux" -o \
-				"x$target_os" = "xlinux-gnu"; then
-			    LIBS="-Wl,--rpath -Wl,${withval} $LIBS"
-			fi
-		fi
+                if test "x$target_os" = "xcygwin"; then
+                    LIBS="-L${withval} -lwpcap $LIBS"
+                else
+                    LIBS="-L${withval} -lpcap $LIBS"
+                    if test "x$target_os" = "xlinux" -o \
+                            "x$target_os" = "xlinux-gnu"; then
+                        LIBS="-Wl,--rpath -Wl,${withval} $LIBS"
+                    fi
+                fi
             fi
             OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libpcap from ${withval}|"
             RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libpcap=${withval}"
-	fi
-	if test "x$target_os" = "xcygwin"; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_offline in -lwpcap" >&5
+        fi
+        if test "x$target_os" = "xcygwin"; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_offline in -lwpcap" >&5
 $as_echo_n "checking for pcap_open_offline in -lwpcap... " >&6; }
 if ${ac_cv_lib_wpcap_pcap_open_offline+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -16525,11 +16539,10 @@ _ACEOF
 
 else
   as_fn_error $? "cannot locate required WPCAP library" "$LINENO" 5
-
 fi
 
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_offline in -lpcap" >&5
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_offline in -lpcap" >&5
 $as_echo_n "checking for pcap_open_offline in -lpcap... " >&6; }
 if ${ac_cv_lib_pcap_pcap_open_offline+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -16574,11 +16587,10 @@ _ACEOF
 
 else
   as_fn_error $? "cannot locate required PCAP library" "$LINENO" 5
-
 fi
 
-	fi
-	for ac_header in pcap.h
+        fi
+        for ac_header in pcap.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "pcap.h" "ac_cv_header_pcap_h" "$ac_includes_default"
 if test "x$ac_cv_header_pcap_h" = xyes; then :
@@ -16588,7 +16600,6 @@ _ACEOF
 
 else
   as_fn_error $? "cannot locate required pcap.h header file" "$LINENO" 5
-
 fi
 
 done
@@ -16597,8 +16608,8 @@ done
 
 else
 
-	if test "x$target_os" = "xcygwin"; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_offline in -lwpcap" >&5
+    if test "x$target_os" = "xcygwin"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_offline in -lwpcap" >&5
 $as_echo_n "checking for pcap_open_offline in -lwpcap... " >&6; }
 if ${ac_cv_lib_wpcap_pcap_open_offline+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -16642,12 +16653,11 @@ _ACEOF
   LIBS="-lwpcap $LIBS"
 
 else
-  as_fn_error $? "cannot locate required PCAP library, try the --with-libpcap option" "$LINENO" 5
-
+  as_fn_error $? "cannot locate required WPCAP library, try the --with-libpcap option" "$LINENO" 5
 fi
 
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_offline in -lpcap" >&5
+    else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcap_open_offline in -lpcap" >&5
 $as_echo_n "checking for pcap_open_offline in -lpcap... " >&6; }
 if ${ac_cv_lib_pcap_pcap_open_offline+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -16692,11 +16702,11 @@ _ACEOF
 
 else
   as_fn_error $? "cannot locate required PCAP library, try the --with-libpcap option" "$LINENO" 5
-
 fi
 
-	fi
-        for ac_header in pcap.h
+    fi
+
+    for ac_header in pcap.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "pcap.h" "ac_cv_header_pcap_h" "$ac_includes_default"
 if test "x$ac_cv_header_pcap_h" = xyes; then :
@@ -16706,7 +16716,6 @@ _ACEOF
 
 else
   as_fn_error $? "cannot locate the required pcap.h header file" "$LINENO" 5
-
 fi
 
 done
@@ -19228,7 +19237,7 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
 
   case $ac_file$ac_mode in
     "depfiles":C) test x"$AMDEP_TRUE" != x"" || {
-  # Older Autoconf quotes --file arguments for eval, but not when files
+  # Autoconf 2.62 quotes --file arguments for eval, but not when files
   # are listed without --file.  Let's play safe and only enable the eval
   # if we detect the quoting.
   case $CONFIG_FILES in

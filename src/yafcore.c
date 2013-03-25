@@ -132,6 +132,8 @@ static uint64_t yaf_start_time = 0;
    Must match  */
  
 static fbInfoElementSpec_t qof_internal_spec[] = {
+    /* Flow ID */
+    { "flowId",                             8, 0 },    
     /* Timers and counters */
     { "flowStartMilliseconds",              8, 0 },
     { "flowEndMilliseconds",                8, 0 },
@@ -229,6 +231,8 @@ static uint8_t yaf_ip6map_pfx[12] =
 
 /* Full YAF flow record. */
 typedef struct yfIpfixFlow_st {
+    /* Flow ID */
+    uint64_t    flowId;
     /* Timers and counters */
     uint64_t    flowStartMilliseconds;
     uint64_t    flowEndMilliseconds;
@@ -348,6 +352,7 @@ void yfAlignmentCheck()
                 offsetof(S_,F_)+DO_SIZE(S_,F_));*/                      \
     }
 
+    RUN_CHECKS(yfIpfixFlow_t,flowId,1);
     RUN_CHECKS(yfIpfixFlow_t,flowStartMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,flowEndMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,octetCount,1);
@@ -898,6 +903,7 @@ gboolean yfWriteFlow(
     wtid = YAF_FLOW_BASE_TID;
 
     /* fill in fields that are always present */
+    rec.flowId = flow->fid;
     rec.flowEndReason = flow->reason;
     rec.minimumTTL = flow->val.minttl;
     rec.reverseMinimumTTL = flow->rval.minttl;
