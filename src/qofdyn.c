@@ -13,7 +13,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/autoinc.h>
+#include "qofdyn.h"
 
 static const uint64_t startmask64[] = {
     0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFEULL,
@@ -86,21 +86,9 @@ static const uint64_t endmask64[] = {
     0x7FFFFFFFFFFFFFFFULL
 };
 
-typedef struct qfSeqBin_st {
-    uint64_t    *bin;
-    size_t      bincount;
-    size_t      opcount;
-    size_t      scale;
-    size_t      binbase;
-    uint32_t    seqbase;
-} qfSeqBin_t;
-
-typedef enum qfSeqBinRes_en {
-    QF_SEQBIN_NO_ISECT,
-    QF_SEQBIN_PART_ISECT,
-    QF_SEQBIN_FULL_ISECT,
-    QF_SEQBIN_OUT_OF_RANGE
-} qfSeqBinRes_t;
+int qfSeqCompare(uint32_t a, uint32_t b) {
+    return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
+}
 
 void qfSeqBinInit(qfSeqBin_t     *sb,
                   size_t         capacity,
@@ -114,6 +102,11 @@ void qfSeqBinInit(qfSeqBin_t     *sb,
     sb->bincount = capacity / scale / (sizeof(uint64_t) * 8);
     sb->bin = yg_slice_alloc0(sb->bincount * sizeof(uint64_t));
 }
+
+void qfSeqBinFree(qfSeqBin_t *sb) {
+    yg_slice_free1(sb->bincount * sizeof(uint64_t), sb->bin);
+}
+
 
 static void qfSeqBinShiftup(qfSeqBin_t     *sb)
 {
@@ -134,14 +127,25 @@ static size_t qfSeqBinNum(qfSeqBin_t   *sb,
 static size_t qfSeqBinBit(qfSeqBin_t    *sb,
                           uint32_t      seq)
 {
-    return ((seq - sb->seqbase) % (sizeof(uint64_t) * 8 * sb->scale));
+    return ((seq - sb->seqbase) / sb->scale) % (sizeof(uint64_t) * 8);
 }
 
-static int qfSeqBinAvail(qfSeqBin_t     *sb,
-                         uint32_t       seq)
+static qfSeqBinRes_t qfSeqBinTestMask(uint64_t bin, uint64_t mask) {
+    if ((bin & mask) == mask) {
+        return QF_SEQBIN_FULL_ISECT;
+    } else if ((bin & mask) == 0) {
+        return QF_SEQBIN_NO_ISECT;
+    } else {
+        return QF_SEQBIN_PART_ISECT;
+    }
+}
+
+static qfSeqBinRes_t qfSeqBinResCombine(qfSeqBinRes_t a, qfSeqBinRes_t b)
 {
-    return (seq > sb->seqbase + sb->bincount *
-            sizeof(uint64_t) * 8 * sb->scale) ? 0 : 1;
+    if (a == b)
+        return a;
+    else
+        return QF_SEQBIN_PART_ISECT;
 }
 
 qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
@@ -149,35 +153,62 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
                                  uint32_t        bseq)
 {
     size_t i, j;
+    uint64_t m;
+    uint32_t maxseq;
+    
+    qfSeqBinRes_t res;
     
     /* initialize seqbase if first test and set */
     if (!(sb->opcount++)) {
+        /* initialize seqbase if first test and set */
         sb->seqbase = (aseq / sb->scale) * sb->scale;
     } else {
-        /* range check */
-        if (!qfSeqBinAvail(sb, aseq)) return QF_SEQBIN_OUT_OF_RANGE;
-        if (!qfSeqBinAvail(sb, bseq)) return QF_SEQBIN_OUT_OF_RANGE;
+        /* shift up to compress space */
+        qfSeqBinShiftup(sb);
     }
+    
+    /* check range: things above the bin range are out of range */
+    maxseq = sb->seqbase + sb->bincount * sizeof(uint64_t) * 8 * sb->scale;
+    if (qfSeqCompare(aseq, maxseq) > 0) return QF_SEQBIN_OUT_OF_RANGE;
+    if (qfSeqCompare(aseq, maxseq) > 0) return QF_SEQBIN_OUT_OF_RANGE;
+    
+    /* check range: things below the bin range are already fully intersected */
+    if (qfSeqCompare(bseq, sb->seqbase) < 0) return QF_SEQBIN_FULL_ISECT;
+
+    /* check range: clip overlapping bottom of range */
+    if (qfSeqCompare(aseq, sb->seqbase) < 0) aseq = sb->seqbase;
     
     /* get bin numbers */
     i = qfSeqBinNum(sb, aseq);
     j = qfSeqBinNum(sb, bseq);
     
-    /* special case: bins are the same, intersect the masks */
+    /* special case: bins are the same, intersect the masks, shortcircuit */
     if (i == j) {
-        
-    } else {
-        
-        /* handle first bin */
-        
-        /* handle middle bin */
-        
-        /* handle last bin */
-
+        m = startmask64[qfSeqBinBit(sb, aseq)] &
+            endmask64[qfSeqBinBit(sb, bseq)];
+        res = qfSeqBinTestMask(sb->bin[i], m);
+        sb->bin[i] |= m;
+        return res;
     }
+
+    /* handle first bin */
+    m = startmask64[qfSeqBinBit(sb, aseq)];
+    res = qfSeqBinTestMask(sb->bin[i], m);
+    sb->bin[i] |= m;
+    
+    /* handle middle bins */
+    i++; if (i >= sb->bincount) i = 0;
+    while (i != j) {
+        res = qfSeqBinResCombine(res, qfSeqBinTestMask(sb->bin[i], UINT64_MAX));
+        sb->bin[i] = UINT64_MAX;
+        i++; if (i >= sb->bincount) i = 0;
+    }
+    
+    /* handle last bin */
+    m = endmask64[qfSeqBinBit(sb, aseq)];
+    res = qfSeqBinTestMask(sb->bin[i], m);
+    sb->bin[i] |= m;
+    
+    return res;
 }
 
-typedef struct qfSeqTime_st {
-    uint32_t    lms;
-    uint32_t    seq;
-} qfSeqTime_t;
