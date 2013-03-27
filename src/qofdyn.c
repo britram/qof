@@ -86,6 +86,8 @@ static const uint64_t endmask64[] = {
     0x7FFFFFFFFFFFFFFFULL
 };
 
+static const kAlpha = 8;
+
 int qfSeqCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
 }
@@ -169,6 +171,7 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
     }
     
     /* check range: things above the bin range are out of range */
+    /* FIXME on out of range, force range forward -> observation loss */
     maxseq = sb->seqbase + sb->bincount * sizeof(uint64_t) * 8 * sb->scale;
     if (qfSeqCompare(aseq, maxseq) > 0) return QF_SEQBIN_OUT_OF_RANGE;
     if (qfSeqCompare(aseq, maxseq) > 0) return QF_SEQBIN_OUT_OF_RANGE;
@@ -271,3 +274,111 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
     if (sr->tail >= sr->bincount) sr->tail = 0;
     return rtt;
 }
+
+static int qfDynSeqSampleP(qfDyn_t     *qd)
+{
+    // FIXME this is clearly wrong
+    return 1;
+}
+
+static void qfDynRexmit(qfDyn_t     *qd,
+                        uint32_t    seq,
+                        uint64_t    ms)
+{
+    /* increment retransmit counter */
+    qd->rtx_ct++;
+}
+
+static void qfDynCorrectRTT(qfDyn_t   *qd,
+                           uint32_t    crtt)
+{
+    if (!qd->rtt_corr || (crtt < qd->rtt_corr)) qd->rtt_corr = crtt;
+}
+
+static void qfDynTrackRTT(qfDyn_t   *qd,
+                          uint32_t  irtt)
+{
+    /* add correction factor to raw sample */
+    irtt += qd->rtt_corr;
+    
+    if (qd->rtt_est) {
+        /* moving average */
+        qd->rtt_est = (qd->rtt_est * (kAlpha - 1) + irtt) / kAlpha;
+    } else {
+        /* take initial sample */
+        qd->rtt_est = irtt;
+    }
+
+    /* minimize only if we have a correction term */
+    if (qd->rtt_corr &&
+        (!qd->rtt_min || (qd->rtt_est < qd->rtt_min)))
+    {
+        qd->rtt_min = qd->rtt_est;
+    }
+}
+
+void qfDynSeq(qfDyn_t     *qd,
+              uint32_t    seq,
+              uint32_t    oct,
+              uint64_t    ms)
+{
+    qfSeqBinRes_t   sbres;
+    
+    /* short circuit on no octets */
+    if (!oct) return;
+    
+    /* update and minimize RTT correction factor if necessary */
+    if ((qd->flags & QF_DYN_RTTCORR) && (seq >= qd->fan)) {
+        qd->flags &= ~QF_DYN_RTTCORR;
+        qfDynCorrectRTT(qd, (ms & UINT32_MAX) - qd->fanlms);
+    }
+   
+    /* track sequence numbers in binmap to detect order/loss */
+    sbres = qfSeqBinTestAndSet(&(qd->sb), seq - oct, seq);
+    
+    if (sbres != QF_SEQBIN_NO_ISECT) qfDynRexmit(qd, seq, ms);
+    
+    /* advance sequence number if necessary */
+    if (qfSeqCompare(seq, qd->fsn) > 0) {
+        qd->flags |= QF_DYN_SEQADV;
+        if (seq < qd->fsn) qd->wrap_ct++;
+        qd->fsn = seq;
+        
+        /* update max inflight */
+        if (qd->inflight_max > (qd->fsn - qd->fan)) {
+            qd->inflight_max = (qd->fsn - qd->fan);
+        }
+        
+        /* take time sample, if necessary */
+        if (qfDynSeqSampleP(qd)) {
+            qfSeqRingAddSample(&(qd->sr), seq, ms);
+        }
+        
+    } else {
+        qd->flags &= ~QF_DYN_SEQADV;
+        
+        /* update max out of order */
+        if ((qd->fsn - seq - oct) > qd->reorder_max) {
+            qd->reorder_max = qd->fsn - seq - oct;
+        }
+    }
+}
+
+void qfDynAck(qfDyn_t     *qd,
+              uint32_t    ack,
+              uint64_t    ms)
+{
+    uint32_t irtt;
+    
+    /* advance ack number if necessary */
+    if (qfSeqCompare(ack, qd->fan) > 0) {
+        qd->fan = ack;
+        qd->fanlms = ms & UINT32_MAX;
+        
+        /* sample RTT */
+        irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
+        if (irtt) qfDynTrackRTT(qd, irtt);
+    }
+}
+
+

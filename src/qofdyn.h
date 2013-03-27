@@ -51,6 +51,10 @@ typedef enum qfSeqBinRes_en {
 
 int qfSeqCompare(uint32_t a, uint32_t b);
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Low level sequence number binning structure
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 void qfSeqBinInit(qfSeqBin_t     *sb,
                   size_t         capacity,
                   size_t         scale);
@@ -60,6 +64,10 @@ void qfSeqBinFree(qfSeqBin_t *sb);
 qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
                                  uint32_t        aseq,
                                  uint32_t        bseq);
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Low level sequence number - timestamp sampling structure 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 struct qfSeqTime_st;
 typedef struct qfSeqTime_st qfSeqTime_t;
@@ -86,5 +94,41 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
 uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
                       uint32_t              ack,
                       uint64_t              ms);
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * TCP dynamics structure
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#define QF_DYN_INITIAL      0x00000001 /* structure initialized */
+#define QF_DYN_RTTCORR      0x00000002 /* ACK advanced, update rtt_corr */
+#define QF_DYN_SEQADV       0x00000004 /* SEQ advanced */
+
+typedef struct qfDyn_st {
+    qfSeqBin_t      sb;
+    qfSeqRing_t     sr;
+    uint32_t        isn;
+    uint32_t        fsn;
+    uint32_t        fan;
+    uint32_t        fanlms;
+    uint32_t        wrap_ct;
+    uint32_t        rtx_ct;
+    uint32_t        inflight_max;
+    uint32_t        reorder_max;    
+    uint32_t        rtt_est;
+    uint32_t        rtt_min;
+    uint32_t        rtt_corr;
+    uint32_t        flags;
+} qfDyn_t;
+
+void qfDynSeq(qfDyn_t     *qd,
+              uint32_t    seq,
+              uint32_t    oct,
+              uint64_t    ms);
+
+void qfDynAck(qfDyn_t     *qd,
+              uint32_t    ack,
+              uint64_t    ms);
+
 
 #endif /* idem */
