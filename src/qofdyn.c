@@ -131,6 +131,7 @@ static size_t qfSeqBinBit(qfSeqBin_t    *sb,
 }
 
 static qfSeqBinRes_t qfSeqBinTestMask(uint64_t bin, uint64_t mask) {
+    // FIXME check for only first/last bin overlap, need a mask edge
     if ((bin & mask) == mask) {
         return QF_SEQBIN_FULL_ISECT;
     } else if ((bin & mask) == 0) {
@@ -212,3 +213,61 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
     return res;
 }
 
+/** Sequence number / time tuple */
+typedef struct qfSeqTime_st {
+    uint32_t    lms;
+    uint32_t    seq;
+} qfSeqTime_t;
+
+void qfSeqRingInit(qfSeqRing_t              *sr,
+                   size_t                   capacity)
+{
+    /* zero structure */
+    memset(sr, 0, sizeof(*sr));
+    
+    /* allocate bin array */
+    sr->bincount = capacity;
+    sr->bin = yg_slice_alloc0(sr->bincount * sizeof(qfSeqTime_t));
+}
+
+void qfSeqRingFree(qfSeqRing_t              *sr)
+{
+    yg_slice_free1(sr->bincount * sizeof(qfSeqTime_t), sr->bin);
+}
+
+void qfSeqRingAddSample(qfSeqRing_t         *sr,
+                        uint32_t            seq,
+                        uint64_t            ms)
+{
+    /* overrun if we need to */
+    if (((sr->head + 1) % sr->bincount) == sr->tail) {
+        sr->tail++;
+        if (sr->tail >= sr->bincount) sr->tail = 0;
+        sr->overcount++;
+    }
+    
+    /* insert sample */
+    sr->opcount++;
+    sr->head++;
+    if (sr->head >= sr->bincount) sr->head = 0;
+    sr->bin[sr->head].seq = seq;
+    sr->bin[sr->head].lms = (uint32_t) ms & UINT32_MAX;
+}
+
+uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
+                      uint32_t              ack,
+                      uint64_t              ms)
+{
+    uint32_t rtt;
+    
+    while (qfSeqCompare(sr->bin[sr->tail].seq, ack-1) < 0) {
+        sr->tail++;
+        if (sr->tail >= sr->bincount) sr->tail = 0;
+        if (sr->tail == sr->head) return 0; // ack ahead of any seen seqno
+    }
+    
+    rtt = (ms & UINT32_MAX) - sr->bin[sr->tail].lms;
+    sr->tail++;
+    if (sr->tail >= sr->bincount) sr->tail = 0;
+    return rtt;
+}
