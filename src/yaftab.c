@@ -490,7 +490,7 @@ static void yfFlowFree(
 
     /* free dynamics if present */
     qfDynFree(&fn->f.val.tcp);
-    qfDynFree(&fn->f.val.tcp);
+    qfDynFree(&fn->f.rval.tcp);
 
     /* free flow */
 #if YAF_ENABLE_COMPACT_IP4
