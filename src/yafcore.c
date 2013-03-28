@@ -95,19 +95,18 @@
 /** General dimensions -- these are either present or not */
 #define YTF_BIF         0x0001  /* Biflow */
 #define YTF_TCP         0x0002  /* TCP and extended TCP */
-#define YTF_RTT         0x0004  /* sufficient RTT samples available */
+#define YTF_RTT         0x0004  /* valid RTT information available */
 #define YTF_MAC         0x0008  /* MAC layer information */
 #define YTF_PHY         0x0010  /* PHY layer information */
 
 /* Special dimensions -- one of each group must be present */
-#define YTF_KEY         0x0020  /* Primary flow key except addresses */
-#define YTF_IP4         0x0040  /* IPv4 addresses */
-#define YTF_IP6         0x0080  /* IPv6 addresses */
-#define YTF_FLE         0x0100  /* full-length encoding */
-#define YTF_RLE         0x0200  /* reduced-length encoding */
+#define YTF_IP4         0x0020  /* IPv4 addresses */
+#define YTF_IP6         0x0040  /* IPv6 addresses */
+#define YTF_FLE         0x0080  /* full-length encoding */
+#define YTF_RLE         0x0100  /* reduced-length encoding */
 
-#define YTF_INTERNAL    0x0400 /* internal (padding) IEs */
-#define YTF_ALL         0x01FF /* this has to be everything _except_ RLE enabled */
+#define YTF_INTERNAL    0x0200 /* internal (padding) IEs */
+#define YTF_ALL         0x00FF /* this has to be everything _except_ RLE enabled */
 
 
 /* FIXME more 6313 to throw away... */
@@ -133,7 +132,7 @@ static uint64_t yaf_start_time = 0;
  
 static fbInfoElementSpec_t qof_internal_spec[] = {
     /* Flow ID */
-    { "flowId",                             8, 0 },    
+    { "flowId",                             8, 0 },
     /* Timers and counters */
     { "flowStartMilliseconds",              8, 0 },
     { "flowEndMilliseconds",                8, 0 },
@@ -146,10 +145,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "packetDeltaCount",                   4, YTF_RLE },
     { "reversePacketDeltaCount",            4, YTF_RLE | YTF_BIF },
     /* Addresses */
-    { "sourceIPv4Address",                  4, YTF_IP4 | YTF_KEY },
-    { "destinationIPv4Address",             4, YTF_IP4 | YTF_KEY },
-    { "sourceIPv6Address",                  16, YTF_IP6 | YTF_KEY },
-    { "destinationIPv6Address",             16, YTF_IP6 | YTF_KEY },
+    { "sourceIPv4Address",                  4, YTF_IP4 },
+    { "destinationIPv4Address",             4, YTF_IP4 },
+    { "sourceIPv6Address",                  16, YTF_IP6 },
+    { "destinationIPv6Address",             16, YTF_IP6 },
     /* Extended TCP counters and performance info */
     { "initiatorOctets",                    8, YTF_TCP | YTF_FLE },
     { "responderOctets",                    8, YTF_TCP | YTF_FLE | YTF_BIF },
@@ -180,9 +179,9 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     /* First-packet RTT (for all biflows) */
     { "reverseFlowDeltaMilliseconds",       4, YTF_BIF },
     /* port, protocol, flow status, interfaces */
-    { "sourceTransportPort",                2, YTF_KEY },
-    { "destinationTransportPort",           2, YTF_KEY },
-    { "protocolIdentifier",                 1, YTF_KEY },
+    { "sourceTransportPort",                2, 0 },
+    { "destinationTransportPort",           2, 0 },
+    { "protocolIdentifier",                 1, 0 },
     { "flowEndReason",                      1, 0 },
     { "ingressInterface",                   1, YTF_PHY },
     { "egressInterface",                    1, YTF_PHY },
@@ -204,7 +203,7 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
 FB_IESPEC_NULL
 };
 
-#define QOF_EXPORT_SPEC_SZ 51
+#define QOF_EXPORT_SPEC_SZ 61
 static fbInfoElementSpec_t qof_export_spec[QOF_EXPORT_SPEC_SZ];
 static size_t qof_export_spec_count = 0;
 
@@ -310,7 +309,7 @@ typedef struct yfIpfixStats_st {
 /* Core library configuration variables */
 static gboolean yaf_core_map_ipv6 = FALSE;
 static gboolean yaf_core_export_total = FALSE;
-static gboolean yaf_core_export_anon = FALSE;
+static gboolean yaf_core_use_ifmap = FALSE;
 
 /**
  * yfAlignmentCheck
@@ -441,10 +440,10 @@ void yfWriterExportTotals(
     yaf_core_export_total = total_mode;
 }
 
-void yfWriterExportAnon(
-    gboolean            anon_mode)
+void yfWriterUseInterfaceMap(
+    gboolean            ifmap_mode)
 {
-    yaf_core_export_anon = anon_mode;
+    yaf_core_use_ifmap = ifmap_mode;
 }
 
 gboolean yfWriterSpecifyExportIE(const char *iename, GError **err) {
@@ -920,46 +919,41 @@ gboolean yfWriteFlow(
     /* Select optional features based on flow properties and export mode */
     
     /* Flow key selection */
-    if (yaf_core_export_anon) {
-
+    if (yaf_core_use_ifmap) {
         /* set ingress and egress interface from map if not already set */
         qfIfMapAddresses(&ctx->ifmap, &flow->key,
                          &flow->val.netIf, &flow->rval.netIf);
+    }
+    
+    /* copy ports and protocol */
+    rec.sourceTransportPort = flow->key.sp;
+    rec.destinationTransportPort = flow->key.dp;
+    rec.protocolIdentifier = flow->key.proto;
         
+    /* copy addresses */
+    if (yaf_core_map_ipv6 && (flow->key.version == 4)) {
+        memcpy(rec.sourceIPv6Address, yaf_ip6map_pfx,
+               sizeof(yaf_ip6map_pfx));
+        *(uint32_t *)(&(rec.sourceIPv6Address[sizeof(yaf_ip6map_pfx)])) =
+            g_htonl(flow->key.addr.v4.sip);
+        memcpy(rec.destinationIPv6Address, yaf_ip6map_pfx,
+               sizeof(yaf_ip6map_pfx));
+        *(uint32_t *)(&(rec.destinationIPv6Address[sizeof(yaf_ip6map_pfx)])) =
+            g_htonl(flow->key.addr.v4.dip);
+        wtid |= YTF_IP6;
+    } else if (flow->key.version == 4) {
+        rec.sourceIPv4Address = flow->key.addr.v4.sip;
+        rec.destinationIPv4Address = flow->key.addr.v4.dip;
+        wtid |= YTF_IP4;
+    } else if (flow->key.version == 6) {
+        memcpy(rec.sourceIPv6Address, flow->key.addr.v6.sip,
+               sizeof(rec.sourceIPv6Address));
+        memcpy(rec.destinationIPv6Address, flow->key.addr.v6.dip,
+               sizeof(rec.destinationIPv6Address));
+        wtid |= YTF_IP6;
     } else {
-        /* enable key export */
-        wtid |= YTF_KEY;
-
-        /* copy ports and protocol */
-        rec.sourceTransportPort = flow->key.sp;
-        rec.destinationTransportPort = flow->key.dp;
-        rec.protocolIdentifier = flow->key.proto;
-            
-        /* copy addresses */
-        if (yaf_core_map_ipv6 && (flow->key.version == 4)) {
-            memcpy(rec.sourceIPv6Address, yaf_ip6map_pfx,
-                   sizeof(yaf_ip6map_pfx));
-            *(uint32_t *)(&(rec.sourceIPv6Address[sizeof(yaf_ip6map_pfx)])) =
-                g_htonl(flow->key.addr.v4.sip);
-            memcpy(rec.destinationIPv6Address, yaf_ip6map_pfx,
-                   sizeof(yaf_ip6map_pfx));
-            *(uint32_t *)(&(rec.destinationIPv6Address[sizeof(yaf_ip6map_pfx)])) =
-                g_htonl(flow->key.addr.v4.dip);
-            wtid |= YTF_IP6;
-        } else if (flow->key.version == 4) {
-            rec.sourceIPv4Address = flow->key.addr.v4.sip;
-            rec.destinationIPv4Address = flow->key.addr.v4.dip;
-            wtid |= YTF_IP4;
-        } else if (flow->key.version == 6) {
-            memcpy(rec.sourceIPv6Address, flow->key.addr.v6.sip,
-                   sizeof(rec.sourceIPv6Address));
-            memcpy(rec.destinationIPv6Address, flow->key.addr.v6.dip,
-                   sizeof(rec.destinationIPv6Address));
-            wtid |= YTF_IP6;
-        } else {
-            g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
-                        "Illegal IP version %u", flow->key.version);
-        }
+        g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
+                    "Illegal IP version %u", flow->key.version);
     }
     
     /* TCP flow; copy TCP data and enable export */
@@ -967,36 +961,31 @@ gboolean yfWriteFlow(
         wtid |= YTF_TCP;
         rec.initiatorOctets = flow->val.appoct;
         rec.responderOctets = flow->rval.appoct;
-        rec.tcpSequenceCount = k2e32 * flow->val.wrapct + (flow->val.fsn - flow->val.isn);
-        if (rec.tcpSequenceCount && flow->val.uflags & YF_TF_FIN) rec.tcpSequenceCount -= 1;
-        rec.reverseTcpSequenceCount = k2e32 * flow->rval.wrapct + (flow->rval.fsn - flow->rval.isn);
-        if (rec.reverseTcpSequenceCount && flow->rval.uflags & YF_TF_FIN) rec.reverseTcpSequenceCount -= 1;
-        rec.tcpRetransmitCount = flow->val.rtx;
-        rec.reverseTcpRetransmitCount = flow->rval.rtx;
-        rec.tcpSequenceNumber = flow->val.isn;
-        rec.reverseTcpSequenceNumber = flow->rval.isn;
+        rec.tcpSequenceCount = qfDynSequenceCount(&(flow->val.tcp),
+                                flow->val.iflags & flow->val.uflags);
+        rec.reverseTcpSequenceCount = qfDynSequenceCount(&(flow->rval.tcp),
+                                flow->rval.iflags & flow->rval.uflags);
+        rec.tcpRetransmitCount = flow->val.tcp.rtx_ct;
+        rec.reverseTcpRetransmitCount = flow->rval.tcp.rtx_ct;
+        rec.tcpSequenceNumber = flow->val.tcp.isn;
+        rec.reverseTcpSequenceNumber = flow->rval.tcp.isn;
         rec.initialTCPFlags = flow->val.iflags;
         rec.reverseInitialTCPFlags = flow->rval.iflags;
         rec.unionTCPFlags = flow->val.uflags;
         rec.reverseUnionTCPFlags = flow->rval.uflags;
         /* Enable RTT export if we have enough samples */
-        /* FIXME make this configurable */
-        if ((flow->val.rttcount >= QOF_MIN_RTT_COUNT) ||
-            (flow->rval.rttcount >= QOF_MIN_RTT_COUNT))
+        if ((flow->val.tcp.dynflags & QF_DYN_RTTVALID) ||
+            (flow->rval.tcp.dynflags & QF_DYN_RTTVALID))
         {
             wtid |= YTF_RTT;
-            rec.maxTcpFlightSize = flow->val.rtt.maxflight;
-            rec.reverseMaxTcpFlightSize = flow->rval.rtt.maxflight;
-            rec.maxTcpReorderSize = flow->val.rtt.maxooo;
-            rec.reverseMaxTcpReorderSize = flow->rval.rtt.maxooo;
-            rec.meanTcpRttMilliseconds = flow->val.rttcount ?
-            (uint32_t)(flow->val.rttsum / flow->val.rttcount) : 0;
-            rec.reverseMeanTcpRttMilliseconds = flow->rval.rttcount ?
-            (uint32_t)(flow->rval.rttsum / flow->rval.rttcount) : 0;
-            rec.minTcpRttMilliseconds = flow->val.rtt.minrtt;
-            rec.reverseMinTcpRttMilliseconds = flow->rval.rtt.minrtt;
-            rec.tcpBurstLossCount = flow->val.rtt.blosscount;
-            rec.reverseTcpBurstLossCount = flow->rval.rtt.blosscount;
+            rec.maxTcpFlightSize = flow->val.tcp.inflight_max;
+            rec.reverseMaxTcpFlightSize = flow->rval.tcp.inflight_max;
+            rec.maxTcpReorderSize = flow->val.tcp.reorder_max;
+            rec.reverseMaxTcpReorderSize = flow->val.tcp.reorder_max;
+            rec.meanTcpRttMilliseconds = flow->val.tcp.rtt_est;
+            rec.reverseMeanTcpRttMilliseconds = flow->rval.tcp.rtt_est;
+            rec.minTcpRttMilliseconds = flow->val.tcp.rtt_min;
+            rec.reverseMinTcpRttMilliseconds = flow->rval.tcp.rtt_min;
         }
     }
     
@@ -1208,6 +1197,7 @@ static void yfTemplateCallback(
 }
 #endif
 
+#if 0
 /**
  *yfInitCollectorSession
  *
@@ -1398,7 +1388,7 @@ static uint64_t yfNTPDecode(
     millis = dntp * 1000;
     return millis;
 }
-
+#endif
 
 /* this is basically for interop testing. drop for now, 
    since we don't have an extflow anymore... */
@@ -1549,6 +1539,7 @@ gboolean yfReadFlowExtended(
 }
 #endif 
 
+
 /**
  *yfPrintFlags
  *
@@ -1611,11 +1602,11 @@ void yfPrintString(
         if (flow->rval.oct) {
             g_string_append_printf(rstr, " tcp %s:%u => %s:%u %08x:%08x ",
                                    sabuf, flow->key.sp, dabuf, flow->key.dp,
-                                   flow->val.isn, flow->rval.isn);
+                                   flow->val.tcp.isn, flow->rval.tcp.isn);
         } else {
             g_string_append_printf(rstr, " tcp %s:%u => %s:%u %08x ",
                                    sabuf, flow->key.sp, dabuf, flow->key.dp,
-                                   flow->val.isn);
+                                   flow->val.tcp.isn);
         }
 
         yfPrintFlags(rstr, flow->val.iflags);
@@ -1691,6 +1682,7 @@ void yfPrintString(
 
 }
 
+#if 0
 /**
  *yfPrintDelimitedString
  *
@@ -1810,6 +1802,7 @@ void yfPrintDelimitedString(
     g_string_append(rstr,"\n");
 
 }
+#endif
 
 /**
  *yfPrint
@@ -1842,6 +1835,7 @@ gboolean yfPrint(
 
 }
 
+#if 0
 /**
  *yfPrintDelimited
  *
@@ -1923,6 +1917,7 @@ void yfPrintColumnHeaders(
     g_string_free(rstr, TRUE);
 
 }
+#endif
 
 /*
  * graveyard: removed code (6313, etc)

@@ -110,6 +110,7 @@
 #include <math.h>
 
 #include <yaf/ring.h>
+#include <yaf/qofdyn.h>
 
 /**
  * This is the CERT Private Enterprise Number (PEN) assigned by
@@ -279,40 +280,40 @@ typedef struct yfFlowStats_st {
  * QoF RTT-derived TCP statistics
  *
  */
-typedef struct qfRttInfo_st {
-    /** Sequence number/timestamp ring (for RTT calculation) */
-    rgaRing_t   *seqring;
-    /** Last acknowledgement time */
-    uint64_t    lacktime;
-    /** timestamp of last burst start */
-    uint64_t    blosstime;
-    /** Last acknowledgement number */
-    uint32_t    lastack;
-    /** last rtt (milliseconds) */
-    uint32_t    rawrtt;
-    /** smoothed rtt (milliseconds) */
-    uint32_t    smoothrtt;
-    /** rtt correction factor (milliseconds) */
-    uint32_t    rttcorr;
-    /** minimum rtt (milliseconds) */
-    uint32_t    minrtt;
-    /** burst loss count */
-    uint32_t    blosscount;
-    /** last burst size */
-    uint32_t    lastbloss;
-    /** last burst size */
-    uint32_t    maxbloss;
-    /** maximum inflight octets */
-    uint32_t    maxflight;
-    /** last inflight octets */
-    uint32_t    lastflight;
-    /** maximum octets out of order */
-    uint32_t    maxooo;
-    /** sequence ring sampling period */
-    uint16_t    srperiod;
-    /** sequence ring sampling period */
-    uint16_t    srskipped;
-} qfRttInfo_t;
+//typedef struct qfRttInfo_st {
+//    /** Sequence number/timestamp ring (for RTT calculation) */
+//    rgaRing_t   *seqring;
+//    /** Last acknowledgement time */
+//    uint64_t    lacktime;
+//    /** timestamp of last burst start */
+//    uint64_t    blosstime;
+//    /** Last acknowledgement number */
+//    uint32_t    lastack;
+//    /** last rtt (milliseconds) */
+//    uint32_t    rawrtt;
+//    /** smoothed rtt (milliseconds) */
+//    uint32_t    smoothrtt;
+//    /** rtt correction factor (milliseconds) */
+//    uint32_t    rttcorr;
+//    /** minimum rtt (milliseconds) */
+//    uint32_t    minrtt;
+//    /** burst loss count */
+//    uint32_t    blosscount;
+//    /** last burst size */
+//    uint32_t    lastbloss;
+//    /** last burst size */
+//    uint32_t    maxbloss;
+//    /** maximum inflight octets */
+//    uint32_t    maxflight;
+//    /** last inflight octets */
+//    uint32_t    lastflight;
+//    /** maximum octets out of order */
+//    uint32_t    maxooo;
+//    /** sequence ring sampling period */
+//    uint16_t    srperiod;
+//    /** sequence ring sampling period */
+//    uint16_t    srskipped;
+//} qfRttInfo_t;
 
 /**
  * A YAF uniflow value. Contains directional packet header fields and counters;
@@ -325,20 +326,8 @@ typedef struct yfFlowVal_st {
     uint64_t    oct;
     /** Packet count */
     uint64_t    pkt;
-    /** Retransmit count */
-    uint64_t    rtx;
-    /** Final TCP sequence number */
-    uint32_t    fsn;
-    /** Initial TCP sequence number */
-    uint32_t    isn;
-    /** Sequence number wraparound count */
-    uint32_t    wrapct;
-    /** rtt sum (milliseconds) FIXME think about removing this */
-    uint64_t    rttsum;
-    /** rtt count FIXME think about removing this */
-    uint64_t    rttcount;
-    /** max observed packet size */
-    uint16_t    maxiplen;
+    /** TCP dynamics */
+    qfDyn_t     tcp;
     /** minimum ttl */
     uint8_t     minttl;
     /** maximum ttl */
@@ -349,10 +338,6 @@ typedef struct yfFlowVal_st {
     uint8_t     uflags;
     /** Real or virtual network interface */
     uint8_t     netIf;
-    /** qof RTT statistics */
-    qfRttInfo_t rtt;
-    /** yaf flow statistics */
-    //yfFlowStats_t stats;
 } yfFlowVal_t;
 
 
@@ -532,7 +517,7 @@ void yfWriterExportTotals(gboolean total_mode);
  * FIXME doc
  */
 
-void yfWriterExportAnon(gboolean anon_mode);
+void yfWriterUseInterfaceMap(gboolean ifmap_mode);
 
 /**
  * FIXME doc

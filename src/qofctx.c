@@ -96,7 +96,6 @@ typedef enum {
     QCP_IN_IFMAP_V6NET,     // expecting v6 address value for ifmap
     QCP_IN_IFMAP_INGRESS,   // expecting ingress interface number for ifmap
     QCP_IN_IFMAP_EGRESS,    // expecting egress interface number for ifmap
-    QCP_IN_ANONMODE,        // expecting value (boolean) for anon-mode
     QCP_IN_TMPL,            // expecting value (map) for template
     QCP_IN_TMPL_SEQ,        // expecting IE name (template sequence value)
 } qcp_state_t;
@@ -195,7 +194,6 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 QCP_EVENT_NEXT_STATE(YAML_MAPPING_END_EVENT, QCP_IN_DOC)
                 QCP_REQUIRE_SCALAR("internal error: missing key")
                 QCP_SCALAR_NEXT_STATE("interface-map", QCP_IN_IFMAP)
-                QCP_SCALAR_NEXT_STATE("anon-mode", QCP_IN_ANONMODE)
                 QCP_SCALAR_NEXT_STATE("template", QCP_IN_TMPL)
                 QCP_DEFAULT("unknown configuration key")
                 break;
@@ -234,6 +232,8 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                         qfIfMapAddIPv6Mapping(&(ctx->ifmap), addr6, pfx6,
                                               ingress, egress);
                     }
+                    // make sure we've enabled interface map export
+                    yfWriterUseInterfaceMap(TRUE);
                     qcpstate = QCP_IN_IFMAP_SEQ;
                     break;
                 }
@@ -344,20 +344,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 }
                 qcpstate = QCP_IN_IFMAP_KEY;
                 break;
-            
-            // FIXME this goes away when templates are runtime-specified
-            case QCP_IN_ANONMODE:
-                if (event.type == YAML_SCALAR_EVENT) {
-                    if ((QCP_SV)[0] != '0') {
-                        yfWriterExportAnon(TRUE);
-                    }
-                } else {
-                    return qfYamlError(err, &parser, filename,
-                                       "missing value for anon-mode");
-                }
-                qcpstate = QCP_IN_DOC_MAP;
-                break;
-            
+                        
             case QCP_IN_TMPL:
                 QCP_EVENT_NEXT_STATE(YAML_SEQUENCE_START_EVENT, QCP_IN_TMPL_SEQ)
                 QCP_DEFAULT("template must be a sequence of IE names")

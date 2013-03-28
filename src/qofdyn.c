@@ -13,7 +13,8 @@
  */
 
 #define _YAF_SOURCE_
-#include "qofdyn.h"
+#include <yaf/qofdyn.h>
+#include <yaf/yaftab.h>
 
 static const uint64_t startmask64[] = {
     0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFEULL,
@@ -86,7 +87,12 @@ static const uint64_t endmask64[] = {
     0x7FFFFFFFFFFFFFFFULL
 };
 
-static const kAlpha = 8;
+static const unsigned int kAlpha = 8;
+static const unsigned int kSeqSamplePeriodMs = 1;
+
+static size_t qf_dyn_bincap = 0;
+static size_t qf_dyn_binscale = 0;
+static size_t qf_dyn_ringcap = 0;
 
 int qfSeqCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
@@ -106,18 +112,30 @@ void qfSeqBinInit(qfSeqBin_t     *sb,
 }
 
 void qfSeqBinFree(qfSeqBin_t *sb) {
-    yg_slice_free1(sb->bincount * sizeof(uint64_t), sb->bin);
+    if (sb->bin) yg_slice_free1(sb->bincount * sizeof(uint64_t), sb->bin);
 }
 
 
-static void qfSeqBinShiftup(qfSeqBin_t     *sb)
+static void qfSeqBinShiftComplete(qfSeqBin_t     *sb)
 {
     while (sb->bin[sb->binbase] == UINT64_MAX) {
+        sb->bin[sb->binbase] = 0;
         sb->binbase++;
         if (sb->binbase >= sb->bincount) sb->binbase = 0;
         sb->seqbase += sb->scale * sizeof(uint64_t) * 8;
     }
 }
+
+static void qfSeqBinShiftToSeq(qfSeqBin_t *sb, uint32_t seq)
+{
+    while (sb->seqbase < seq) {
+        sb->bin[sb->binbase] = 0;
+        sb->binbase++;
+        if (sb->binbase >= sb->bincount) sb->binbase = 0;
+        sb->seqbase += sb->scale * sizeof(uint64_t) * 8;
+    }
+}
+
 
 static size_t qfSeqBinNum(qfSeqBin_t   *sb,
                            uint32_t     seq)
@@ -132,11 +150,10 @@ static size_t qfSeqBinBit(qfSeqBin_t    *sb,
     return ((seq - sb->seqbase) / sb->scale) % (sizeof(uint64_t) * 8);
 }
 
-static qfSeqBinRes_t qfSeqBinTestMask(uint64_t bin, uint64_t mask) {
-    // FIXME check for only first/last bin overlap, need a mask edge
-    if ((bin & mask) == mask) {
+static qfSeqBinRes_t qfSeqBinTestMask(uint64_t bin, uint64_t omask, uint64_t imask) {
+    if ((bin & omask) == omask) {
         return QF_SEQBIN_FULL_ISECT;
-    } else if ((bin & mask) == 0) {
+    } else if ((bin & imask) == 0)  {
         return QF_SEQBIN_NO_ISECT;
     } else {
         return QF_SEQBIN_PART_ISECT;
@@ -155,9 +172,9 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
                                  uint32_t        aseq,
                                  uint32_t        bseq)
 {
-    size_t i, j;
-    uint64_t m;
-    uint32_t maxseq;
+    size_t i, j, abit, bbit;
+    uint64_t omask, imask;
+    uint32_t maxseq, seqcap;
     
     qfSeqBinRes_t res;
     
@@ -167,14 +184,16 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
         sb->seqbase = (aseq / sb->scale) * sb->scale;
     } else {
         /* shift up to compress space */
-        qfSeqBinShiftup(sb);
+        qfSeqBinShiftComplete(sb);
     }
     
-    /* check range: things above the bin range are out of range */
-    /* FIXME on out of range, force range forward -> observation loss */
-    maxseq = sb->seqbase + sb->bincount * sizeof(uint64_t) * 8 * sb->scale;
-    if (qfSeqCompare(aseq, maxseq) > 0) return QF_SEQBIN_OUT_OF_RANGE;
-    if (qfSeqCompare(aseq, maxseq) > 0) return QF_SEQBIN_OUT_OF_RANGE;
+    /* check range: force range forward and count, on out of range */
+    seqcap = sb->bincount * sizeof(uint64_t) * 8 * sb->scale;
+    maxseq = sb->seqbase + seqcap;
+    if (qfSeqCompare(bseq, maxseq) > 0) {
+        qfSeqBinShiftToSeq(sb, 1 + bseq - seqcap);
+        sb->overcount++;
+    }
     
     /* check range: things below the bin range are already fully intersected */
     if (qfSeqCompare(bseq, sb->seqbase) < 0) return QF_SEQBIN_FULL_ISECT;
@@ -188,30 +207,37 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
     
     /* special case: bins are the same, intersect the masks, shortcircuit */
     if (i == j) {
-        m = startmask64[qfSeqBinBit(sb, aseq)] &
-            endmask64[qfSeqBinBit(sb, bseq)];
-        res = qfSeqBinTestMask(sb->bin[i], m);
-        sb->bin[i] |= m;
+        abit = qfSeqBinBit(sb, aseq);
+        bbit = qfSeqBinBit(sb, bseq);
+        omask = startmask64[abit] & endmask64[bbit];
+        imask = startmask64[abit + 1] & endmask64[bbit - 1]; // FIXME unsafe
+        res = qfSeqBinTestMask(sb->bin[i], omask, imask);
+        sb->bin[i] |= omask;
         return res;
     }
 
     /* handle first bin */
-    m = startmask64[qfSeqBinBit(sb, aseq)];
-    res = qfSeqBinTestMask(sb->bin[i], m);
-    sb->bin[i] |= m;
+    abit = qfSeqBinBit(sb, aseq);
+    omask = startmask64[abit];
+    imask = startmask64[abit+1];
+    res = qfSeqBinTestMask(sb->bin[i], omask, imask);
+    sb->bin[i] |= omask;
     
     /* handle middle bins */
     i++; if (i >= sb->bincount) i = 0;
     while (i != j) {
-        res = qfSeqBinResCombine(res, qfSeqBinTestMask(sb->bin[i], UINT64_MAX));
+        res = qfSeqBinResCombine(res,
+              qfSeqBinTestMask(sb->bin[i], UINT64_MAX, UINT64_MAX));
         sb->bin[i] = UINT64_MAX;
         i++; if (i >= sb->bincount) i = 0;
     }
     
     /* handle last bin */
-    m = endmask64[qfSeqBinBit(sb, aseq)];
-    res = qfSeqBinTestMask(sb->bin[i], m);
-    sb->bin[i] |= m;
+    bbit = qfSeqBinBit(sb, aseq);
+    omask = endmask64[bbit];
+    imask = endmask64[bbit-1];
+    res = qfSeqBinTestMask(sb->bin[i], omask, imask);
+    sb->bin[i] |= omask;
     
     return res;
 }
@@ -235,7 +261,7 @@ void qfSeqRingInit(qfSeqRing_t              *sr,
 
 void qfSeqRingFree(qfSeqRing_t              *sr)
 {
-    yg_slice_free1(sr->bincount * sizeof(qfSeqTime_t), sr->bin);
+    if (sr->bin) yg_slice_free1(sr->bincount * sizeof(qfSeqTime_t), sr->bin);
 }
 
 void qfSeqRingAddSample(qfSeqRing_t         *sr,
@@ -275,9 +301,43 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
     return rtt;
 }
 
-static int qfDynSeqSampleP(qfDyn_t     *qd)
+static size_t qfSeqRingAvail(qfSeqRing_t *sr)
 {
-    // FIXME this is clearly wrong
+    ssize_t occ = sr->head - sr->tail;
+    if (occ < 0) occ += sr->bincount;
+    return sr->bincount - occ;
+}
+
+static int qfDynHasSeqbin(qfDyn_t *qd) { return qd->sb.bin != 0; }
+
+static int qfDynHasSeqring(qfDyn_t *qd) { return qd->sr.bin != 0; }
+
+static int qfDynSeqSampleP(qfDyn_t     *qd,
+                           uint64_t     ms)
+{
+    /* don't sample without seqring */
+    if (!qfDynHasSeqring(qd)) {
+        return 0;
+    }
+    
+    /* don't sample higher than sample rate */
+    if ((qd->sr.bin[qd->sr.head].lms + kSeqSamplePeriodMs) >
+        ((uint32_t)ms & UINT32_MAX))
+    {
+        return 0;
+    }
+    
+    /* don't sample until we've waited out the sample period */
+    if (qd->sr_skip < qd->sr_period) {
+        qd->sr_skip++;
+        return 0;
+    }
+    
+    /* good to sample, calculate next period */
+    qd->sr_skip = 0;
+    qd->sr_period = ((qd->fsn - qd->fan) / qd->mss) / qfSeqRingAvail(&qd->sr);
+    if (qd->sr_period) qd->sr_period--;
+    
     return 1;
 }
 
@@ -314,7 +374,20 @@ static void qfDynTrackRTT(qfDyn_t   *qd,
         (!qd->rtt_min || (qd->rtt_est < qd->rtt_min)))
     {
         qd->rtt_min = qd->rtt_est;
+        qd->dynflags = QF_DYN_RTTVALID; // FIXME might want to be less eager here
     }
+}
+
+void qfDynSetParams(size_t bincap, size_t binscale, size_t ringcap) {
+    qf_dyn_bincap = bincap;
+    qf_dyn_binscale = binscale;
+    qf_dyn_ringcap = ringcap;
+}
+
+void qfDynFree(qfDyn_t      *qd)
+{
+    qfSeqBinFree(&qd->sb);
+    qfSeqRingFree(&qd->sr);
 }
 
 void qfDynSeq(qfDyn_t     *qd,
@@ -327,20 +400,32 @@ void qfDynSeq(qfDyn_t     *qd,
     /* short circuit on no octets */
     if (!oct) return;
     
+    /* allocate structures if we don't have them yet */
+    if (qf_dyn_ringcap && !qd->sr.bin) {
+        qfSeqRingInit(&qd->sr, qf_dyn_ringcap);
+    }
+    if (qf_dyn_bincap && !qd->sb.bin) {
+        qfSeqBinInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
+    }
+    
+    /* update MSS */
+    if (oct > qd->mss) qd->mss = oct;
+    
     /* update and minimize RTT correction factor if necessary */
-    if ((qd->flags & QF_DYN_RTTCORR) && (seq >= qd->fan)) {
-        qd->flags &= ~QF_DYN_RTTCORR;
+    if ((qd->dynflags & QF_DYN_RTTCORR) && (seq >= qd->fan)) {
+        qd->dynflags &= ~QF_DYN_RTTCORR;
         qfDynCorrectRTT(qd, (ms & UINT32_MAX) - qd->fanlms);
     }
    
     /* track sequence numbers in binmap to detect order/loss */
-    sbres = qfSeqBinTestAndSet(&(qd->sb), seq - oct, seq);
-    
-    if (sbres != QF_SEQBIN_NO_ISECT) qfDynRexmit(qd, seq, ms);
+    if (qfDynHasSeqbin(qd)) {
+        sbres = qfSeqBinTestAndSet(&(qd->sb), seq - oct, seq);
+        if (sbres != QF_SEQBIN_NO_ISECT) qfDynRexmit(qd, seq, ms);
+    }
     
     /* advance sequence number if necessary */
     if (qfSeqCompare(seq, qd->fsn) > 0) {
-        qd->flags |= QF_DYN_SEQADV;
+        qd->dynflags |= QF_DYN_SEQADV;
         if (seq < qd->fsn) qd->wrap_ct++;
         qd->fsn = seq;
         
@@ -350,12 +435,12 @@ void qfDynSeq(qfDyn_t     *qd,
         }
         
         /* take time sample, if necessary */
-        if (qfDynSeqSampleP(qd)) {
+        if (qfDynSeqSampleP(qd, ms)) {
             qfSeqRingAddSample(&(qd->sr), seq, ms);
         }
         
     } else {
-        qd->flags &= ~QF_DYN_SEQADV;
+        qd->dynflags &= ~QF_DYN_SEQADV;
         
         /* update max out of order */
         if ((qd->fsn - seq - oct) > qd->reorder_max) {
@@ -376,9 +461,16 @@ void qfDynAck(qfDyn_t     *qd,
         qd->fanlms = ms & UINT32_MAX;
         
         /* sample RTT */
-        irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
-        if (irtt) qfDynTrackRTT(qd, irtt);
+        if (qfDynHasSeqring(qd)) {
+            irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
+            if (irtt) qfDynTrackRTT(qd, irtt);
+            qd->dynflags |= QF_DYN_RTTCORR;
+        }        
     }
 }
 
-
+uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
+    uint64_t sc = qd->fsn - qd->isn + ((UINT32_MAX + 1) * qd->wrap_ct);
+    if ((flags & YF_TF_FIN) && sc) sc -= 1;
+    return sc;
+}

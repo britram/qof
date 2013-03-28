@@ -68,7 +68,6 @@
 #include <yaf/picq.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
-#include "qofrtt.h"
 
 #include "qofctx.h"
 #include "decode.h"
@@ -489,10 +488,10 @@ static void yfFlowFree(
     yfFlowNode_t        *fn)
 {
 
-    /* free sequence ring if present */
-    if (fn->f.val.rtt.seqring) rgaFree(fn->f.val.rtt.seqring);
-    if (fn->f.rval.rtt.seqring) rgaFree(fn->f.rval.rtt.seqring);
-    
+    /* free dynamics if present */
+    qfDynFree(&fn->f.val.tcp);
+    qfDynFree(&fn->f.val.tcp);
+
     /* free flow */
 #if YAF_ENABLE_COMPACT_IP4
     if (fn->f.key.version == 4) {
@@ -733,8 +732,7 @@ static yfFlowNode_t *yfFlowGetNode(
  *
  */
 
-static void yfFlowPktIP(
-                         yfFlowTab_t                 *flowtab,
+static void yfFlowPktIP( yfFlowTab_t                 *flowtab,
                          yfFlowNode_t                *fn,
                          yfFlowVal_t                 *val,
                          yfFlowVal_t                 *rval,
@@ -742,13 +740,11 @@ static void yfFlowPktIP(
 {
     /* track TTL */
     if (!val->minttl || (ipinfo->ttl < val->minttl)) {
-        //fprintf(stderr, "new minttl %hhu\n", val->minttl);
         val->minttl = ipinfo->ttl;
     }
     
     if (ipinfo->ttl > val->maxttl) {
         val->maxttl = ipinfo->ttl;
-        //fprintf(stderr, "new maxttl %hhu\n", val->minttl);
     }
     
 }
@@ -775,56 +771,18 @@ static void yfFlowPktTCP(
     yfTCPInfo_t                 *tcpinfo,
     size_t                      datalen)
 {
-    /* handle flags and sequence number */
-    if (val->pkt) {
+    
+    /* handle flags */
+    if (!val->pkt) {
         /* Not the first packet. Union flags. */
         val->uflags |= tcpinfo->flags;
-        
-        /* Advance sequence number */
-        if (tcpinfo->seq > val->fsn) {
-            if (tcpinfo->seq - val->fsn > k2e31) {
-                /* count retransmission after wrap */
-                val->rtx += 1;
-                /* FIXME not quite right, detect loss better */
-                qfLose(&(fn->f), val, flowtab->ctime);
-            } else {
-                /* normal advance */
-                qfRttSeqAdvance(val, rval, flowtab->ctime, tcpinfo->seq);
-            }
-        } else {
-            if (val->fsn - tcpinfo->seq > k2e31) {
-                /* advance with sequence number wrap */
-                qfRttSeqAdvance(val, rval, flowtab->ctime, tcpinfo->seq);
-            } else if (datalen) {
-                /* count simple retransmission if not empty ACK */
-                val->rtx += 1;
-                /* FIXME not quite right, detect loss better */
-                qfLose(&(fn->f), val, flowtab->ctime);
-            }
-        }
-        
-        /* High-water mark for out-of-order octets */
-        if (val->fsn - tcpinfo->seq > val->rtt.maxooo) {
-            val->rtt.maxooo = val->fsn - tcpinfo->seq;
-        }
-        
-        
     } else {
-        /* Initial flags */
+        /* First packet. Initial flags. */
         val->iflags = tcpinfo->flags;
-        /* Initialize sequence number tracking */
-        qfRttSeqInit(val, flowtab->ctime, tcpinfo->seq);
-        val->isn = val->fsn;
     }
-    
-    /* handle ack */
-    // FIXME make this handle SACK too once we decode SACK
-    if (tcpinfo->flags & YF_TF_ACK) {
-        if ((tcpinfo->ack > val->rtt.lastack) ||
-            ((val->rtt.lastack - tcpinfo->ack) > k2e31)) {
-            qfRttAck(val, rval, flowtab->ctime, tcpinfo->ack);
-        }
-    }
+
+    /* track tcp dynamics */
+    qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen, flowtab->ctime);
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {
@@ -843,7 +801,6 @@ static void yfFlowPktTCP(
     if (tcpinfo->flags & YF_TF_RST) {
         fn->state |= YAF_STATE_RST;
     }
-
 }
 
 /**
@@ -962,7 +919,6 @@ void yfFlowPBuf(
     /* Count packets and octets */
     val->appoct += datalen;
     val->oct += pbuf->iplen;
-    if (pbuf->iplen > val->maxiplen) val->maxiplen = pbuf->iplen;
     val->pkt += 1;
 
     /* update flow end time */

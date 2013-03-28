@@ -16,7 +16,6 @@
 #define _QOF_DYN_H_
 
 #include <yaf/autoinc.h>
-#include <yaf/yaftab.h>
 
 /** Sequence number bin structure used to track whether a 
     given sequence number has been seen */
@@ -24,6 +23,7 @@ typedef struct qfSeqBin_st {
     uint64_t    *bin;
     size_t      bincount;
     size_t      opcount;
+    size_t      overcount;
     size_t      scale;
     size_t      binbase;
     uint32_t    seqbase;
@@ -100,13 +100,16 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
  * TCP dynamics structure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define QF_DYN_INITIAL      0x00000001 /* structure initialized */
+#define QF_DYN_INITIALIZED  0x00000001 /* structure has been initialized */
 #define QF_DYN_RTTCORR      0x00000002 /* ACK advanced, update rtt_corr */
 #define QF_DYN_SEQADV       0x00000004 /* SEQ advanced */
+#define QF_DYN_RTTVALID     0x00000008 /* we think rtt is usable */
 
 typedef struct qfDyn_st {
     qfSeqBin_t      sb;
     qfSeqRing_t     sr;
+    uint16_t        sr_skip;
+    uint16_t        sr_period;
     uint32_t        isn;
     uint32_t        fsn;
     uint32_t        fan;
@@ -118,8 +121,11 @@ typedef struct qfDyn_st {
     uint32_t        rtt_est;
     uint32_t        rtt_min;
     uint32_t        rtt_corr;
-    uint32_t        flags;
+    uint32_t        mss;
+    uint32_t        dynflags;
 } qfDyn_t;
+
+void qfDynFree(qfDyn_t      *qd);
 
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
@@ -129,6 +135,12 @@ void qfDynSeq(qfDyn_t     *qd,
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
               uint64_t    ms);
+
+void qfDynSetParams(size_t bincap,
+                    size_t binscale,
+                    size_t ringcap);
+
+uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags);
 
 
 #endif /* idem */
