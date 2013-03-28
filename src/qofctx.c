@@ -98,6 +98,17 @@ typedef enum {
     QCP_IN_IFMAP_EGRESS,    // expecting egress interface number for ifmap
     QCP_IN_TMPL,            // expecting value (map) for template
     QCP_IN_TMPL_SEQ,        // expecting IE name (template sequence value)
+    QCP_IN_TCPSTATE,        // expecting value (map) for tcp state vars
+    QCP_IN_TCPSTATE_KEY,    // expecting tcp state var key
+    QCP_IN_TCP_SRCAP,       // expecting sequence ring capacity value (tcpstate)
+    QCP_IN_TCP_SBCAP,       // expecting sequence bin capacity value (tcpstate)
+    QCP_IN_TCP_SBSCALE,     // expecting sequence bin capacity value (tcpstate)
+    QCP_IN_FLOWSTATE,       // expecting value (map) for flow state vars
+    QCP_IN_FLOWSTATE_KEY,   // expecting flow state var key
+    QCP_IN_FLOW_ATO,        // expecting active timeout value
+    QCP_IN_FLOW_ITO,        // expecting idle timeout value
+    QCP_IN_FLOW_CAP,        // expecting flow table capacity value
+    QCP_IN_FLOW_FRAGCAP,    // expecting fragment table capacity value
 } qcp_state_t;
 
 #define QCP_SV (const char*)event.data.scalar.value
@@ -141,6 +152,11 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
     
     unsigned int    ingress;
     unsigned int    egress;
+    
+    unsigned int    qdbincap;
+    unsigned int    qdbinscale;
+    unsigned int    qdringcap;
+    
     
     int             rv;
     
@@ -195,6 +211,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 QCP_REQUIRE_SCALAR("internal error: missing key")
                 QCP_SCALAR_NEXT_STATE("interface-map", QCP_IN_IFMAP)
                 QCP_SCALAR_NEXT_STATE("template", QCP_IN_TMPL)
+                QCP_SCALAR_NEXT_STATE("tcp-state", QCP_IN_TCPSTATE)
                 QCP_DEFAULT("unknown configuration key")
                 break;
                 
@@ -358,6 +375,83 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                     return FALSE;
                 }
                 break;
+                
+            case QCP_IN_TCPSTATE:
+                QCP_EVENT_NEXT_STATE(YAML_MAPPING_START_EVENT, QCP_IN_TCPSTATE_KEY);
+                QCP_DEFAULT("tcp-state must contain a mapping")
+                qdbincap = 0;
+                qdbinscale = 1;
+                qdringcap = 0;
+                break;
+                
+            case QCP_IN_TCPSTATE_KEY:       // expecting key for tcp-state
+                if (event.type == YAML_MAPPING_END_EVENT) {
+                    // end mapping, configure TCP state
+                    if (!qdbincap) {
+                        return qfYamlError(err, &parser, filename,
+                                           "missing sn-capacity");
+                    }
+                    if (!qdringcap) {
+                        return qfYamlError(err, &parser, filename,
+                                           "missing rtt-capacity");                        
+                    }
+                    qfDynSetParams(qdbincap, qdbinscale, qdringcap);
+                    qcpstate = QCP_IN_DOC_MAP;
+                    break;
+                }
+                
+                QCP_REQUIRE_SCALAR("internal error: missing key")
+                QCP_SCALAR_NEXT_STATE("sn-capacity", QCP_IN_TCP_SBCAP)
+                QCP_SCALAR_NEXT_STATE("sn-scale", QCP_IN_TCP_SBSCALE)
+                QCP_SCALAR_NEXT_STATE("rtt-capacity", QCP_IN_TCP_SRCAP)
+                QCP_DEFAULT("unknown tcp-state key")
+                break;
+
+            case QCP_IN_TCP_SBCAP:
+                if (event.type == YAML_SCALAR_EVENT) {
+                    rv = sscanf(QCP_SV, "%u", &qdbincap);
+                    if (rv != 1) {
+                        return qfYamlError(err, &parser, filename,
+                                           "invalid value for sn-capacity");
+                        return FALSE;
+                    }
+                } else {
+                    return qfYamlError(err, &parser, filename,
+                                       "missing value for sn-capacity");
+                }
+                qcpstate = QCP_IN_TCPSTATE_KEY;
+                break;
+                
+            case QCP_IN_TCP_SBSCALE:
+                if (event.type == YAML_SCALAR_EVENT) {
+                    rv = sscanf(QCP_SV, "%u", &qdbinscale);
+                    if (rv != 1) {
+                        return qfYamlError(err, &parser, filename,
+                                           "invalid value for sn-scale");
+                        return FALSE;
+                    }
+                } else {
+                    return qfYamlError(err, &parser, filename,
+                                       "missing value for sn-scale");
+                }
+                qcpstate = QCP_IN_TCPSTATE_KEY;
+                break;
+
+            case QCP_IN_TCP_SRCAP:
+                if (event.type == YAML_SCALAR_EVENT) {
+                    rv = sscanf(QCP_SV, "%u", &qdringcap);
+                    if (rv != 1) {
+                        return qfYamlError(err, &parser, filename,
+                                           "invalid value for rtt-capacity");
+                        return FALSE;
+                    }
+                } else {
+                    return qfYamlError(err, &parser, filename,
+                                       "missing value for rtt-capacity");
+                }
+                qcpstate = QCP_IN_TCPSTATE_KEY;
+                break;
+                
                 
             default:
                 return qfYamlError(err, &parser, filename,
