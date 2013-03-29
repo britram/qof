@@ -87,6 +87,8 @@ static const uint64_t endmask64[] = {
     0x7FFFFFFFFFFFFFFFULL
 };
 
+
+
 static const unsigned int kAlpha = 8;
 static const unsigned int kSeqSamplePeriodMs = 1;
 
@@ -96,6 +98,28 @@ static size_t qf_dyn_ringcap = 0;
 
 int qfSeqCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
+}
+
+static unsigned int qfCountBits(uint64_t v) {
+    static const uint64_t mask[] = {
+        0x5555555555555555ULL,
+        0x3333333333333333ULL,
+        0x0F0F0F0F0F0F0F0FULL,
+        0x00FF00FF00FF00FFULL,
+        0x0000FFFF0000FFFFULL,
+        0x00000000FFFFFFFFULL
+    };
+    
+    static const unsigned int shift[] = { 1, 2, 4, 8, 16, 32 };
+    
+    uint64_t c;
+
+    c = v - ((v >> shift[0]) & mask[0]);
+    c = ((c >> shift[1]) & mask[1]) + (c & mask[1]);
+    c = ((c >> shift[2]) + c) & mask[2];
+    c = ((c >> shift[3]) + c) & mask[3];
+    c = ((c >> shift[4]) + c) & mask[4];
+    return (unsigned int)((c >> shift[5]) + c) & mask[5];
 }
 
 void qfSeqBinInit(qfSeqBin_t     *sb,
@@ -126,16 +150,20 @@ static void qfSeqBinShiftComplete(qfSeqBin_t     *sb)
     }
 }
 
-static void qfSeqBinShiftToSeq(qfSeqBin_t *sb, uint32_t seq)
+static size_t qfSeqBinShiftToSeq(qfSeqBin_t *sb, uint32_t seq)
 {
+    unsigned int bits = 0;
+
     while (sb->seqbase < seq) {
+        bits += (8 * sizeof(uint64_t)) - qfCountBits(sb->bin[sb->binbase]);
         sb->bin[sb->binbase] = 0;
         sb->binbase++;
         if (sb->binbase >= sb->bincount) sb->binbase = 0;
         sb->seqbase += sb->scale * sizeof(uint64_t) * 8;
     }
+    
+    return bits * sb->scale;
 }
-
 
 static size_t qfSeqBinNum(qfSeqBin_t   *sb,
                            uint32_t     seq)
@@ -191,8 +219,7 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
     seqcap = sb->bincount * sizeof(uint64_t) * 8 * sb->scale;
     maxseq = sb->seqbase + seqcap;
     if (qfSeqCompare(bseq, maxseq) > 0) {
-        qfSeqBinShiftToSeq(sb, 1 + bseq - seqcap);
-        sb->overcount++;
+        sb->lostseq_ct += qfSeqBinShiftToSeq(sb, 1 + bseq - seqcap);
     }
     
     /* check range: things below the bin range are already fully intersected */
@@ -200,7 +227,6 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
 
     /* check range: clip overlapping bottom of range */
     if (qfSeqCompare(aseq, sb->seqbase) < 0) aseq = sb->seqbase;
-    
     /* get bin numbers */
     i = qfSeqBinNum(sb, aseq);
     j = qfSeqBinNum(sb, bseq);

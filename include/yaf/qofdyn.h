@@ -23,10 +23,10 @@ typedef struct qfSeqBin_st {
     uint64_t    *bin;
     size_t      bincount;
     size_t      opcount;
-    size_t      overcount;
     size_t      scale;
     size_t      binbase;
     uint32_t    seqbase;
+    size_t      lostseq_ct;
 } qfSeqBin_t;
 
 /** Sequence number bin result codes */
@@ -141,6 +141,5 @@ void qfDynSetParams(size_t bincap,
                     size_t ringcap);
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags);
-
 
 #endif /* idem */
