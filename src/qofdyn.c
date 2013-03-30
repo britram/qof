@@ -424,20 +424,37 @@ void qfDynSeq(qfDyn_t     *qd,
               uint64_t    ms)
 {
     qfSeqBinRes_t   sbres;
-    
-    /* short circuit on no octets */
-    if (!oct) return;
-    
+
 #if QF_DYN_DEBUG
-    fprintf(stderr, "qd ts %u seq [%u - %u] ", (uint32_t) (ms & UINT32_MAX), seq - oct, seq);
+    fprintf(stderr, "qd ts %u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq - oct, seq);
 #endif
-    
-    /* allocate structures if we don't have them yet */
-    if (qf_dyn_ringcap && !qd->sr.bin) {
-        qfSeqRingInit(&qd->sr, qf_dyn_ringcap);
+ 
+    /* short circuit on no octets */
+    if (!oct) {
+#if QF_DYN_DEBUG
+        fprintf(stderr, "empty\n");
+#endif
+        return;
     }
-    if (qf_dyn_bincap && !qd->sb.bin) {
-        qfSeqBinInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
+    
+    /* initialise if not yet done */
+    if (!qd->dynflags & QF_DYN_SEQINIT) {        
+        /* allocate structures */
+        if (qf_dyn_ringcap) {
+            qfSeqRingInit(&qd->sr, qf_dyn_ringcap);
+        }
+        if (qf_dyn_bincap) {
+            qfSeqBinInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
+        }
+        
+        /* set ISN */
+        qd->isn = seq - oct;
+        
+        /* force sequence number advance */
+        qd->dynflags |= QF_DYN_SEQINIT | QF_DYN_SEQADV;
+#if QF_DYN_DEBUG
+        fprintf(stderr, "init ");
+#endif        
     }
     
     /* update MSS */
@@ -469,10 +486,13 @@ void qfDynSeq(qfDyn_t     *qd,
     }
     
     /* advance sequence number if necessary */
-    if (qfSeqCompare(seq, qd->fsn) > 0) {
+    if (qd->dynflags & QF_DYN_SEQADV || qfSeqCompare(seq, qd->fsn) > 0) {
         qd->dynflags |= QF_DYN_SEQADV;
         if (seq < qd->fsn) qd->wrap_ct++;
         qd->fsn = seq;
+#if QF_DYN_DEBUG
+        fprintf(stderr, "adv ");
+#endif
         
         /* update max inflight */
         if (qd->inflight_max > (qd->fsn - qd->fan)) {
@@ -494,8 +514,8 @@ void qfDynSeq(qfDyn_t     *qd,
         qd->dynflags &= ~QF_DYN_SEQADV;
         
         /* update max out of order */
-        if ((qd->fsn - seq - oct) > qd->reorder_max) {
-            qd->reorder_max = qd->fsn - seq - oct;
+        if ((qd->fsn - seq) > qd->reorder_max) {
+            qd->reorder_max = qd->fsn - seq;
 #if QF_DYN_DEBUG
             fprintf(stderr, "remax %u ", qd->reorder_max);
 #endif
@@ -513,16 +533,29 @@ void qfDynAck(qfDyn_t     *qd,
     uint32_t irtt;
     
     /* advance ack number if necessary */
-    if (qfSeqCompare(ack, qd->fan) > 0) {
+    if (!(qd->dynflags & QF_DYN_ACKINIT) || (qfSeqCompare(ack, qd->fan) > 0)) {
+        qd->dynflags |= QF_DYN_ACKINIT;
         qd->fan = ack;
         qd->fanlms = ms & UINT32_MAX;
+ 
+#if QF_DYN_DEBUG
+        fprintf(stderr, "qd ts %u ack %10u ", (uint32_t) (ms & UINT32_MAX), ack);
+#endif
         
         /* sample RTT */
         if (qfDynHasSeqring(qd)) {
             irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
-            if (irtt) qfDynTrackRTT(qd, irtt);
+            if (irtt) {
+                qfDynTrackRTT(qd, irtt);
+#if QF_DYN_DEBUG
+                fprintf(stderr, "irtt %u ", irtt);
+#endif
+            }
             qd->dynflags |= QF_DYN_RTTCORR;
         }        
+#if QF_DYN_DEBUG
+        fprintf(stderr, "\n");
+#endif
     }
 }
 

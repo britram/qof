@@ -100,10 +100,11 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
  * TCP dynamics structure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define QF_DYN_INITIALIZED  0x00000001 /* structure has been initialized */
-#define QF_DYN_RTTCORR      0x00000002 /* ACK advanced, update rtt_corr */
-#define QF_DYN_SEQADV       0x00000004 /* SEQ advanced */
-#define QF_DYN_RTTVALID     0x00000008 /* we think rtt is usable */
+#define QF_DYN_SEQINIT      0x00000001 /* first sequence number seen */
+#define QF_DYN_ACKINIT      0x00000002 /* first ack seen */
+#define QF_DYN_SEQADV       0x00000004 /* SEQ advanced on last operation */
+#define QF_DYN_RTTCORR      0x00000010 /* ACK advanced, update rtt_corr */
+#define QF_DYN_RTTVALID     0x00000020 /* we think rtt is usable */
 
 typedef struct qfDyn_st {
     qfSeqBin_t      sb;
