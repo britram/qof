@@ -203,12 +203,6 @@ labeling is enabled */
 /** Maximum length of PCAP output file - 5MB */
 #define YAF_PCAP_MAX            5000000
 
-
-/** Constant - 2^31 (for sequence number calculations) */
-#define k2e31 0x80000000U
-/** Constant - 2^32 (for sequence number calculations) */
-#define k2e32 0x100000000ULL
-
 /**
  * A YAF flow key.
  * Contains a flow's five-tuple; used at runtime in the flow table.

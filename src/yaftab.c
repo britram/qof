@@ -782,9 +782,12 @@ static void yfFlowPktTCP(
     }
 
     /* track tcp dynamics */
-    qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen, flowtab->ctime);
-    if (tcpinfo->flags & YF_TF_ACK)
-        qfDynAck(&rval->tcp, tcpinfo->ack, flowtab->ctime);
+    qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen,
+             (uint32_t)(UINT32_MAX & flowtab->ctime));
+    if (tcpinfo->flags & YF_TF_ACK) {
+        qfDynAck(&rval->tcp, tcpinfo->ack,
+                 (uint32_t)(UINT32_MAX & flowtab->ctime));
+    }
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {

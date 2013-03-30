@@ -89,11 +89,11 @@ void qfSeqRingFree(qfSeqRing_t              *sr);
 
 void qfSeqRingAddSample(qfSeqRing_t         *sr,
                         uint32_t            seq,
-                        uint64_t            ms);
+                        uint32_t            ms);
 
 uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
                       uint32_t              ack,
-                      uint64_t              ms);
+                      uint32_t              ms);
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -131,11 +131,11 @@ void qfDynFree(qfDyn_t      *qd);
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,
-              uint64_t    ms);
+              uint32_t    ms);
 
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
-              uint64_t    ms);
+              uint32_t    ms);
 
 void qfDynSetParams(size_t bincap,
                     size_t binscale,

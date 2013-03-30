@@ -89,7 +89,8 @@ static const uint64_t endmask64[] = {
     0x7FFFFFFFFFFFFFFFULL
 };
 
-
+/** Constant - 2^32 (for sequence number calculations) */
+static const uint64_t k2e32 = 0x100000000ULL;
 
 static const unsigned int kAlpha = 8;
 static const unsigned int kSeqSamplePeriodMs = 1;
@@ -271,10 +272,10 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
 }
 
 /** Sequence number / time tuple */
-typedef struct qfSeqTime_st {
-    uint32_t    lms;
+struct qfSeqTime_st {
+    uint32_t    ms;
     uint32_t    seq;
-} qfSeqTime_t;
+};
 
 void qfSeqRingInit(qfSeqRing_t              *sr,
                    size_t                   capacity)
@@ -294,7 +295,7 @@ void qfSeqRingFree(qfSeqRing_t              *sr)
 
 void qfSeqRingAddSample(qfSeqRing_t         *sr,
                         uint32_t            seq,
-                        uint64_t            ms)
+                        uint32_t            ms)
 {
     /* overrun if we need to */
     if (((sr->head + 1) % sr->bincount) == sr->tail) {
@@ -304,26 +305,36 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
     }
     
     /* insert sample */
+    sr->bin[sr->head].seq = seq;
+    sr->bin[sr->head].ms = ms;
     sr->opcount++;
     sr->head++;
     if (sr->head >= sr->bincount) sr->head = 0;
-    sr->bin[sr->head].seq = seq;
-    sr->bin[sr->head].lms = (uint32_t) ms & UINT32_MAX;
 }
 
 uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
                       uint32_t              ack,
-                      uint64_t              ms)
+                      uint32_t              ms)
 {
     uint32_t rtt;
     
-    while (qfSeqCompare(sr->bin[sr->tail].seq, ack-1) < 0) {
+    while (sr->head != sr->tail &&
+           qfSeqCompare(sr->bin[sr->tail].seq, ack-1) < 0)
+    {
         sr->tail++;
         if (sr->tail >= sr->bincount) sr->tail = 0;
-        if (sr->tail == sr->head) return 0; // ack ahead of any seen seqno
     }
+
+    if (sr->head == sr->tail) return 0;
+
+#if QF_DYN_DEBUG
+    fprintf(stderr, "(seq %u @ %u ack %u @ %u) ",
+            sr->bin[sr->tail].seq,
+            sr->bin[sr->tail].ms,
+            ack, ms);
+#endif
     
-    rtt = (ms & UINT32_MAX) - sr->bin[sr->tail].lms;
+    rtt = ms - sr->bin[sr->tail].ms;
     sr->tail++;
     if (sr->tail >= sr->bincount) sr->tail = 0;
     return rtt;
@@ -349,8 +360,7 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
     }
     
     /* don't sample higher than sample rate */
-    if ((qd->sr.bin[qd->sr.head].lms + kSeqSamplePeriodMs) >
-        ((uint32_t)ms & UINT32_MAX))
+    if ((qd->sr.bin[qd->sr.head].ms + kSeqSamplePeriodMs) > ms)
     {
         return 0;
     }
@@ -421,7 +431,7 @@ void qfDynFree(qfDyn_t      *qd)
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,
-              uint64_t    ms)
+              uint32_t    ms)
 {
     qfSeqBinRes_t   sbres;
 
@@ -468,7 +478,7 @@ void qfDynSeq(qfDyn_t     *qd,
     /* update and minimize RTT correction factor if necessary */
     if ((qd->dynflags & QF_DYN_RTTCORR) && (seq >= qd->fan)) {
         qd->dynflags &= ~QF_DYN_RTTCORR;
-        qfDynCorrectRTT(qd, (ms & UINT32_MAX) - qd->fanlms);
+        qfDynCorrectRTT(qd, ms - qd->fanlms);
 #if QF_DYN_DEBUG
         fprintf(stderr, "rttc %u ", qd->rtt_corr);
 #endif
@@ -528,7 +538,7 @@ void qfDynSeq(qfDyn_t     *qd,
 
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
-              uint64_t    ms)
+              uint32_t    ms)
 {
     uint32_t irtt;
     
@@ -536,10 +546,10 @@ void qfDynAck(qfDyn_t     *qd,
     if (!(qd->dynflags & QF_DYN_ACKINIT) || (qfSeqCompare(ack, qd->fan) > 0)) {
         qd->dynflags |= QF_DYN_ACKINIT;
         qd->fan = ack;
-        qd->fanlms = ms & UINT32_MAX;
+        qd->fanlms = ms;
  
 #if QF_DYN_DEBUG
-        fprintf(stderr, "qd ts %u ack %10u ", (uint32_t) (ms & UINT32_MAX), ack);
+        fprintf(stderr, "qd ts %u ack %10u ", ms, ack);
 #endif
         
         /* sample RTT */
@@ -560,7 +570,7 @@ void qfDynAck(qfDyn_t     *qd,
 }
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
-    uint64_t sc = qd->fsn - qd->isn + ((UINT32_MAX + 1) * qd->wrap_ct);
+    uint64_t sc = qd->fsn - qd->isn + (k2e32 * qd->wrap_ct);
     if ((flags & YF_TF_FIN) && sc) sc -= 1;
     return sc;
 }
