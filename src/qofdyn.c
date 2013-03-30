@@ -302,6 +302,9 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
         sr->tail++;
         if (sr->tail >= sr->bincount) sr->tail = 0;
         sr->overcount++;
+#if QF_DYN_DEBUG
+        fprintf(stderr, "rtts-over (%u) ", sr->overcount );
+#endif
     }
     
     /* insert sample */
@@ -356,25 +359,38 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
 {
     /* don't sample without seqring */
     if (!qfDynHasSeqring(qd)) {
+#if QF_DYN_DEBUG
+        fprintf(stderr, "nortts-nil ");
+#endif
         return 0;
     }
     
     /* don't sample higher than sample rate */
     if ((qd->sr.bin[qd->sr.head].ms + kSeqSamplePeriodMs) > ms)
     {
+#if QF_DYN_DEBUG
+        fprintf(stderr, "nortts-rate ");
+#endif        
         return 0;
     }
     
     /* don't sample until we've waited out the sample period */
     if (qd->sr_skip < qd->sr_period) {
+#if QF_DYN_DEBUG
+        fprintf(stderr, "nortts-skip (%u of %u)", qd->sr_skip, qd->sr_period);
+#endif
         qd->sr_skip++;
         return 0;
     }
     
     /* good to sample, calculate next period */
+    if ((qd->dynflags & QF_DYN_SEQINIT) && (qd->dynflags & QF_DYN_ACKINIT)) {
+        qd->sr_period = ((qd->fsn - qd->fan) / qd->mss) / qfSeqRingAvail(&qd->sr);
+        if (qd->sr_period) qd->sr_period--;        
+    } else {
+        qd->sr_period = 0;
+    }
     qd->sr_skip = 0;
-    qd->sr_period = ((qd->fsn - qd->fan) / qd->mss) / qfSeqRingAvail(&qd->sr);
-    if (qd->sr_period) qd->sr_period--;
     
     return 1;
 }
