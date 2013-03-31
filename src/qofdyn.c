@@ -19,7 +19,7 @@
 #define QF_DYN_DEBUG 1
 
 static const uint64_t startmask64[] = {
-    0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFEULL,
+                           0xFFFFFFFFFFFFFFFEULL,
     0xFFFFFFFFFFFFFFFCULL, 0xFFFFFFFFFFFFFFF8ULL,
     0xFFFFFFFFFFFFFFF0ULL, 0xFFFFFFFFFFFFFFE0ULL,
     0xFFFFFFFFFFFFFFC0ULL, 0xFFFFFFFFFFFFFF80ULL,
@@ -51,10 +51,10 @@ static const uint64_t startmask64[] = {
     0xFC00000000000000ULL, 0xF800000000000000ULL,
     0xF000000000000000ULL, 0xE000000000000000ULL,
     0xC000000000000000ULL, 0x8000000000000000ULL,
+    0x0000000000000000ULL
 };
 
 static const uint64_t endmask64[] = {
-                           0x0000000000000000ULL,
     0x0000000000000001ULL, 0x0000000000000003ULL,
     0x0000000000000007ULL, 0x000000000000000FULL,
     0x000000000000001FULL, 0x000000000000003FULL,
@@ -86,7 +86,7 @@ static const uint64_t endmask64[] = {
     0x01FFFFFFFFFFFFFFULL, 0x03FFFFFFFFFFFFFFULL,
     0x07FFFFFFFFFFFFFFULL, 0x0FFFFFFFFFFFFFFFULL,
     0x1FFFFFFFFFFFFFFFULL, 0x3FFFFFFFFFFFFFFFULL, 
-    0x7FFFFFFFFFFFFFFFULL
+    0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL
 };
 
 /** Constant - 2^32 (for sequence number calculations) */
@@ -182,11 +182,23 @@ static size_t qfSeqBinBit(qfSeqBin_t    *sb,
 }
 
 static qfSeqBinRes_t qfSeqBinTestMask(uint64_t bin, uint64_t omask, uint64_t imask) {
+#if QF_DYN_DEBUG
+    fprintf(stderr, "(bin %016llx omask %016llx imask %016llx ", bin, omask, imask);
+#endif
     if ((bin & omask) == omask) {
+#if QF_DYN_DEBUG
+        fprintf(stderr, "+) " );
+#endif
         return QF_SEQBIN_FULL_ISECT;
     } else if ((bin & imask) == 0)  {
+#if QF_DYN_DEBUG
+        fprintf(stderr, "-) " );
+#endif
         return QF_SEQBIN_NO_ISECT;
     } else {
+#if QF_DYN_DEBUG
+        fprintf(stderr, "/) " );
+#endif
         return QF_SEQBIN_PART_ISECT;
     }
 }
@@ -239,11 +251,23 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
         abit = qfSeqBinBit(sb, aseq);
         bbit = qfSeqBinBit(sb, bseq);
         omask = startmask64[abit] & endmask64[bbit];
-        imask = startmask64[abit + 1] & endmask64[bbit - 1]; // FIXME unsafe
+        imask = 
+#if QF_DYN_DEBUG
+        fprintf(stderr, "sb seq [%10u - %10u] bin %u(%u..%u) ",
+                aseq, bseq, i, abit, bbit);
+#endif
         res = qfSeqBinTestMask(sb->bin[i], omask, imask);
-        sb->bin[i] |= omask;
+#if QF_DYN_DEBUG
+        fprintf(stderr, "\n");
+#endif
+       sb->bin[i] |= omask;
         return res;
     }
+
+#if QF_DYN_DEBUG
+    fprintf(stderr, "sb seq [%10u - %10u] bin %u(%u)..%u(%u) ",
+            aseq, bseq, i, abit, j, bbit);
+#endif
 
     /* handle first bin */
     abit = qfSeqBinBit(sb, aseq);
@@ -267,6 +291,9 @@ qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
     imask = endmask64[bbit-1];
     res = qfSeqBinTestMask(sb->bin[i], omask, imask);
     sb->bin[i] |= omask;
+#if QF_DYN_DEBUG
+    fprintf(stderr, "\n");
+#endif
     
     return res;
 }
@@ -440,6 +467,12 @@ void qfDynSetParams(size_t bincap, size_t binscale, size_t ringcap) {
 
 void qfDynFree(qfDyn_t      *qd)
 {
+#if QF_DYN_DEBUG
+    fprintf(stderr, "qd free [%u - %u] lost %u ring-op %u ring-over %u\n",
+            qd->sb.seqbase, qd->sb.seqbase + (qd->sb.scale * sizeof(uint64_t) * 8),
+            qd->sb.lostseq_ct, qd->sr.opcount, qd->sr.overcount);
+#endif
+   
     qfSeqBinFree(&qd->sb);
     qfSeqRingFree(&qd->sr);
 }
