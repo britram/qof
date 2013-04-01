@@ -158,6 +158,7 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
 
 void qfSeqBitsInit(qfSeqBits_t *sb, uint32_t capacity, uint32_t scale) {
     bimInit(&sb->map, capacity / scale);
+    sb->scale = scale;
 }
 
 void qfSeqBitsFree(qfSeqBits_t *sb) {
@@ -172,7 +173,7 @@ int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
     
     /* set seqbase on first segment */
     if (!sb->seqbase) {
-        sb->seqbase = aseq / (sb->scale * sb->scale);
+        sb->seqbase = (aseq / sb->scale) * sb->scale;
     }
     
     /* move range forward if necessary to cover EOR */

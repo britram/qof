@@ -965,8 +965,8 @@ gboolean yfWriteFlow(
                                 flow->val.iflags & flow->val.uflags);
         rec.reverseTcpSequenceCount = qfDynSequenceCount(&(flow->rval.tcp),
                                 flow->rval.iflags & flow->rval.uflags);
-//        rec.tcpRetransmitCount = flow->val.tcp.rtx_ct;
-//        rec.reverseTcpRetransmitCount = flow->rval.tcp.rtx_ct;
+        rec.tcpRetransmitCount = flow->val.tcp.rtx_ct;
+        rec.reverseTcpRetransmitCount = flow->rval.tcp.rtx_ct;
         rec.tcpSequenceNumber = flow->val.tcp.isn;
         rec.reverseTcpSequenceNumber = flow->rval.tcp.isn;
         rec.initialTCPFlags = flow->val.iflags;
