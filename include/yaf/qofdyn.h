@@ -16,9 +16,20 @@
 #define _QOF_DYN_H_
 
 #include <yaf/autoinc.h>
+#include <yaf/bitmap.h>
+
+/**
+ * Compare sequence numbers A and B, accounting for 2e31 wraparound.
+ *
+ * @param a value to compare
+ * @param b value to compare
+ * @return >0 if a > b, 0 if a == b, <0 if a < b.
+ */
+
+int qfSeqCompare(uint32_t a, uint32_t b);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Low level sequence number - timestamp sampling structure 
+ * Sequence number - timestamp sampling structure 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 struct qfSeqTime_st;
@@ -47,6 +58,21 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
                       uint32_t              ack,
                       uint32_t              ms);
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Sequence number bitmap structure
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+typedef struct qfSeqBits_st {
+    bimBitmap_t     map;
+    uint32_t        seqbase;
+    uint32_t        scale;
+    uint32_t        lostseq_ct;
+} qfSeqBits_t;
+
+void qfSeqBitsInit(qfSeqBits_t *sb, uint32_t capacity, uint32_t scale);
+
+void qfSeqBitsFree(qfSeqBits_t *sb);
+
+int qfSeqBitsSegmentRtx(qfSeqBits_t *sb, uint32_t aseq, uint32_t bseq);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * TCP dynamics structure
@@ -59,7 +85,7 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
 #define QF_DYN_RTTVALID     0x00000020 /* we think rtt is usable */
 
 typedef struct qfDyn_st {
-//    qfSeqBin_t      sb;
+    qfSeqBits_t     sb;
     qfSeqRing_t     sr;
     uint16_t        sr_skip;
     uint16_t        sr_period;
@@ -68,7 +94,7 @@ typedef struct qfDyn_st {
     uint32_t        fan;
     uint32_t        fanlms;
     uint32_t        wrap_ct;
-//    uint32_t        rtx_ct;
+    uint32_t        rtx_ct;
     uint32_t        inflight_max;
     uint32_t        reorder_max;    
     uint32_t        rtt_est;

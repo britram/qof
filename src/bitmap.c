@@ -1,6 +1,6 @@
 /**
  ** bitmap.c
- ** basic bitmap data structure for QoF (not yet complete, old seqbin code)
+ ** basic bitmap data structure for QoF 
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2013      Brian Trammell. All Rights Reserved
@@ -12,8 +12,46 @@
  ** ------------------------------------------------------------------------
  */
 
-static const uint64_t startmask64[] = {
-    0xFFFFFFFFFFFFFFFEULL,
+#define _YAF_SOURCE_
+#include <yaf/bitmap.h>
+
+static const uint64_t bimBit[] = {
+    0x0000000000000001ULL, 0x0000000000000002ULL,
+    0x0000000000000004ULL, 0x0000000000000008ULL,
+    0x0000000000000010ULL, 0x0000000000000020ULL,
+    0x0000000000000040ULL, 0x0000000000000080ULL,
+    0x0000000000000100ULL, 0x0000000000000200ULL,
+    0x0000000000000400ULL, 0x0000000000000800ULL,
+    0x0000000000001000ULL, 0x0000000000002000ULL,
+    0x0000000000004000ULL, 0x0000000000008000ULL,
+    0x0000000000010000ULL, 0x0000000000020000ULL,
+    0x0000000000040000ULL, 0x0000000000080000ULL,
+    0x0000000000100000ULL, 0x0000000000200000ULL,
+    0x0000000000400000ULL, 0x0000000000800000ULL,
+    0x0000000001000000ULL, 0x0000000002000000ULL,
+    0x0000000004000000ULL, 0x0000000008000000ULL,
+    0x0000000010000000ULL, 0x0000000020000000ULL,
+    0x0000000040000000ULL, 0x0000000080000000ULL,
+    0x0000000100000000ULL, 0x0000000200000000ULL,
+    0x0000000400000000ULL, 0x0000000800000000ULL,
+    0x0000001000000000ULL, 0x0000002000000000ULL,
+    0x0000004000000000ULL, 0x0000008000000000ULL,
+    0x0000010000000000ULL, 0x0000020000000000ULL,
+    0x0000040000000000ULL, 0x0000080000000000ULL,
+    0x0000100000000000ULL, 0x0000200000000000ULL,
+    0x0000400000000000ULL, 0x0000800000000000ULL,
+    0x0001000000000000ULL, 0x0002000000000000ULL,
+    0x0004000000000000ULL, 0x0008000000000000ULL,
+    0x0010000000000000ULL, 0x0020000000000000ULL,
+    0x0040000000000000ULL, 0x0080000000000000ULL,
+    0x0100000000000000ULL, 0x0200000000000000ULL,
+    0x0400000000000000ULL, 0x0800000000000000ULL,
+    0x1000000000000000ULL, 0x2000000000000000ULL,
+    0x4000000000000000ULL, 0x8000000000000000ULL
+};
+
+static const uint64_t bimMaskA[] = {
+    0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFEULL,
     0xFFFFFFFFFFFFFFFCULL, 0xFFFFFFFFFFFFFFF8ULL,
     0xFFFFFFFFFFFFFFF0ULL, 0xFFFFFFFFFFFFFFE0ULL,
     0xFFFFFFFFFFFFFFC0ULL, 0xFFFFFFFFFFFFFF80ULL,
@@ -45,10 +83,9 @@ static const uint64_t startmask64[] = {
     0xFC00000000000000ULL, 0xF800000000000000ULL,
     0xF000000000000000ULL, 0xE000000000000000ULL,
     0xC000000000000000ULL, 0x8000000000000000ULL,
-    0x0000000000000000ULL
 };
 
-static const uint64_t endmask64[] = {
+static const uint64_t bimMaskB[] = {
     0x0000000000000001ULL, 0x0000000000000003ULL,
     0x0000000000000007ULL, 0x000000000000000FULL,
     0x000000000000001FULL, 0x000000000000003FULL,
@@ -84,7 +121,7 @@ static const uint64_t endmask64[] = {
 };
 
 
-static unsigned int qfCountBits(uint64_t v) {
+static unsigned int bimCountBits(uint64_t v) {
     static const uint64_t mask[] = {
         0x5555555555555555ULL,
         0x3333333333333333ULL,
@@ -106,33 +143,92 @@ static unsigned int qfCountBits(uint64_t v) {
     return (unsigned int)((c >> shift[5]) + c) & mask[5];
 }
 
+void bimInit(bimBitmap_t *bitmap, uint32_t capacity) {
+    /* zero structure */
+    memset(bitmap, 0, sizeof(*bitmap));
+    
+    /* allocate bitmap array */
+    bitmap->sz = capacity / k64Bits;
+    if (capacity % k64Bits) bitmap->sz += 1;
+    bitmap->v = yg_slice_alloc0(bitmap->sz * sizeof(uint64_t));
+}
+
+void            bimFree(bimBitmap_t *bitmap) {
+    if (bitmap->v) yg_slice_free1(bitmap->sz * sizeof(uint64_t), bitmap->v);
+}
+
+static bimIntersect_t bimTSRCombine (bimIntersect_t prev, bimIntersect_t cur) {
+    switch (prev) {
+        case BIM_START:
+            switch (cur) {
+                case BIM_END: return BIM_EDGE;
+                case BIM_NONE: return BIM_START;
+                default: return BIM_PART;
+            }
+        case BIM_NONE:
+            return (cur == BIM_NONE) ? BIM_NONE: BIM_PART;
+        case BIM_FULL:
+            return (cur == BIM_FULL) ? BIM_FULL: BIM_PART;
+        case BIM_END:
+        case BIM_EDGE:
+        default:
+            return BIM_PART;
+    }
+}
+
+static bimIntersect_t bimTestAndSetInner(uint64_t *v, uint32_t a, uint32_t b) {
+    bimIntersect_t res;
+    uint64_t m = bimMaskA[a] & bimMaskB[b];
+    
+    if ((*v & m) == 0) res = BIM_NONE;
+    else if ((*v & m) == m) res = BIM_FULL;
+    else if ((*v & m) == bimBit[a]) res = BIM_START;
+    else if ((*v & m) == bimBit[b]) res = BIM_END;
+    else res = BIM_PART;
+    
+    *v |= m;
+    
+    return res;
+}
+
+bimIntersect_t  bimTestAndSetRange(bimBitmap_t *bitmap, uint32_t a, uint32_t b) {
+    uint32_t        i, j;
+    bimIntersect_t  res;
+    
+    /* compute indices */
+    i = (bitmap->base + (a / k64Bits)) % bitmap->sz;
+    j = (bitmap->base + (b / k64Bits)) % bitmap->sz;
+    a %= k64Bits;
+    b %= k64Bits;
+    
+    if (i == j) {
+        /* only one range */
+        res = bimTestAndSetInner(&bitmap->v[i], a, b);
+    } else {
+        res = bimTestAndSetInner(&bitmap->v[i], a, 63);
+        for (i++; i < j; i++) {
+            res = bimTSRCombine(res,bimTestAndSetInner(&bitmap->v[i], 0, 63));
+        }
+        res = bimTSRCombine(res, bimTestAndSetInner(&bitmap->v[i], 0, b));
+    }
+    
+    return res;
+}
+
+uint32_t bimShiftDownAndCountSet(bimBitmap_t *bitmap) {
+    uint32_t n = bimCountBits(bitmap->v[bitmap->base]);
+    bitmap->base = (bitmap->base + 1) % bitmap->sz;
+    return n;
+}
+
+
+#if 0
 static int qfDynHasSeqbin(qfDyn_t *qd) { return qd->sb.bin != 0; }
 
 
 
-static void qfDynRexmit(qfDyn_t     *qd,
-                        uint32_t    seq,
-                        uint64_t    ms)
-{
-    /* increment retransmit counter */
-    qd->rtx_ct++;
-}
-
-void qfSeqBinInit(qfSeqBin_t     *sb,
-                  size_t         capacity,
-                  size_t         scale)
-{
-    /* zero structure */
-    memset(sb, 0, sizeof(*sb));
-    
-    /* allocate bin array */
-    sb->scale = scale;
-    sb->bincount = capacity / scale / (sizeof(uint64_t) * 8);
-    sb->bin = yg_slice_alloc0(sb->bincount * sizeof(uint64_t));
-}
 
 void qfSeqBinFree(qfSeqBin_t *sb) {
-    if (sb->bin) yg_slice_free1(sb->bincount * sizeof(uint64_t), sb->bin);
 }
 
 
@@ -161,18 +257,6 @@ static size_t qfSeqBinShiftToSeq(qfSeqBin_t *sb, uint32_t seq)
     return bits * sb->scale;
 }
 
-static size_t qfSeqBinNum(qfSeqBin_t   *sb,
-                          uint32_t     seq)
-{
-    return         ((seq - sb->seqbase) /
-                    (sizeof(uint64_t) * 8 * sb->scale)) % sb->bincount;
-}
-
-static size_t qfSeqBinBit(qfSeqBin_t    *sb,
-                          uint32_t      seq)
-{
-    return ((seq - sb->seqbase) / sb->scale) % (sizeof(uint64_t) * 8);
-}
 
 static qfSeqBinRes_t qfSeqBinTestMask(uint64_t bin, uint64_t omask, uint64_t imask) {
 #if QF_DYN_DEBUG
@@ -204,89 +288,11 @@ static qfSeqBinRes_t qfSeqBinResCombine(qfSeqBinRes_t a, qfSeqBinRes_t b)
         return QF_SEQBIN_PART_ISECT;
 }
 
-qfSeqBinRes_t qfSeqBinTestAndSet(qfSeqBin_t      *sb,
-                                 uint32_t        aseq,
-                                 uint32_t        bseq)
-{
-    size_t i, j, abit, bbit;
-    uint64_t omask, imask;
-    uint32_t maxseq, seqcap;
-    
-    qfSeqBinRes_t res;
-    
-    /* initialize seqbase if first test and set */
-    if (!(sb->opcount++)) {
-        /* initialize seqbase if first test and set */
-        sb->seqbase = (aseq / sb->scale) * sb->scale;
-    } else {
-        /* shift up to compress space */
-        qfSeqBinShiftComplete(sb);
-    }
-    
-    /* check range: force range forward and count, on out of range */
-    seqcap = sb->bincount * sizeof(uint64_t) * 8 * sb->scale;
-    maxseq = sb->seqbase + seqcap;
-    if (qfSeqCompare(bseq, maxseq) > 0) {
-        sb->lostseq_ct += qfSeqBinShiftToSeq(sb, 1 + bseq - seqcap);
-    }
-    
-    /* check range: things below the bin range are already fully intersected */
-    if (qfSeqCompare(bseq, sb->seqbase) < 0) return QF_SEQBIN_FULL_ISECT;
-    
-    /* check range: clip overlapping bottom of range */
-    if (qfSeqCompare(aseq, sb->seqbase) < 0) aseq = sb->seqbase;
-    /* get bin numbers */
-    i = qfSeqBinNum(sb, aseq);
-    j = qfSeqBinNum(sb, bseq);
-    
-    /* special case: bins are the same, intersect the masks, shortcircuit */
-    if (i == j) {
-        abit = qfSeqBinBit(sb, aseq);
-        bbit = qfSeqBinBit(sb, bseq);
-        omask = startmask64[abit] & endmask64[bbit];
-        imask =
-#if QF_DYN_DEBUG
-        fprintf(stderr, "sb seq [%10u - %10u] bin %u(%u..%u) ",
-                aseq, bseq, i, abit, bbit);
 #endif
-        res = qfSeqBinTestMask(sb->bin[i], omask, imask);
-#if QF_DYN_DEBUG
-        fprintf(stderr, "\n");
-#endif
-        sb->bin[i] |= omask;
-        return res;
-    }
-    
-#if QF_DYN_DEBUG
-    fprintf(stderr, "sb seq [%10u - %10u] bin %u(%u)..%u(%u) ",
-            aseq, bseq, i, abit, j, bbit);
-#endif
-    
-    /* handle first bin */
-    abit = qfSeqBinBit(sb, aseq);
-    omask = startmask64[abit];
-    imask = startmask64[abit+1];
-    res = qfSeqBinTestMask(sb->bin[i], omask, imask);
-    sb->bin[i] |= omask;
-    
-    /* handle middle bins */
-    i++; if (i >= sb->bincount) i = 0;
-    while (i != j) {
-        res = qfSeqBinResCombine(res,
-                                 qfSeqBinTestMask(sb->bin[i], UINT64_MAX, UINT64_MAX));
-        sb->bin[i] = UINT64_MAX;
-        i++; if (i >= sb->bincount) i = 0;
-    }
-    
-    /* handle last bin */
-    bbit = qfSeqBinBit(sb, aseq);
-    omask = endmask64[bbit];
-    imask = endmask64[bbit-1];
-    res = qfSeqBinTestMask(sb->bin[i], omask, imask);
-    sb->bin[i] |= omask;
-#if QF_DYN_DEBUG
-    fprintf(stderr, "\n");
-#endif
-    
-    return res;
-}
+
+
+
+
+
+
+

@@ -113,6 +113,8 @@ static size_t qfSeqRingAvail(qfSeqRing_t *sr)
 
 static int qfDynHasSeqring(qfDyn_t *qd) { return qd->sr.bin != 0; }
 
+static int qfDynHasSeqbin(qfDyn_t *qd) { return qd->sb.map.v != 0; }
+
 static int qfDynSeqSampleP(qfDyn_t     *qd,
                            uint64_t     ms)
 {
@@ -154,6 +156,61 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
     return 1;
 }
 
+void qfSeqBitsInit(qfSeqBits_t *sb, uint32_t capacity, uint32_t scale) {
+    bimInit(&sb->map, capacity / scale);
+}
+
+void qfSeqBitsFree(qfSeqBits_t *sb) {
+    bimFree(&(sb->map));
+}
+
+int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
+                        uint32_t aseq, uint32_t bseq)
+{
+    bimIntersect_t brv;
+    uint32_t seqcap, maxseq;
+    
+    /* set seqbase on first segment */
+    if (!sb->seqbase) {
+        sb->seqbase = aseq / (sb->scale * sb->scale);
+    }
+    
+    /* move range forward if necessary to cover EOR */
+    seqcap = sb->map.sz * k64Bits * sb->scale;
+    maxseq = sb->seqbase + seqcap;
+    while (qfSeqCompare(bseq, maxseq) > 0) {
+        sb->lostseq_ct +=
+            ((k64Bits - bimShiftDownAndCountSet(&sb->map)) * sb->scale);
+        sb->seqbase += sb->scale * k64Bits;
+        maxseq = sb->seqbase + seqcap;
+    }
+    
+    /* entire range already seen (or rotated past): signal retransmission */
+    if (qfSeqCompare(bseq, sb->seqbase) < 0) return 1;
+    
+    /* clip overlapping bottom of range */
+    if (qfSeqCompare(aseq, sb->seqbase) < 0) aseq = sb->seqbase;
+
+    /* set bits in the bitmap */
+    brv = bimTestAndSetRange(&sb->map, (aseq - sb->seqbase)/sb->scale,
+                                       (bseq - sb->seqbase)/sb->scale);
+    
+    /* translate intersection to retransmission detect */
+    if (brv == BIM_PART || brv == BIM_FULL) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+static void qfDynRexmit(qfDyn_t     *qd,
+                        uint32_t    seq,
+                        uint64_t    ms)
+{
+    /* increment retransmit counter */
+    qd->rtx_ct++;
+}
+
 static void qfDynCorrectRTT(qfDyn_t   *qd,
                            uint32_t    crtt)
 {
@@ -193,10 +250,7 @@ void qfDynFree(qfDyn_t      *qd)
 {
 #if QF_DYN_DEBUG
     fprintf(stderr, "qd free ring-op %u ring-over %u\n",
-//              qd->sb.seqbase,
-//              qd->sb.seqbase + (qd->sb.scale * sizeof(uint64_t) * 8),
-//              qd->sb.lostseq_ct,
-              qd->sr.opcount, qd->sr.overcount);
+                    qd->sr.opcount, qd->sr.overcount);
 #endif
    
 //    qfSeqBinFree(&qd->sb);
@@ -208,7 +262,6 @@ void qfDynSeq(qfDyn_t     *qd,
               uint32_t    oct,
               uint32_t    ms)
 {
-//    qfSeqBinRes_t   sbres;
 
 #if QF_DYN_DEBUG
     fprintf(stderr, "qd ts %u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq - oct, seq);
@@ -229,9 +282,9 @@ void qfDynSeq(qfDyn_t     *qd,
             qfSeqRingInit(&qd->sr, qf_dyn_ringcap);
         }
 
-//        if (qf_dyn_bincap) {
-//            qfSeqBinInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
-//        }
+        if (qf_dyn_bincap) {
+            qfSeqBitsInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
+        }
 
         /* set ISN */
         qd->isn = seq - oct;
@@ -262,15 +315,14 @@ void qfDynSeq(qfDyn_t     *qd,
    
     /* track sequence numbers in binmap to detect order/loss */
     /* FIXME being reworked */
-//    if (qfDynHasSeqbin(qd)) {
-//        sbres = qfSeqBinTestAndSet(&(qd->sb), seq - oct, seq);
-//        if (sbres != QF_SEQBIN_NO_ISECT) {
-//            qfDynRexmit(qd, seq, ms);
-//#if QF_DYN_DEBUG
-//            fprintf(stderr, "rexmit ");
-//#endif
-//        }
-//    }
+    if (qfDynHasSeqbin(qd)) {
+        if (qfSeqBitsSegmentRtx(&(qd->sb), seq - oct, seq)) {
+            qfDynRexmit(qd, seq, ms);
+#if QF_DYN_DEBUG
+            fprintf(stderr, "rexmit ");
+#endif
+        }
+    }
     
     /* advance sequence number if necessary */
     if (qd->dynflags & QF_DYN_SEQADV || qfSeqCompare(seq, qd->fsn) > 0) {

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D306F28E1701436C00FE09F5 /* qofdyn.c in Sources */ = {isa = PBXBuildFile; fileRef = D306F28D1701436C00FE09F5 /* qofdyn.c */; };
+		D3282A631709703600B2ABA4 /* bitmap.c in Sources */ = {isa = PBXBuildFile; fileRef = D3282A601708CF2100B2ABA4 /* bitmap.c */; };
 		D38872B716946DDF00E66A70 /* qofifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922211672388F00514165 /* qofifmap.c */; };
 		F519223B1672388F00514165 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = F519221A1672388F00514165 /* decode.c */; };
 		F519223E1672388F00514165 /* picq.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922201672388F00514165 /* picq.c */; };
@@ -498,6 +499,7 @@
 				D38872B716946DDF00E66A70 /* qofifmap.c in Sources */,
 				F52331DB16BC130400A3FA81 /* qofctx.c in Sources */,
 				D306F28E1701436C00FE09F5 /* qofdyn.c in Sources */,
+				D3282A631709703600B2ABA4 /* bitmap.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
