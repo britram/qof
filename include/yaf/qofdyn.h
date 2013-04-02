@@ -38,11 +38,12 @@ typedef struct qfSeqTime_st qfSeqTime_t;
 /** Ring of sequence number / time tuples */
 typedef struct qfSeqRing_st {
     qfSeqTime_t     *bin;
-    size_t          bincount;
-    size_t          opcount;
-    size_t          overcount;
-    size_t          head;
-    size_t          tail;
+    uint32_t        bincount;
+    uint32_t        seqcount;
+    uint32_t        ackcount;
+    uint32_t        overcount;
+    uint32_t        head;
+    uint32_t        tail;
 } qfSeqRing_t;
 
 void qfSeqRingInit(qfSeqRing_t              *sr,

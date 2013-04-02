@@ -58,6 +58,8 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
                         uint32_t            seq,
                         uint32_t            ms)
 {
+    sr->seqcount++;
+    
     /* overrun if we need to */
     if (((sr->head + 1) % sr->bincount) == sr->tail) {
         sr->tail++;
@@ -71,7 +73,6 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
     /* insert sample */
     sr->bin[sr->head].seq = seq;
     sr->bin[sr->head].ms = ms;
-    sr->opcount++;
     sr->head++;
     if (sr->head >= sr->bincount) sr->head = 0;
 }
@@ -81,6 +82,8 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
                       uint32_t              ms)
 {
     uint32_t rtt;
+    
+    sr->ackcount++;
     
     while (sr->head != sr->tail &&
            qfSeqCompare(sr->bin[sr->tail].seq, ack-1) < 0)
@@ -250,8 +253,8 @@ void qfDynSetParams(size_t bincap, size_t binscale, size_t ringcap) {
 void qfDynFree(qfDyn_t      *qd)
 {
 #if QF_DYN_DEBUG
-    fprintf(stderr, "qd free ring-op %u ring-over %u\n",
-                    qd->sr.opcount, qd->sr.overcount);
+    fprintf(stderr, "qd free ring-seq %u ring-ack %u ring-over %u\n",
+                    qd->sr.seqcount, qd->sr.ackcount, qd->sr.overcount);
 #endif
    
 //    qfSeqBinFree(&qd->sb);

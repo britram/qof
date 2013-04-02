@@ -13,6 +13,6 @@
 
 nobase_include_HEADERS = yaf/yafcore.h  yaf/yafrag.h  yaf/yaftab.h \
                          yaf/decode.h   yaf/picq.h    yaf/autoinc.h \
-	                     yaf/ring.h     yaf/qofdyn.h \
+	                     yaf/ring.h     yaf/qofdyn.h  yaf/bitmap.h \
                          yaf/CERT_IE.h  yaf/TCH_IE.h
 
