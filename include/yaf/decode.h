@@ -142,7 +142,10 @@ typedef struct yfTCPInfo_st {
     uint32_t        tsval;
     /** Timestamp echo */
     uint32_t        tsecr;
-    // FIXME selective acknowledgment
+    /** Maximum segment size */
+    uint16_t        mss;
+    /** Window scale shift count */
+    uint8_t         ws;
     /** TCP flags (including ECE/CWR) */
     uint8_t         flags;
 } yfTCPInfo_t;
