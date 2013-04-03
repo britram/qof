@@ -12,9 +12,9 @@
 ## ------------------------------------------------------------------------
 
 
-PODFILES = yaf.pod yafscii.pod
-man1_MANS = yaf.1 yafscii.1
-HTMLFILES = yaf.html yafscii.html
+PODFILES = yaf.pod
+man1_MANS = yaf.1
+HTMLFILES = yaf.html
 
 WARN_CFLAGS = -g -DDEBUG -Wall -W -Wmissing-prototypes -Wformat=2 -Wdeclaration-after-statement -Wpointer-arith -Wshadow
 
@@ -42,7 +42,7 @@ clean-local:
 	rm -f pod2htm*.tmp
 
 lib_LTLIBRARIES = libyaf.la
-bin_PROGRAMS = yaf yafscii yafcollect
+bin_PROGRAMS = yaf
 
 INCLUDES = $(LTDLINCL)
 LIBS += $(LIBLTDL)
