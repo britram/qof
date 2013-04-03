@@ -18,9 +18,21 @@
 #define _QOF_LTRACE_H_
 
 #include <yaf/autoinc.h>
+#include <libtrace.h>
 #include "qofctx.h"
 
 struct qfTraceSource_st;
 typedef struct qfTraceSource_st qfTraceSource_t;
+
+qfTraceSource_t *qfTraceOpen(const char *uri,
+                             int snaplen,
+                             int *datalink,
+                             GError **err);
+
+void qfTraceClose(qfTraceSource_t *lts);
+
+void qfTraceDumpStats();
+
+gboolean qfTraceMain(yfContext_t             *ctx);
 
 #endif

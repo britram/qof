@@ -193,14 +193,8 @@
 /* Define to 1 to enable recording DAG interface numbers */
 #undef YAF_ENABLE_DAG_SEPARATE_INTERFACES
 
-/* Define to 1 to enable export of DNS Authoritative Responses Only */
-#undef YAF_ENABLE_DNSAUTH
-
-/* Define to 1 to enable export of DNS NXDomain Responses Only */
-#undef YAF_ENABLE_DNSNXDOMAIN
-
-/* Define to 1 to enable plugin support */
-#undef YAF_ENABLE_HOOKS
+/* Define to 1 to enable libtrace support */
+#undef YAF_ENABLE_LIBTRACE
 
 /* Define to 1 to enable Napatech support */
 #undef YAF_ENABLE_NAPATECH

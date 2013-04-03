@@ -437,7 +437,7 @@ struct yfDecodeCtx_st {
  * yfDecodeSetLinktype
  */
 
-#if YAF_HAS_LIBTRACE
+#if YAF_ENABLE_LIBTRACE
 void yfDecodeSetLinktype(
     yfDecodeCtx_t           *ctx,
     libtrace_linktype_t     linktype)
@@ -459,7 +459,8 @@ void yfDecodeSetLinktype(
             break;
 #endif
         default:
-            g_warning("unmappable libtrace linktype %u", linktype);
+            g_warning("unknown libtrace linktype %u", linktype);
+            ctx->datalink = DLT_USER15;
             break;
     }
 }
@@ -745,7 +746,12 @@ static const uint8_t *yfDecodeL2(
         /* Decode loopback from packet family */
         return yfDecodeL2Loop(ctx, pf, pkt, type);
 #endif
-            
+#if YAF_ENABLE_LIBTRACE
+      /* uninitialized libtrace */
+      case DLT_USER15:
+        g_warning("unknown or unset libtrace linktype");
+        return NULL;
+#endif
       default:
         g_warning("unknown datalink %u", ctx->datalink);
         return NULL;

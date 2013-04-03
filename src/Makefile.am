@@ -57,7 +57,7 @@ libyaf_la_LIBADD = @GLIB_LDADD@
 libyaf_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@ -version-info @LIBCOMPAT@ -release ${VERSION}
 libyaf_la_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
-yaf_SOURCES = yaf.c yafstat.c yafdag.c yafcap.c yafout.c yaflush.c yafpcapx.c qofctx.c
+yaf_SOURCES = yaf.c yafstat.c yafcap.c yafltrace.c yafdag.c yafpcapx.c yafout.c yaflush.c qofctx.c 
 yaf_LDADD   =  libyaf.la @GLIB_LDADD@
 yaf_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ -export-dynamic
 yaf_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'

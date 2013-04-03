@@ -69,9 +69,15 @@
 #include "yafcap.h"
 #include "yafstat.h"
 #include "qofctx.h"
+
+#if YAF_ENABLE_LIBTRACE
+#include "qofltrace.h"
+#endif
+
 #if YAF_ENABLE_DAG
 #include "yafdag.h"
 #endif
+
 #if YAF_ENABLE_NAPATECH
 #include "yafpcapx.h"
 #endif
@@ -467,6 +473,13 @@ static void yfParseOptions(
             yaf_liveopen_fn = (yfLiveOpen_fn)yfCapOpenLive;
             yaf_loop_fn = (yfLoop_fn)yfCapMain;
             yaf_close_fn = (yfClose_fn)yfCapClose;
+#if YAF_ENABLE_LIBTRACE
+        } else if (strncmp(yaf_config.livetype, "libtrace", 3) == 0) {
+            /* live or delayed capture via libtrace (--live=libtrace) */
+            yaf_liveopen_fn = (yfLiveOpen_fn)qfTraceOpen;
+            yaf_loop_fn = (yfLoop_fn)qfTraceMain;
+            yaf_close_fn = (yfClose_fn)qfTraceClose;
+#endif
 #if YAF_ENABLE_DAG
         } else if (strncmp(yaf_config.livetype, "dag", 3) == 0) {
             /* live capture via dag (--live=dag) */
@@ -757,6 +770,9 @@ int main (
     loop_ok = yaf_loop_fn(&ctx);
     yfStatComplete();
     yfCapDumpStats();
+#if YAF_ENABLE_LIBTRACE
+    qfTraceDumpStats();
+#endif
 #if YAF_ENABLE_DAG
     if (yaf_liveopen_fn) {
         yfDagDumpStats();

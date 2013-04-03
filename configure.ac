@@ -225,6 +225,11 @@ dnl ----------------------------------------------------------------------
 YF_SIZE_T_FORMAT
 
 dnl ----------------------------------------------------------------------
+dnl Check for getaddrinfo
+dnl ----------------------------------------------------------------------
+AC_CHECK_FUNCS(getaddrinfo)
+
+dnl ----------------------------------------------------------------------
 dnl Check for libfixbuf
 dnl when changing the version number required, do both the subst, and
 dnl package lines!
@@ -362,7 +367,7 @@ if test "x$withval" != "xno"; then
         AC_MSG_ERROR([--with-libtrace given but cannot find trace])
     ])
 
-    AC_CHECK_HEADER(libtrace.h,,[
+    AC_CHECK_HEADER(libtrace.h,[],[
         AC_MSG_ERROR([--with-libtrace given but cannot find libtrace.h])
     ])
 fi
@@ -476,11 +481,6 @@ fi
               [Define to 1 to compact IPv4 addresses where possible])
     OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"compact IPv4|"
 ])
-
-dnl ----------------------------------------------------------------------
-dnl Check for getaddrinfo
-dnl ----------------------------------------------------------------------
-AC_CHECK_FUNCS(getaddrinfo)
 
 dnl ----------------------------------------------------------------------
 dnl check if the user wants to enable the DAG interface hack

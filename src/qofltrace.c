@@ -16,15 +16,27 @@
 
 #define _YAF_SOURCE_
 #include <yaf/autoinc.h>
+
+#if YAF_ENABLE_LIBTRACE
+
 #include <yaf/yafcore.h>
 #include <yaf/yaftab.h>
+#include <yaf/decode.h>
 #include "yafout.h"
 #include "yaflush.h"
 #include "yafstat.h"
 
 #include "qofltrace.h"
 
-#include <libtrace.h>
+
+/* Quit flag support */
+extern int yaf_quit;
+
+extern yfConfig_t yaf_config;
+
+/* Statistics */
+static uint32_t            yaf_trace_drop = 0;
+static uint32_t            yaf_stats_out = 0;
 
 struct qfTraceSource_st {
     libtrace_t          *trace;
@@ -32,29 +44,15 @@ struct qfTraceSource_st {
     libtrace_filter_t   *filter;
 };
 
-static void qfTraceFree(qfTraceSource_t *lts) {
-    if (lts->filter) trace_destroy_filter(lts->filter);
-    if (lts->packet) trace_destroy_packet(lts->packet);
-    if (lts->trace) trace_destroy(lts->trace);
-    if (lts) g_free(lts);
-}
-
 qfTraceSource_t *qfTraceOpen(const char *uri,
-                             const char *bpf,
+                             int snaplen,
+                             int *datalink,
                              GError **err)
 {
     qfTraceSource_t *lts;
     libtrace_err_t  terr;
     
     lts = g_new0(qfTraceSource_t, 1);
-
-    if (bpf) {
-        if (!(lts->filter = trace_create_filter(bpf))) {
-            g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
-                        "Count not compile libtrace BPF %s", bpf);
-            goto err;
-        }
-    }
     
     if (!(lts->packet = trace_create_packet())) {
         g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_IO,
@@ -70,6 +68,13 @@ qfTraceSource_t *qfTraceOpen(const char *uri,
                     uri, terr.problem);
         goto err;
     }
+    
+    if (trace_config(lts->trace, TRACE_OPTION_SNAPLEN, &snaplen) == -1) {
+        g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_IO,
+                    "Count not set snaplen on libtrace URI %s: %s",
+                    uri, terr.problem);
+        goto err;
+    }
 
     if (trace_start(lts->trace) == -1) {
         terr = trace_get_err(lts->trace);
@@ -78,15 +83,22 @@ qfTraceSource_t *qfTraceOpen(const char *uri,
                     uri, terr.problem);
         goto err;
     }
+    
+    /* THIS IS A SICK HACK but it's the price we pay for being pcap-centric.
+       DLT_USER15 is used to mark an unknown or unset libtrace linktype.
+       FIXME when we branch for a libtrace-only QoF. */
+    *datalink = DLT_USER15;
   
 err:
-    qfTraceFree(lts);
+    qfTraceClose(lts);
     return NULL;
 }
 
-void qfTraceClose(qfTraceSource_t *lts)
-{
-    
+void qfTraceClose(qfTraceSource_t *lts) {
+    if (lts->filter) trace_destroy_filter(lts->filter);
+    if (lts->packet) trace_destroy_packet(lts->packet);
+    if (lts->trace) trace_destroy(lts->trace);
+    if (lts) g_free(lts);
 }
 
 static void qfTraceHandle(qfTraceSource_t             *lts,
@@ -96,8 +108,9 @@ static void qfTraceHandle(qfTraceSource_t             *lts,
     yfIPFragInfo_t              fraginfo_buf,
                                 *fraginfo = ctx->fragtab ?
                                 &fraginfo_buf : NULL;
+    libtrace_linktype_t         linktype;
     uint8_t                     *pkt;
-    size_t                      caplen;
+    uint32_t                    caplen;
     
     struct timeval tv;
     
@@ -113,7 +126,7 @@ static void qfTraceHandle(qfTraceSource_t             *lts,
     /* extract data from libtrace */
     tv = trace_get_timeval(lts->packet);
     pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
-    yfDecodeSetLinktype(linktype);
+    yfDecodeSetLinktype(ctx->dectx, linktype);
     
     /* Decode packet into packet buffer */
     if (!yfDecodeToPBuf(ctx->dectx,
@@ -128,26 +141,39 @@ static void qfTraceHandle(qfTraceSource_t             *lts,
     /* Handle fragmentation if necessary */
     if (fraginfo && fraginfo->frag) {
         if (!yfDefragPBuf(ctx->fragtab, fraginfo,
-                          pbuf, pkt, hdr->caplen))
+                          pbuf, pkt, caplen))
         {
             /* No complete defragmented packet available. Skip. */
             return;
         }
-    }    
+    }
+    
+    /* Further packet handling would go here but there isn't any... */
+}
+
+static void qfTraceUpdateStats(qfTraceSource_t *lts) {
+    yaf_trace_drop = (uint32_t) trace_get_dropped_packets(lts->trace);
 }
 
 gboolean qfTraceMain(yfContext_t             *ctx)
 {
     gboolean                ok = TRUE;
     qfTraceSource_t         *lts = (qfTraceSource_t *)ctx->pktsrc;
-    
+    char                    *bpf= (char *)ctx->cfg->bpf_expr;
     GTimer                  *stimer = NULL;  /* to export stats */
     libtrace_err_t          terr;
 
-    
+    /* compile BPF */
+    if (bpf) {
+        if (!(lts->filter = trace_create_filter(bpf))) {
+            g_warning("Could not compile libtrace BPF %s", bpf);
+            return FALSE;
+        }
+    }
+
     /* process input until we're done */
     while (!yaf_quit && (trace_read_packet(lts->trace, lts->packet) > 0)) {
-        qfTraceHandle(lts);
+        qfTraceHandle(lts, ctx);
 
         /* Process the packet buffer */
         if (ok && !yfProcessPBufRing(ctx, &(ctx->err))) {
@@ -158,7 +184,10 @@ gboolean qfTraceMain(yfContext_t             *ctx)
         /* send stats record on a timer */
         if (ok && !ctx->cfg->nostats) {
             if (g_timer_elapsed(stimer, NULL) > ctx->cfg->stats) {
-                if (!yfWriteStatsRec(ctx, yaf_pcap_drop, yfStatGetTimer(),
+                qfTraceUpdateStats(lts);
+                if (!yfWriteStatsRec(ctx,
+                                     yaf_trace_drop,
+                                     yfStatGetTimer(),
                                      &(ctx->err)))
                 {
                     ok = FALSE;
@@ -170,11 +199,10 @@ gboolean qfTraceMain(yfContext_t             *ctx)
         }
     }
 
-    /* Handle aftermath */
+    /* Check for error */
     if (trace_is_err(lts->trace)) {
         terr = trace_get_err(lts->trace);
-        g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_IO,
-                    "libtrace error: %s", terr.problem);
+        g_warning("libtrace error: %s", terr.problem);
         ok = FALSE;
     }
         
@@ -182,11 +210,24 @@ gboolean qfTraceMain(yfContext_t             *ctx)
     if (!ctx->cfg->nostats) {
         /* add one for final flush */
         if (ok) {
+            qfTraceUpdateStats(lts);
             yaf_stats_out++;
         }
         /* free timer */
         g_timer_destroy(stimer);
     }
-    
-    return yfFinalFlush(ctx, ok, 0, yfStatGetTimer(), &(ctx->err));
+    return yfFinalFlush(ctx, ok, yaf_trace_drop,
+                        yfStatGetTimer(), &(ctx->err));
 }
+
+void qfTraceDumpStats() {
+    if (yaf_stats_out) {
+        g_debug("yaf exported %u stats records.", yaf_stats_out);
+    }
+    
+    if (yaf_trace_drop) {
+        g_warning("libtrace dropped %u packets.", yaf_trace_drop);
+    }
+}
+
+#endif
