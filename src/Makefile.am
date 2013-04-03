@@ -49,10 +49,6 @@ LIBS += $(LIBLTDL)
 
 libyaf_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c bitmap.c qofdyn.c qofifmap.c
 
-if PLUGINENABLE
-libyaf_la_SOURCES += yafhooks.c
-endif
-
 if CYGWIN
 libyaf_la_SOURCES += yafcygwin.c
 endif

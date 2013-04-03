@@ -75,7 +75,6 @@
 		D3E1B1C316E4EBD200C5D50C /* riptcp.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = riptcp.rb; sourceTree = "<group>"; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		F519221F1672388F00514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F51922201672388F00514165 /* picq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = picq.c; sourceTree = "<group>"; };
 		F51922211672388F00514165 /* qofifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofifmap.c; sourceTree = "<group>"; };
 		F51922221672388F00514165 /* ring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ring.c; sourceTree = "<group>"; };
@@ -101,7 +100,6 @@
 		F51922381672388F00514165 /* yafstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafstat.h; sourceTree = "<group>"; };
 		F51922391672388F00514165 /* yaftab.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yaftab.c; sourceTree = "<group>"; };
 		F51922511672389900514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		F51922521672389900514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F51922541672389900514165 /* autoinc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = autoinc.h; sourceTree = "<group>"; };
 		F51922551672389900514165 /* CERT_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CERT_IE.h; sourceTree = "<group>"; };
 		F51922561672389900514165 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
@@ -220,7 +218,6 @@
 				D36F0F4716E3B5720028EDAE /* qofifmap.h */,
 				F519221A1672388F00514165 /* decode.c */,
 				F519221E1672388F00514165 /* Makefile.am */,
-				F519221F1672388F00514165 /* Makefile.in */,
 				F51922201672388F00514165 /* picq.c */,
 				F51922211672388F00514165 /* qofifmap.c */,
 				F51922221672388F00514165 /* ring.c */,
@@ -256,7 +253,6 @@
 			isa = PBXGroup;
 			children = (
 				F51922511672389900514165 /* Makefile.am */,
-				F51922521672389900514165 /* Makefile.in */,
 				F51922531672389900514165 /* yaf */,
 			);
 			path = include;
