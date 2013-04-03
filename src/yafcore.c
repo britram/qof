@@ -152,6 +152,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     /* Extended TCP counters and performance info */
     { "initiatorOctets",                    8, YTF_TCP | YTF_FLE },
     { "responderOctets",                    8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "initiatorPackets",                   8, YTF_TCP | YTF_FLE },
+    { "responderPackets",                   8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSequenceCount",                   8, YTF_TCP | YTF_FLE },
     { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
@@ -162,6 +164,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseCeMarkCount",                 8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "initiatorOctets",                    4, YTF_TCP | YTF_RLE },
     { "responderOctets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "initiatorPackets",                    4, YTF_TCP | YTF_RLE },
+    { "responderPackets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
@@ -255,6 +259,8 @@ typedef struct yfIpfixFlow_st {
     /* Extended TCP counters and performance info */
     uint64_t    initiatorOctets;
     uint64_t    responderOctets;
+    uint64_t    initiatorPackets;
+    uint64_t    responderPackets;
     uint64_t    tcpSequenceCount;
     uint64_t    reverseTcpSequenceCount;
     uint64_t    tcpRetransmitCount;
@@ -378,6 +384,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,0); // arrays don't need alignment
     RUN_CHECKS(yfIpfixFlow_t,initiatorOctets,1);
     RUN_CHECKS(yfIpfixFlow_t,responderOctets,1);
+    RUN_CHECKS(yfIpfixFlow_t,initiatorPackets,1);
+    RUN_CHECKS(yfIpfixFlow_t,responderPackets,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpRetransmitCount,1);
