@@ -146,8 +146,6 @@
 /** Packet payload processing error */
 #define YAF_ERROR_PACKET_PAYLOAD    10
 
-
-
 /**
  * Pseudo end reason for flows still active during collection.
  * Not valid on disk.
@@ -271,55 +269,18 @@ typedef struct yfFlowStats_st {
 } yfFlowStats_t;
 
 /**
- * QoF RTT-derived TCP statistics
- *
- */
-//typedef struct qfRttInfo_st {
-//    /** Sequence number/timestamp ring (for RTT calculation) */
-//    rgaRing_t   *seqring;
-//    /** Last acknowledgement time */
-//    uint64_t    lacktime;
-//    /** timestamp of last burst start */
-//    uint64_t    blosstime;
-//    /** Last acknowledgement number */
-//    uint32_t    lastack;
-//    /** last rtt (milliseconds) */
-//    uint32_t    rawrtt;
-//    /** smoothed rtt (milliseconds) */
-//    uint32_t    smoothrtt;
-//    /** rtt correction factor (milliseconds) */
-//    uint32_t    rttcorr;
-//    /** minimum rtt (milliseconds) */
-//    uint32_t    minrtt;
-//    /** burst loss count */
-//    uint32_t    blosscount;
-//    /** last burst size */
-//    uint32_t    lastbloss;
-//    /** last burst size */
-//    uint32_t    maxbloss;
-//    /** maximum inflight octets */
-//    uint32_t    maxflight;
-//    /** last inflight octets */
-//    uint32_t    lastflight;
-//    /** maximum octets out of order */
-//    uint32_t    maxooo;
-//    /** sequence ring sampling period */
-//    uint16_t    srperiod;
-//    /** sequence ring sampling period */
-//    uint16_t    srskipped;
-//} qfRttInfo_t;
-
-/**
  * A YAF uniflow value. Contains directional packet header fields and counters;
  * two of these are used to build a biflow.
  */
 typedef struct yfFlowVal_st {
-    /** Application-layer octet count */
-    uint64_t    appoct;
     /** IP-layer octet count */
     uint64_t    oct;
+    /** Application-layer octet count */
+    uint64_t    appoct;
     /** Packet count */
     uint64_t    pkt;
+    /** Non-empty packet count */
+    uint64_t    apppkt;
     /** TCP dynamics */
     qfDyn_t     tcp;
     /** minimum ttl */

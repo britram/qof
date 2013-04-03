@@ -922,10 +922,12 @@ void yfFlowPBuf(
 #endif
 
     /* Count packets and octets */
-    val->appoct += datalen;
     val->oct += pbuf->iplen;
-    val->pkt += 1;
+    val->appoct += datalen;
 
+    val->pkt += 1;
+    if (datalen) val->apppkt += 1;
+    
     /* update flow end time */
     fn->f.etime = pbuf->ptime;
 

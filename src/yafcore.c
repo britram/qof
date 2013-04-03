@@ -140,20 +140,24 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseOctetDeltaCount",             8, YTF_FLE | YTF_BIF },
     { "packetDeltaCount",                   8, YTF_FLE },
     { "reversePacketDeltaCount",            8, YTF_FLE | YTF_BIF },
+    { "initiatorOctets",                    8, YTF_FLE },
+    { "responderOctets",                    8, YTF_FLE | YTF_BIF },
+    { "initiatorPackets",                   8, YTF_FLE },
+    { "responderPackets",                   8, YTF_FLE | YTF_BIF },
     { "octetDeltaCount",                    4, YTF_RLE },
     { "reverseOctetDeltaCount",             4, YTF_RLE | YTF_BIF },
     { "packetDeltaCount",                   4, YTF_RLE },
     { "reversePacketDeltaCount",            4, YTF_RLE | YTF_BIF },
+    { "initiatorOctets",                    4, YTF_RLE },
+    { "responderOctets",                    4, YTF_RLE | YTF_BIF },
+    { "initiatorPackets",                   4, YTF_RLE },
+    { "responderPackets",                   4, YTF_RLE | YTF_BIF },
     /* Addresses */
     { "sourceIPv4Address",                  4, YTF_IP4 },
     { "destinationIPv4Address",             4, YTF_IP4 },
     { "sourceIPv6Address",                  16, YTF_IP6 },
     { "destinationIPv6Address",             16, YTF_IP6 },
     /* Extended TCP counters and performance info */
-    { "initiatorOctets",                    8, YTF_TCP | YTF_FLE },
-    { "responderOctets",                    8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "initiatorPackets",                   8, YTF_TCP | YTF_FLE },
-    { "responderPackets",                   8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSequenceCount",                   8, YTF_TCP | YTF_FLE },
     { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
@@ -162,10 +166,6 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseEctMarkCount",                8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "ceMarkCount",                        8, YTF_TCP | YTF_FLE },
     { "reverseCeMarkCount",                 8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "initiatorOctets",                    4, YTF_TCP | YTF_RLE },
-    { "responderOctets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "initiatorPackets",                    4, YTF_TCP | YTF_RLE },
-    { "responderPackets",                    4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
@@ -251,16 +251,16 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseOctetCount;
     uint64_t    packetCount;
     uint64_t    reversePacketCount;
+    uint64_t    initiatorOctets;
+    uint64_t    responderOctets;
+    uint64_t    initiatorPackets;
+    uint64_t    responderPackets;
     /* Addresses */
     uint32_t    sourceIPv4Address;
     uint32_t    destinationIPv4Address;
     uint8_t     sourceIPv6Address[16];
     uint8_t     destinationIPv6Address[16];
     /* Extended TCP counters and performance info */
-    uint64_t    initiatorOctets;
-    uint64_t    responderOctets;
-    uint64_t    initiatorPackets;
-    uint64_t    responderPackets;
     uint64_t    tcpSequenceCount;
     uint64_t    reverseTcpSequenceCount;
     uint64_t    tcpRetransmitCount;
@@ -378,14 +378,14 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseOctetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,packetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reversePacketCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,0); // arrays don't need alignment
-    RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,0); // arrays don't need alignment
     RUN_CHECKS(yfIpfixFlow_t,initiatorOctets,1);
     RUN_CHECKS(yfIpfixFlow_t,responderOctets,1);
     RUN_CHECKS(yfIpfixFlow_t,initiatorPackets,1);
     RUN_CHECKS(yfIpfixFlow_t,responderPackets,1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
+    RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
+    RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,0); // arrays don't need alignment
+    RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,0); // arrays don't need alignment
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpRetransmitCount,1);
@@ -940,8 +940,12 @@ gboolean yfWriteFlow(
     rec.reverseOctetCount = flow->rval.oct;
     rec.packetCount = flow->val.pkt;
     rec.reversePacketCount = flow->rval.pkt;
+    rec.initiatorOctets = flow->val.appoct;
+    rec.responderOctets = flow->rval.appoct;
+    rec.initiatorPackets = flow->val.apppkt;
+    rec.responderPackets = flow->rval.apppkt;
     
-    /* FIXME write maximum IP length as well once we figure out 
+    /* FIXME write maximum IP length as well once we figure out
              what the IE for it is */
 
     /* Select optional features based on flow properties and export mode */
@@ -987,8 +991,6 @@ gboolean yfWriteFlow(
     /* TCP flow; copy TCP data and enable export */
     if (flow->key.proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
-        rec.initiatorOctets = flow->val.appoct;
-        rec.responderOctets = flow->rval.appoct;
         rec.tcpSequenceCount = qfDynSequenceCount(&(flow->val.tcp),
                                 flow->val.iflags & flow->val.uflags);
         rec.reverseTcpSequenceCount = qfDynSequenceCount(&(flow->rval.tcp),
