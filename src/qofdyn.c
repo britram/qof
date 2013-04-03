@@ -280,7 +280,7 @@ void qfDynSeq(qfDyn_t     *qd,
     }
     
     /* initialise if not yet done */
-    if (!qd->dynflags & QF_DYN_SEQINIT) {        
+    if (!(qd->dynflags & QF_DYN_SEQINIT)) {
         /* allocate structures */
         if (qf_dyn_ringcap) {
             qfSeqRingInit(&qd->sr, qf_dyn_ringcap);

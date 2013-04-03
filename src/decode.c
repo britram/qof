@@ -978,7 +978,7 @@ static const uint8_t *yfDecodeTCP(
         return NULL;
     }
     
-    /* Set caplen post-options (use tcphlen from here for pkt bounds) */
+    /* Set caplen post-options (use tcp_hlen from here for pkt bounds) */
     *caplen -= tcph_len;
 
     /* Skip to start of options */
@@ -1000,11 +1000,13 @@ static const uint8_t *yfDecodeTCP(
                 if (to_len >= 4 && tcph_len >= to_len) {
                     tcpinfo->mss = g_ntohs(*(const uint16_t *)(pkt + 2));
                 }
+                break;
             case YF_TOK_WS:
                 to_len = *(pkt + 1);
                 if (to_len >= 3 && tcph_len >= to_len) {
                     tcpinfo->ws = *(pkt + 2);
                 }
+                break;
             case YF_TOK_TS:
                 to_len = *(pkt + 1);
                 if ((to_len >= sizeof(yfHdrTcpOptTs_t) + 2) &&
@@ -1016,7 +1018,7 @@ static const uint8_t *yfDecodeTCP(
                 }
                 break;
             default:
-                if (*caplen >= 2) to_len = *(pkt + 1);
+                if (tcph_len >= 2) to_len = *(pkt + 1);
                 break;
         }
         
