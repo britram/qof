@@ -337,6 +337,36 @@ AC_ARG_WITH(libpcap,
     ]
 )
 
+dnl ----------------------------------------------------------------------
+dnl Check for libtrace
+dnl ----------------------------------------------------------------------
+
+AC_ARG_WITH(libtrace,
+AS_HELP_STRING([--with-libtrace=prefix],[include WAND libtrace support]),[
+if test "x$withval" != "xno"; then
+
+    if test -d ${withval}; then
+        LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+        CFLAGS="-I${withval}/include ${CFLAGS}"
+        RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace=${withval}"
+        OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${withval}|"
+    fi
+
+    AC_CHECK_LIB(trace, trace_create,[
+        AC_DEFINE(YAF_ENABLE_LIBTRACE, 1, [Define to 1 to enable libtrace support])
+        AC_SUBST(YAF_HAS_LIBTRACE, [1])
+        LIBS="-ldag ${LIBS}"
+        RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace"
+        OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${LIBS}|"
+    ],[
+        AC_MSG_ERROR([--with-libtrace given but cannot find trace])
+    ])
+
+    AC_CHECK_HEADER(libtrace.h,,[
+        AC_MSG_ERROR([--with-libtrace given but cannot find libtrace.h])
+    ])
+fi
+])
 
 dnl ----------------------------------------------------------------------
 dnl Check for libdag

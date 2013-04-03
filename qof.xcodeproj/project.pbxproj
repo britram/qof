@@ -73,6 +73,8 @@
 		D3D3887C16F8258B002B85A4 /* qof.iespec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = qof.iespec; sourceTree = "<group>"; };
 		D3D91D8016EE7F9E00748C63 /* qof-test.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "qof-test.yaml"; sourceTree = "<group>"; };
 		D3E1B1C316E4EBD200C5D50C /* riptcp.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = riptcp.rb; sourceTree = "<group>"; };
+		D3EADBDC170BDDEC006FE1FE /* qofltrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofltrace.c; sourceTree = "<group>"; };
+		D3EADBDE170BE2B5006FE1FE /* qofltrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofltrace.h; sourceTree = "<group>"; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F51922201672388F00514165 /* picq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = picq.c; sourceTree = "<group>"; };
@@ -245,6 +247,8 @@
 				F52331DA16BC130400A3FA81 /* qofctx.c */,
 				D306F28D1701436C00FE09F5 /* qofdyn.c */,
 				D3282A601708CF2100B2ABA4 /* bitmap.c */,
+				D3EADBDC170BDDEC006FE1FE /* qofltrace.c */,
+				D3EADBDE170BE2B5006FE1FE /* qofltrace.h */,
 			);
 			path = src;
 			sourceTree = "<group>";

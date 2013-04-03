@@ -133,7 +133,6 @@
 # endif
 #endif
 
-
 #include <pcap.h>
 
 #include <glib.h>

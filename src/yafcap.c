@@ -449,12 +449,6 @@ static void yfCapHandle(
     pbuf = (yfPBuf_t *)rgaNextHead(ctx->pbufring);
     g_assert(pbuf);
 
-    /* pcap-per-flow info to pass to decode */
-    pbuf->pcap_hdr.ts = hdr->ts;
-    pbuf->pcap_hdr.len = hdr->len;
-    pbuf->pcap_hdr.caplen = hdr->caplen;
-    pbuf->pcapt = yaf_pcap;
-
 #ifdef YAF_ENABLE_BIVIO
     iface = pcap_zcopy_get_origin(cs->pcap, pkt);
     if (iface < 0) {

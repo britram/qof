@@ -79,6 +79,10 @@
 #include <yaf/autoinc.h>
 #include <yaf/yafcore.h>
 
+#if YAF_HAS_LIBTRACE
+#include <libtrace.h>
+#endif
+
 /** Fragmentation information structure */
 typedef struct yfIPFragInfo_st {
     /** Fragment ID. This is a 32-bit integer to support both IPv4 and IPv6. */
@@ -159,9 +163,9 @@ typedef struct yfPBuf_st {
     /** Length of all headers, L2, L3, L4 */
     size_t          allHeaderLen;
     /** pcap header */
-    struct pcap_pkthdr  pcap_hdr;
+    // struct pcap_pkthdr  pcap_hdr;
     /** pcap struct */
-    pcap_t          *pcapt;
+    // pcap_t          *pcapt;
     /** caplist */
     uint16_t        pcap_caplist;
     /** Packet IP length. */
@@ -258,6 +262,16 @@ yfDecodeCtx_t *yfDecodeCtxAlloc(
 
 void yfDecodeCtxFree(
     yfDecodeCtx_t           *ctx);
+
+/** 
+ * Set the datalink for subsequent packets decoded with this context.
+ */
+
+#if YAF_HAS_LIBTRACE
+void yfDecodeSetLinktype(
+    yfDecodeCtx_t           *ctx,
+    int                     datalink);
+#endif
 
 /**
  * Decode a packet into a durable packet buffer. It is assumed the packet

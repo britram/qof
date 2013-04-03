@@ -434,6 +434,38 @@ struct yfDecodeCtx_st {
 };
 
 /**
+ * yfDecodeSetLinktype
+ */
+
+#if YAF_HAS_LIBTRACE
+void yfDecodeSetLinktype(
+    yfDecodeCtx_t           *ctx,
+    libtrace_linktype_t     linktype)
+{
+    switch (linktype) {
+#ifdef DLT_EN10MB
+        case TRACE_TYPE_ETH:
+            ctx->datalink = DLT_EN10MB;
+            break;
+#endif
+#ifdef DLT_LINUX_SLL
+        case TRACE_TYPE_LINUX_SLL:
+            ctx->datalink = DLT_LINUX_SLL;
+            break;
+#endif
+#ifdef DLT_RAW
+        case TRACE_TYPE_NONE:
+            ctx->datalink = DLT_RAW;
+            break;
+#endif
+        default:
+            g_warning("unmappable libtrace linktype %u", linktype);
+            break;
+    }
+}
+#endif
+
+/**
  * yfDecodeL2Loop
  *
  * Decode loopback packet family
