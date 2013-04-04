@@ -789,6 +789,9 @@ static void yfFlowPktTCP(
                  (uint32_t)(UINT32_MAX & flowtab->ctime));
     }
     
+    /* Store information from options */
+    if (tcpinfo->mss) fn->f.val.tcp.mss_opt = tcpinfo->mss;
+    
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {
         if (tcpinfo->flags & YF_TF_FIN)

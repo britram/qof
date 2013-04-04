@@ -101,7 +101,8 @@ typedef struct qfDyn_st {
     uint32_t        rtt_est;
     uint32_t        rtt_min;
     uint32_t        rtt_corr;
-    uint32_t        mss;
+    uint16_t        mss;
+    uint16_t        mss_opt;
     uint32_t        dynflags;
 } qfDyn_t;
 

@@ -1003,6 +1003,10 @@ gboolean yfWriteFlow(
         rec.reverseInitialTCPFlags = flow->rval.iflags;
         rec.unionTCPFlags = flow->val.uflags;
         rec.reverseUnionTCPFlags = flow->rval.uflags;
+        rec.observedTcpMss = flow->val.tcp.mss;
+        rec.reverseObservedTcpMss = flow->rval.tcp.mss;
+        rec.declaredTcpMss = flow->val.tcp.mss_opt;
+        rec.reverseDeclaredTcpMss = flow->rval.tcp.mss_opt;
         /* Enable RTT export if we have enough samples */
         if ((flow->val.tcp.dynflags & QF_DYN_RTTVALID) ||
             (flow->rval.tcp.dynflags & QF_DYN_RTTVALID))
