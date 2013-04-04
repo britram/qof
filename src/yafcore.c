@@ -124,6 +124,7 @@
 /** include enterprise-specific Information Elements for YAF */
 #include "yaf/CERT_IE.h"
 #include "yaf/TCH_IE.h"
+#include "yaf/IANA_IE.h"
 
 static uint64_t yaf_start_time = 0;
 
@@ -541,6 +542,7 @@ static fbInfoModel_t *yfInfoModel()
         yaf_model = fbInfoModelAlloc();
         fbInfoModelAddElementArray(yaf_model, yaf_cert_info_elements);
         fbInfoModelAddElementArray(yaf_model, yaf_tch_info_elements);
+        fbInfoModelAddElementArray(yaf_model, yaf_iana_extra_info_elements);
     }
 
     return yaf_model;

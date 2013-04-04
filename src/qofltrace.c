@@ -88,6 +88,8 @@ qfTraceSource_t *qfTraceOpen(const char *uri,
        DLT_USER15 is used to mark an unknown or unset libtrace linktype.
        FIXME when we branch for a libtrace-only QoF. */
     *datalink = DLT_USER15;
+    
+    return lts;
   
 err:
     qfTraceClose(lts);
