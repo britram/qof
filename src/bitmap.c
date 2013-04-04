@@ -206,7 +206,9 @@ bimIntersect_t  bimTestAndSetRange(bimBitmap_t *bitmap, uint32_t a, uint32_t b) 
         res = bimTestAndSetInner(&bitmap->v[i], a, b);
     } else {
         res = bimTestAndSetInner(&bitmap->v[i], a, 63);
-        for (i++; i < j; i++) {
+        for (i = (i + 1) % bitmap->sz;
+             i != j;
+             i = (i + 1) % bitmap->sz) {
             res = bimTSRCombine(res,bimTestAndSetInner(&bitmap->v[i], 0, 63));
         }
         res = bimTSRCombine(res, bimTestAndSetInner(&bitmap->v[i], 0, b));
