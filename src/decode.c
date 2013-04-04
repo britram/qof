@@ -981,7 +981,7 @@ static const uint8_t *yfDecodeTCP(
     const yfHdrTcp_t        *tcph = (const yfHdrTcp_t *)pkt;
     uint8_t to_kind, to_len;
     const yfHdrTcpOptTs_t   *tsopt;
-    size_t                  tcph_len;
+    ssize_t                 tcph_len;
 
     /* Verify we have a full TCP header without options */
     if (*caplen < YF_TCP_HLEN) {
@@ -1029,43 +1029,38 @@ static const uint8_t *yfDecodeTCP(
     pkt += YF_TCP_HLEN;
     
     /* Parse options while we still have them */
-    while (tcph_len)
-    {
+    while (tcph_len > 0) {
+
         to_kind = *(pkt);
+        
+        /* handle single-byte options */
+        if (to_kind == YF_TOK_EOL) goto OPT_EOL;
+        if (to_kind == YF_TOK_NOP) { to_len = 1; goto OPT_NEXT;}
+        
+        /* get option length */
+        if (tcph_len < 2) goto OPT_ERR;
+        to_len = *(pkt + 1);
+
+        /* handle multi-byte options */
         switch (to_kind) {
-            case YF_TOK_EOL:
-                goto OPT_EOL; /* break out of loop prematurely */
-            case YF_TOK_NOP:
-                to_len = 1;
-                break;
             case YF_TOK_MSS:
-                to_len = *(pkt + 1);
-                if (to_len >= 4 && tcph_len >= to_len) {
-                    tcpinfo->mss = g_ntohs(*(const uint16_t *)(pkt + 2));
-                }
+                if (to_len < 4 || tcph_len < to_len) goto OPT_ERR;
+                tcpinfo->mss = g_ntohs(*(const uint16_t *)(pkt + 2));
                 break;
             case YF_TOK_WS:
-                to_len = *(pkt + 1);
-                if (to_len >= 3 && tcph_len >= to_len) {
-                    tcpinfo->ws = *(pkt + 2);
-                }
+                if (to_len < 3 && tcph_len < to_len) goto OPT_ERR;
+                tcpinfo->ws = *(pkt + 2);
                 break;
             case YF_TOK_TS:
-                to_len = *(pkt + 1);
-                if ((to_len >= sizeof(yfHdrTcpOptTs_t) + 2) &&
-                    tcph_len >= to_len)
-                {
-                    tsopt = (const yfHdrTcpOptTs_t*)(pkt + 2);
-                    tcpinfo->tsval = g_ntohl(tsopt->ts_val);
-                    tcpinfo->tsecr = g_ntohl(tsopt->ts_ecr);
-                }
-                break;
-            default:
-                if (tcph_len >= 2) to_len = *(pkt + 1);
+                if (to_len < 10 || tcph_len < to_len) goto OPT_ERR;
+                tsopt = (const yfHdrTcpOptTs_t*)(pkt + 2);
+                tcpinfo->tsval = g_ntohl(tsopt->ts_val);
+                tcpinfo->tsecr = g_ntohl(tsopt->ts_ecr);
                 break;
         }
         
         /* go to next option */
+OPT_NEXT:
         tcph_len -= to_len;
         pkt += to_len;
     }
@@ -1073,6 +1068,10 @@ static const uint8_t *yfDecodeTCP(
 OPT_EOL:
     /* Advance beyond any skipped options */
     return pkt + tcph_len;
+    
+OPT_ERR:
+    ++ctx->stats.fail_l4hdr;
+    return NULL;
 }
 
 /**
