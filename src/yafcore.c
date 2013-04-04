@@ -161,6 +161,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     /* Extended TCP counters and performance info */
     { "tcpSequenceCount",                   8, YTF_TCP | YTF_FLE },
     { "reverseTcpSequenceCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "tcpSequenceLossCount",               8, YTF_TCP | YTF_FLE },
+    { "reverseTcpSequenceLossCount",        8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "ectMarkCount",                       8, YTF_TCP | YTF_FLE },
@@ -169,6 +171,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseCeMarkCount",                 8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpSequenceLossCount",               4, YTF_TCP | YTF_RLE },
+    { "reverseTcpSequenceLossCount",        4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "ectMarkCount",                       4, YTF_TCP | YTF_RLE },
@@ -264,6 +268,8 @@ typedef struct yfIpfixFlow_st {
     /* Extended TCP counters and performance info */
     uint64_t    tcpSequenceCount;
     uint64_t    reverseTcpSequenceCount;
+    uint64_t    tcpSequenceLossCount;
+    uint64_t    reverseTcpSequenceLossCount;
     uint64_t    tcpRetransmitCount;
     uint64_t    reverseTcpRetransmitCount;
     uint64_t    ectMarkCount;
@@ -389,6 +395,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,0); // arrays don't need alignment
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,tcpSequenceLossCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceLossCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpRetransmitCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpRetransmitCount,1);
     RUN_CHECKS(yfIpfixFlow_t,ectMarkCount,1);
@@ -997,6 +1005,8 @@ gboolean yfWriteFlow(
                                 flow->val.iflags & flow->val.uflags);
         rec.reverseTcpSequenceCount = qfDynSequenceCount(&(flow->rval.tcp),
                                 flow->rval.iflags & flow->rval.uflags);
+        rec.tcpSequenceLossCount = flow->val.tcp.sb.lostseq_ct;
+        rec.reverseTcpSequenceLossCount = flow->rval.tcp.sb.lostseq_ct;
         rec.tcpRetransmitCount = flow->val.tcp.rtx_ct;
         rec.reverseTcpRetransmitCount = flow->rval.tcp.rtx_ct;
         rec.tcpSequenceNumber = flow->val.tcp.isn;

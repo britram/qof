@@ -16,7 +16,7 @@
 #include <yaf/qofdyn.h>
 #include <yaf/yaftab.h>
 
-#define QF_DYN_DEBUG 1
+#define QF_DYN_DEBUG 0
 
 /** Constant - 2^32 (for sequence number calculations) */
 static const uint64_t k2e32 = 0x100000000ULL;
@@ -24,9 +24,11 @@ static const uint64_t k2e32 = 0x100000000ULL;
 static const unsigned int kAlpha = 8;
 static const unsigned int kSeqSamplePeriodMs = 1;
 
-static size_t qf_dyn_bincap = 0;
-static size_t qf_dyn_binscale = 0;
-static size_t qf_dyn_ringcap = 0;
+static uint32_t qf_dyn_bincap = 0;
+static uint32_t qf_dyn_binscale = 0;
+static uint32_t qf_dyn_ringcap = 0;
+
+static uint64_t qf_dyn_stat_ringover = 0;
 
 int qfSeqCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
@@ -39,7 +41,7 @@ struct qfSeqTime_st {
 };
 
 void qfSeqRingInit(qfSeqRing_t              *sr,
-                   size_t                   capacity)
+                   uint32_t                 capacity)
 {
     /* zero structure */
     memset(sr, 0, sizeof(*sr));
@@ -58,15 +60,13 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
                         uint32_t            seq,
                         uint32_t            ms)
 {
-    sr->seqcount++;
-    
     /* overrun if we need to */
     if (((sr->head + 1) % sr->bincount) == sr->tail) {
         sr->tail++;
         if (sr->tail >= sr->bincount) sr->tail = 0;
-        sr->overcount++;
+        qf_dyn_stat_ringover++;
 #if QF_DYN_DEBUG
-        fprintf(stderr, "rtts-over (%u) ", sr->overcount );
+        fprintf(stderr, "rtts-over (%u) ", qf_dyn_stat_ringover);
 #endif
     }
     
@@ -82,9 +82,7 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
                       uint32_t              ms)
 {
     uint32_t rtt;
-    
-    sr->ackcount++;
-    
+        
     while (sr->head != sr->tail &&
            qfSeqCompare(sr->bin[sr->tail].seq, ack-1) < 0)
     {
@@ -244,7 +242,7 @@ static void qfDynTrackRTT(qfDyn_t   *qd,
     }
 }
 
-void qfDynSetParams(size_t bincap, size_t binscale, size_t ringcap) {
+void qfDynSetParams(uint32_t bincap, uint32_t binscale, uint32_t ringcap) {
     qf_dyn_bincap = bincap;
     qf_dyn_binscale = binscale;
     qf_dyn_ringcap = ringcap;
@@ -252,12 +250,6 @@ void qfDynSetParams(size_t bincap, size_t binscale, size_t ringcap) {
 
 void qfDynFree(qfDyn_t      *qd)
 {
-#if QF_DYN_DEBUG
-    fprintf(stderr, "qd free ring-seq %u ring-ack %u ring-over %u\n",
-                    qd->sr.seqcount, qd->sr.ackcount, qd->sr.overcount);
-#endif
-   
-//    qfSeqBinFree(&qd->sb);
     qfSeqRingFree(&qd->sr);
 }
 
@@ -338,7 +330,7 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
         
         /* update max inflight */
-        if (qd->inflight_max > (qd->fsn - qd->fan)) {
+        if (qd->inflight_max < (qd->fsn - qd->fan)) {
             qd->inflight_max = (qd->fsn - qd->fan);
 #if QF_DYN_DEBUG
             fprintf(stderr, "ifmax %u ", qd->inflight_max);
@@ -406,4 +398,11 @@ uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
     uint64_t sc = qd->fsn - qd->isn + (k2e32 * qd->wrap_ct);
     if ((flags & YF_TF_FIN) && sc) sc -= 1;
     return sc;
+}
+
+void qfDynDumpStats() {
+    if (qf_dyn_stat_ringover) {
+        g_warning("%"PRIu64" RTT sample buffer overruns.",
+                  qf_dyn_stat_ringover);
+    }
 }

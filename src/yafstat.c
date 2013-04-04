@@ -98,6 +98,7 @@ static void yfStatDump()
     numPackets = yfFlowDumpStats(statctx->flowtab, yaf_fft);
     yfFragDumpStats(statctx->fragtab, numPackets);
     yfDecodeDumpStats(statctx->dectx, numPackets);
+    qfDynDumpStats();
 }
 
 void yfStatDumpLoop()

@@ -155,6 +155,7 @@ static void qfTraceHandle(qfTraceSource_t             *lts,
 
 static void qfTraceUpdateStats(qfTraceSource_t *lts) {
     yaf_trace_drop = (uint32_t) trace_get_dropped_packets(lts->trace);
+    if (yaf_trace_drop == (uint32_t)-1) yaf_trace_drop = 0;
 }
 
 gboolean qfTraceMain(yfContext_t             *ctx)

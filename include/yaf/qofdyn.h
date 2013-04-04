@@ -39,15 +39,12 @@ typedef struct qfSeqTime_st qfSeqTime_t;
 typedef struct qfSeqRing_st {
     qfSeqTime_t     *bin;
     uint32_t        bincount;
-    uint32_t        seqcount;
-    uint32_t        ackcount;
-    uint32_t        overcount;
     uint32_t        head;
     uint32_t        tail;
 } qfSeqRing_t;
 
 void qfSeqRingInit(qfSeqRing_t              *sr,
-                   size_t                   capacity);
+                   uint32_t                 capacity);
 
 void qfSeqRingFree(qfSeqRing_t              *sr);
 
@@ -117,10 +114,10 @@ void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
               uint32_t    ms);
 
-void qfDynSetParams(size_t bincap,
-                    size_t binscale,
-                    size_t ringcap);
+void qfDynSetParams(uint32_t bincap, uint32_t binscale, uint32_t ringcap);
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags);
+
+void qfDynDumpStats();
 
 #endif /* idem */
