@@ -1019,6 +1019,10 @@ gboolean yfWriteFlow(
         rec.reverseObservedTcpMss = flow->rval.tcp.mss;
         rec.declaredTcpMss = flow->val.tcp.mss_opt;
         rec.reverseDeclaredTcpMss = flow->rval.tcp.mss_opt;
+        rec.ectMarkCount = flow->val.ecn_capable;
+        rec.reverseEctMarkCount = flow->rval.ecn_capable;
+        rec.ceMarkCount = flow->val.ecn_ce;
+        rec.reverseCeMarkCount = flow->rval.ecn_ce;
         /* Enable RTT export if we have enough samples */
         if ((flow->val.tcp.dynflags & QF_DYN_RTTVALID) ||
             (flow->rval.tcp.dynflags & QF_DYN_RTTVALID))
@@ -1097,91 +1101,6 @@ gboolean yfWriteFlow(
     if (!fBufAppend(fbuf, (uint8_t *)&rec, sizeof(rec), err)) {
         return FALSE;
     }
-
-
-/* Flow statistics FIXME rework this into the main flow record if necessary */
-#if 0
-    if (ctx->cfg->statsmode && (flow->val.stats.payoct ||
-                                flow->rval.stats.payoct ||
-                                (flow->val.stats.aitime > flow->val.pkt) ||
-                                (flow->rval.stats.aitime > flow->rval.pkt)))
-    {
-        uint16_t pktavg;
-        stml = FBSTMLNEXT(&(rec.subTemplateMultiList), stml);
-        if (etid) {
-            statsflow =
-                (yfFlowStatsRecord_t *)FBSTMLINIT(stml,
-                                                  (YAF_STATS_FLOW_TID | etid),
-                                                  yaf_tmpl.revfstatsTemplate);
-            statsflow->reverseTcpUrgTotalCount = flow->rval.stats.tcpurgct;
-            statsflow->reverseSmallPacketCount = flow->rval.stats.smallpktct;
-            statsflow->reverseFirstNonEmptyPacketSize =
-                flow->rval.stats.firstpktsize;
-            statsflow->reverseNonEmptyPacketCount =
-                flow->rval.stats.nonemptypktct;
-            statsflow->reverseLargePacketCount =
-                flow->rval.stats.largepktct;
-            statsflow->reverseDataByteCount = flow->rval.stats.payoct;
-            count = (statsflow->reverseNonEmptyPacketCount > 10) ? 10 : statsflow->reverseNonEmptyPacketCount;
-            pktavg = flow->rval.stats.payoct / flow->rval.stats.nonemptypktct;
-            for (loop = 0; loop < count; loop++) {
-                temp += (pow(abs(flow->rval.stats.pktsize[loop] - pktavg), 2));
-            }
-            if (count) {
-                statsflow->reverseStandardDeviationPayloadLength =
-                    sqrt(temp / count);
-            }
-            if (flow->rval.pkt > 1) {
-                uint64_t time_temp = 0;
-                statsflow->reverseAverageInterarrivalTime =
-                    flow->rval.stats.aitime /(flow->rval.pkt - 1);
-                count = (flow->rval.pkt > 11) ? 10 : (flow->rval.pkt - 1);
-                for (loop = 0; loop < count; loop++) {
-                    time_temp += (pow(labs(flow->rval.stats.iaarray[loop] -
-                                          statsflow->reverseAverageInterarrivalTime), 2));
-                }
-                statsflow->reverseStandardDeviationInterarrivalTime =
-                    sqrt(time_temp / count);
-            }
-            statsflow->reverseMaxPacketSize = flow->rval.stats.maxpktsize;
-        } else {
-            statsflow = (yfFlowStatsRecord_t *)FBSTMLINIT(stml,
-                                                          YAF_STATS_FLOW_TID,
-                                                      yaf_tmpl.fstatsTemplate);
-        }
-
-        statsflow->tcpUrgTotalCount = flow->val.stats.tcpurgct;
-        statsflow->smallPacketCount = flow->val.stats.smallpktct;
-        statsflow->firstNonEmptyPacketSize = flow->val.stats.firstpktsize;
-        statsflow->nonEmptyPacketCount = flow->val.stats.nonemptypktct;
-        statsflow->dataByteCount = flow->val.stats.payoct;
-        statsflow->maxPacketSize = flow->val.stats.maxpktsize;
-        statsflow->firstEightNonEmptyPacketDirections = flow->pktdir;
-        statsflow->largePacketCount = flow->val.stats.largepktct;
-        temp = 0;
-        count = (statsflow->nonEmptyPacketCount < 10) ? statsflow->nonEmptyPacketCount : 10;
-        pktavg = flow->val.stats.payoct / flow->val.stats.nonemptypktct;
-        for (loop = 0; loop < count; loop++) {
-            temp += (pow(abs(flow->val.stats.pktsize[loop] - pktavg), 2));
-        }
-        if (count) {
-            statsflow->standardDeviationPayloadLength =
-                sqrt(temp / count);
-        }
-        if (flow->val.pkt > 1) {
-            uint64_t time_temp = 0;
-            statsflow->averageInterarrivalTime = flow->val.stats.aitime /
-                                                 (flow->val.pkt - 1);
-            count = (flow->val.pkt > 11) ? 10 : (flow->val.pkt - 1);
-            for (loop = 0; loop < count; loop++) {
-                time_temp += (pow(labs(flow->val.stats.iaarray[loop] -
-                                       statsflow->averageInterarrivalTime),2));
-            }
-            statsflow->standardDeviationInterarrivalTime=sqrt(time_temp/count);
-        }
-        tmplcount--;
-    }
-#endif
     
     return TRUE;
 }
@@ -1964,70 +1883,3 @@ void yfPrintColumnHeaders(
 
 }
 #endif
-
-/*
- * graveyard: removed code (6313, etc)
- */
-
-#if 0
-static fbInfoElementSpec_t yaf_flow_stats_spec[] = {
-    { "dataByteCount",                      0, 0 },
-    { "averageInterarrivalTime",            0, 0 },
-    { "standardDeviationInterarrivalTime",  0, 0 },
-    { "tcpUrgTotalCount",                   0, 0 },
-    { "smallPacketCount",                   0, 0 },
-    { "nonEmptyPacketCount",                0, 0 },
-    { "largePacketCount",                   0, 0 },
-    { "firstNonEmptyPacketSize",            0, 0 },
-    { "maxPacketSize",                      0, 0 },
-    { "standardDeviationPayloadLength",     0, 0 },
-    { "firstEightNonEmptyPacketDirections", 0, 0 },
-    { "paddingOctets",                      1, 1 },
-    { "reverseDataByteCount",               0, YTF_BIF },
-    { "reverseAverageInterarrivalTime",     0, YTF_BIF },
-    { "reverseStandardDeviationInterarrivalTime", 0, YTF_BIF },
-    { "reverseTcpUrgTotalCount",            0, YTF_BIF },
-    { "reverseSmallPacketCount",            0, YTF_BIF },
-    { "reverseNonEmptyPacketCount",         0, YTF_BIF },
-    { "reverseLargePacketCount",            0, YTF_BIF },
-    { "reverseFirstNonEmptyPacketSize",     0, YTF_BIF },
-    { "reverseMaxPacketSize",               0, YTF_BIF },
-    { "reverseStandardDeviationPayloadLength", 0, YTF_BIF },
-    { "paddingOctets",                      2, 1 },
-    FB_IESPEC_NULL
-};
-#endif
-
-
-#if 0
-typedef struct yfFlowStatsRecord_st {
-    uint64_t dataByteCount;
-    uint64_t averageInterarrivalTime;
-    uint64_t standardDeviationInterarrivalTime;
-    uint32_t tcpUrgTotalCount;
-    uint32_t smallPacketCount;
-    uint32_t nonEmptyPacketCount;
-    uint32_t largePacketCount;
-    uint16_t firstNonEmptyPacketSize;
-    uint16_t maxPacketSize;
-    uint16_t standardDeviationPayloadLength;
-    uint8_t  firstEightNonEmptyPacketDirections;
-    uint8_t  padding[1];
-    /* reverse Fields */
-    uint64_t reverseDataByteCount;
-    uint64_t reverseAverageInterarrivalTime;
-    uint64_t reverseStandardDeviationInterarrivalTime;
-    uint32_t reverseTcpUrgTotalCount;
-    uint32_t reverseSmallPacketCount;
-    uint32_t reverseNonEmptyPacketCount;
-    uint32_t reverseLargePacketCount;
-    uint16_t reverseFirstNonEmptyPacketSize;
-    uint16_t reverseMaxPacketSize;
-    uint16_t reverseStandardDeviationPayloadLength;
-    uint8_t  padding2[2];
-} yfFlowStatsRecord_t;
-#endif
-
-
-
-

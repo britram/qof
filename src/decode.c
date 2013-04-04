@@ -246,6 +246,7 @@ typedef struct yfHdrIPv6_st {
 /* Version, class, and flow decode macros */
 #define YF_VCF6_VERSION(_ip6hdr_)   (((_ip6hdr_)->ip6_vcf & 0xF0000000) >> 28)
 #define YF_VCF6_CLASS(_ip6hdr_)     (((_ip6hdr_)->ip6_vcf & 0x0FF00000) >> 20)
+#define YF_VCF6_ECN(_ip6hdr_)       (((_ip6hdr_)->ip6_vcf & 0x0C000000) >> 26)
 #define YF_VCF6_FLOW(_ip6hdr_)       ((_ip6hdr_)->ip6_vcf & 0x000FFFFF)
 
 /**
@@ -881,6 +882,10 @@ static const uint8_t *yfDecodeIPv6(
         *caplen = *iplen;
     }
 
+    /* stash TTL and ECN */
+    ipinfo->ttl = iph->ip6_hlim;
+    ipinfo->ecn = YF_VCF6_ECN(iph);
+    
     /* Decode next header */
     hdr_next = iph->ip6_nxt;
 
@@ -947,7 +952,7 @@ static const uint8_t *yfDecodeIPv6(
         default:
             /* This is not an extension header. We're at layer 4 now. */
             key->proto = hdr_next;
-            /*Stash total IPv6 header length for fragment length calculation */
+            /* Stash total IPv6 header length for fragment length calculation */
             if (fraginfo && fraginfo->frag) {
                 fraginfo->iphlen = iph_len;
                 fraginfo->l4hlen = 0;

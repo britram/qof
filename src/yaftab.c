@@ -721,9 +721,6 @@ static yfFlowNode_t *yfFlowGetNode(
 /**
  * yfFlowPktIP
  *
- * process a TCP packet into the flow table specially, capture
- * all the special TCP information, flags, seq, etc.
- *
  * @param flowtab pointer to the flow table
  * @param fn pointer to the node for the relevent flow in the flow table
  * @param val
@@ -747,6 +744,14 @@ static void yfFlowPktIP( yfFlowTab_t                 *flowtab,
         val->maxttl = ipinfo->ttl;
     }
     
+    /* count ECN */
+    if (ipinfo->ecn) {
+        if (ipinfo->ecn == 0x03) {
+            val->ecn_ce++;
+        } else {
+            val->ecn_capable++;
+        }        
+    }
 }
 
 /**

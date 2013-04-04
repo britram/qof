@@ -239,35 +239,6 @@ typedef struct yfFlowKey_st {
     }                   addr;
 } yfFlowKey_t;
 
-// FIXME move the ones of these we want into the flow record itself? iaarray, payoct... what else?
-/**
- * yaf flow statistics
- */
-typedef struct yfFlowStats_st {
-    /** to calculate inter-packet delay */
-    uint64_t iaarray[10];
-    /** to calculate distribution of packet payload size */
-    uint16_t pktsize[10];
-    /** total amount of payload data */
-    uint64_t payoct;
-    /** used to calculate interarrival time */
-    uint64_t ltime;
-    /** Number of urgent packets */
-    uint32_t tcpurgct;
-    /** Number of packets with 60 bytes or less of data */
-    uint32_t smallpktct;
-    /** total number of non empty pkts */
-    uint32_t nonemptypktct;
-    /** total number of packets with 225 bytes or more */
-    uint32_t largepktct;
-    /** average interarrival time in milliseconds */
-    uint32_t aitime;
-    /** payload length of first non-empty pkt */
-    uint16_t firstpktsize;
-    /** largest pkt size */
-    uint16_t maxpktsize;
-} yfFlowStats_t;
-
 /**
  * A YAF uniflow value. Contains directional packet header fields and counters;
  * two of these are used to build a biflow.
@@ -281,6 +252,10 @@ typedef struct yfFlowVal_st {
     uint64_t    pkt;
     /** Non-empty packet count */
     uint64_t    apppkt;
+    /** ECT mark counter */
+    uint64_t    ecn_capable;
+    /** CE mark counter */
+    uint64_t    ecn_ce;
     /** TCP dynamics */
     qfDyn_t     tcp;
     /** minimum ttl */
