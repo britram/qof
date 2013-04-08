@@ -165,6 +165,11 @@ gboolean qfTraceMain(yfContext_t             *ctx)
     char                    *bpf= (char *)ctx->cfg->bpf_expr;
     GTimer                  *stimer = NULL;  /* to export stats */
     libtrace_err_t          terr;
+    
+    /* start stats timer */
+    if (!ctx->cfg->nostats) {
+        stimer = g_timer_new();
+    }    
 
     /* compile BPF */
     if (bpf) {
