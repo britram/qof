@@ -41,26 +41,26 @@ EXTRA_DIST = $(PODFILES)
 clean-local:
 	rm -f pod2htm*.tmp
 
-lib_LTLIBRARIES = libyaf.la
-bin_PROGRAMS = yaf
+lib_LTLIBRARIES = libqof.la
+bin_PROGRAMS = qof
 
 INCLUDES = $(LTDLINCL)
 LIBS += $(LIBLTDL)
 
-libyaf_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c bitmap.c qofdyn.c qofifmap.c
+libqof_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c bitmap.c qofdyn.c qofifmap.c
 
 if CYGWIN
-libyaf_la_SOURCES += yafcygwin.c
+libqof_la_SOURCES += yafcygwin.c
 endif
 
-libyaf_la_LIBADD = @GLIB_LDADD@ 
-libyaf_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@ -version-info @LIBCOMPAT@ -release ${VERSION}
-libyaf_la_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
+libqof_la_LIBADD = @GLIB_LDADD@
+libqof_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@ -version-info @LIBCOMPAT@ -release ${VERSION}
+libqof_la_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
-yaf_SOURCES = yaf.c yafstat.c yafcap.c qofltrace.c yafdag.c yafpcapx.c yafout.c yaflush.c qofctx.c 
-yaf_LDADD   =  libyaf.la @GLIB_LDADD@
-yaf_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ -export-dynamic
-yaf_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
+qof_SOURCES = yaf.c yafstat.c yafcap.c qofltrace.c yafout.c yaflush.c qofctx.c
+qof_LDADD   =  libqof.la @GLIB_LDADD@
+qof_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ -export-dynamic
+qof_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
-noinst_HEADERS = yafdag.h yafcap.h yafpcapx.h yafstat.h yafout.h yaflush.h qofctx.h qofifmap.h
+noinst_HEADERS = yafcap.h qofltrace.h yafstat.h yafout.h yaflush.h qofctx.h qofifmap.h
 

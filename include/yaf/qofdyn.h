@@ -105,6 +105,10 @@ typedef struct qfDyn_st {
 
 void qfDynFree(qfDyn_t      *qd);
 
+void qfDynSyn(qfDyn_t     *qd,
+              uint32_t    seq,
+              uint32_t    ms);
+
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,

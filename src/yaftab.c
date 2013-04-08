@@ -787,8 +787,14 @@ static void yfFlowPktTCP(
     }
 
     /* track tcp dynamics */
-    qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen,
-             (uint32_t)(UINT32_MAX & flowtab->ctime));
+    if (tcpinfo->flags & YF_TF_SYN) {
+        qfDynSyn(&val->tcp, tcpinfo->seq,
+                 (uint32_t)(UINT32_MAX & flowtab->ctime));
+    } else {
+        qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen,
+                 (uint32_t)(UINT32_MAX & flowtab->ctime));
+    }
+    
     if (tcpinfo->flags & YF_TF_ACK) {
         qfDynAck(&rval->tcp, tcpinfo->ack,
                  (uint32_t)(UINT32_MAX & flowtab->ctime));
@@ -834,8 +840,6 @@ void yfFlowPBuf(
     yfPBuf_t                    *pbuf)
 {
     yfFlowKey_t                 *key = &(pbuf->key);
-    // FIXME unused variable -- delete?
-    //    yfFlowKey_t                 rkey;
     yfFlowVal_t                 *val = NULL;
     yfFlowVal_t                 *rval = NULL;
     yfFlowNode_t                *fn = NULL;

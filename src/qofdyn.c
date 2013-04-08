@@ -253,6 +253,38 @@ void qfDynFree(qfDyn_t      *qd)
     qfSeqRingFree(&qd->sr);
 }
 
+
+void qfDynSyn(qfDyn_t     *qd,
+              uint32_t    seq,
+              uint32_t    ms)
+{
+    /* check for duplicate SYN */
+    if (qd->dynflags & QF_DYN_SEQINIT) {
+        // FIXME what to do here?
+        return;
+    }
+    
+    /* allocate structures 
+       FIXME figure out how to delay this until we have enough packets */
+    if (qf_dyn_ringcap) {
+        qfSeqRingInit(&qd->sr, qf_dyn_ringcap);
+    }
+    
+    if (qf_dyn_bincap) {
+        qfSeqBitsInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
+    }
+    
+    /* set initial sequence number */
+    qd->isn = qd->fsn = seq;
+    
+    /* note we've tracked the SYN */
+    qd->dynflags |= QF_DYN_SEQINIT;
+#if QF_DYN_DEBUG
+    fprintf(stderr, "init ");
+#endif
+
+}
+
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,
@@ -270,26 +302,14 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
         return;
     }
-    
-    /* initialise if not yet done */
-    if (!(qd->dynflags & QF_DYN_SEQINIT)) {
-        /* allocate structures */
-        if (qf_dyn_ringcap) {
-            qfSeqRingInit(&qd->sr, qf_dyn_ringcap);
-        }
 
-        if (qf_dyn_bincap) {
-            qfSeqBitsInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
-        }
-
-        /* set ISN */
-        qd->isn = seq - oct;
-        
-        /* force sequence number advance */
-        qd->dynflags |= QF_DYN_SEQINIT | QF_DYN_SEQADV;
+    /* short circuit on no syn - synack */
+    if (!(qd->dynflags & QF_DYN_SEQINIT) ||
+        !(qd->dynflags & QF_DYN_ACKINIT)) {
 #if QF_DYN_DEBUG
-        fprintf(stderr, "init ");
-#endif        
+        fprintf(stderr, "noinit\n");
+#endif
+        return;
     }
     
     /* update MSS */
@@ -310,7 +330,6 @@ void qfDynSeq(qfDyn_t     *qd,
     }
    
     /* track sequence numbers in binmap to detect order/loss */
-    /* FIXME being reworked */
     if (qfDynHasSeqbin(qd)) {
         if (qfSeqBitsSegmentRtx(&(qd->sb), seq - oct, seq)) {
             qfDynRexmit(qd, seq, ms);
@@ -321,7 +340,7 @@ void qfDynSeq(qfDyn_t     *qd,
     }
     
     /* advance sequence number if necessary */
-    if (qd->dynflags & QF_DYN_SEQADV || qfSeqCompare(seq, qd->fsn) > 0) {
+    if (qfSeqCompare(seq, qd->fsn) > 0) {
         qd->dynflags |= QF_DYN_SEQADV;
         if (seq < qd->fsn) qd->wrap_ct++;
         qd->fsn = seq;
