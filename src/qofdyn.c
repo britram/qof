@@ -308,9 +308,8 @@ void qfDynSeq(qfDyn_t     *qd,
         return;
     }
 
-    /* short circuit on no syn - synack */
-    if (!(qd->dynflags & QF_DYN_SYNINIT) ||
-        !(qd->dynflags & QF_DYN_ACKINIT)) {
+    /* short circuit on no syn */
+    if (!(qd->dynflags & QF_DYN_SYNINIT)) {
 #if QF_DYN_DEBUG
         fprintf(stderr, "nosyn\n");
 #endif
