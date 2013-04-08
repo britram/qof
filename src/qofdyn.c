@@ -352,7 +352,10 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
         
         /* update max inflight */
-        if (qd->inflight_max < (qd->fsn - qd->fan)) {
+        if ((qd->dynflags & QF_DYN_ACKINIT) &&
+            (qfSeqCompare(qd->fsn, qd->fan) > 0) &&
+            (qd->inflight_max < (qd->fsn - qd->fan)))
+        {
             qd->inflight_max = (qd->fsn - qd->fan);
 #if QF_DYN_DEBUG
             fprintf(stderr, "ifmax %u ", qd->inflight_max);

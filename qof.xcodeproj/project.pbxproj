@@ -578,7 +578,7 @@
 					"$(inherited)",
 					"HAVE_CONFIG_H=1",
 					"YAF_SOURCE=1",
-					"QF_DYN_DEBUG=1",
+					"QF_DYN_DEBUG=0",
 				);
 				HEADER_SEARCH_PATHS = (
 					./include,
