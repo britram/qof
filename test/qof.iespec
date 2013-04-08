@@ -1,3 +1,5 @@
+initiatorPackets(298)<unsigned64>[8]
+responderPackets(299)<unsigned64>[8]
 initialTCPFlags(6871/14)<unsigned8>[1]
 unionTCPFlags(6871/15)<unsigned8>[1]
 reverseFlowDeltaMilliseconds(6871/21)<unsigned32>[4]
