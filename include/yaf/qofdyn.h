@@ -109,10 +109,6 @@ void qfDynSyn(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    ms);
 
-void qfDynSynAck(qfDyn_t     *qd,
-                 uint32_t    ack,
-                 uint32_t    ms);
-
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,

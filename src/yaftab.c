@@ -795,11 +795,7 @@ static void yfFlowPktTCP(
     }
     
     if (tcpinfo->flags & YF_TF_ACK) {
-        if (tcpinfo->flags & YF_TF_SYN) {
-            qfDynSynAck(&rval->tcp, tcpinfo->ack, lms);
-        } else {
-            qfDynAck(&rval->tcp, tcpinfo->ack, lms);
-        }
+        qfDynAck(&rval->tcp, tcpinfo->ack, lms);
     }
     
     /* Store information from options */

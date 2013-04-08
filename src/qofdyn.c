@@ -383,34 +383,23 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
 }
 
-void qfDynSynAck(qfDyn_t     *qd,
-                 uint32_t    ack,
-                 uint32_t    ms)
-{
-    /* set ackinit */
-    qd->dynflags |= QF_DYN_ACKINIT;
-    
-    /* initialize ack number */
-    qd->fan = ack;
-    qd->fanlms = ms;
-    
-    /* initialize rttcorr high */
-    qd->rtt_corr = UINT32_MAX;
-
-#if QF_DYN_DEBUG
-    fprintf(stderr, "qd ts %u synack %10u\n", ms, ack);
-#endif
-
-}
-
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
               uint32_t    ms)
 {
     uint32_t irtt;
     
-    /* advance ack number if necessary */
-    if ((qd->dynflags & QF_DYN_ACKINIT) && (qfSeqCompare(ack, qd->fan) > 0)) {
+    /* initialize if necessary */
+    if (!(qd->dynflags & QF_DYN_ACKINIT)) {
+        qd->dynflags |= QF_DYN_ACKINIT;        
+        qd->fan = ack;
+        qd->fanlms = ms;
+        qd->rtt_corr = UINT32_MAX;
+#if QF_DYN_DEBUG
+        fprintf(stderr, "qd ts %u synack %10u\n", ms, ack);
+#endif
+    } else if (qfSeqCompare(ack, qd->fan) > 0) {
+        /* advance ack number */
         qd->fan = ack;
         qd->fanlms = ms;
  
