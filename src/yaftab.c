@@ -776,6 +776,7 @@ static void yfFlowPktTCP(
     yfTCPInfo_t                 *tcpinfo,
     size_t                      datalen)
 {
+    uint32_t                    lms = (uint32_t)(UINT32_MAX & flowtab->ctime);
     
     /* handle flags */
     if (!val->pkt) {
@@ -788,16 +789,17 @@ static void yfFlowPktTCP(
 
     /* track tcp dynamics */
     if (tcpinfo->flags & YF_TF_SYN) {
-        qfDynSyn(&val->tcp, tcpinfo->seq,
-                 (uint32_t)(UINT32_MAX & flowtab->ctime));
+        qfDynSyn(&val->tcp, tcpinfo->seq, lms);
     } else {
-        qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen,
-                 (uint32_t)(UINT32_MAX & flowtab->ctime));
+        qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen, lms);
     }
     
     if (tcpinfo->flags & YF_TF_ACK) {
-        qfDynAck(&rval->tcp, tcpinfo->ack,
-                 (uint32_t)(UINT32_MAX & flowtab->ctime));
+        if (tcpinfo->flags & YF_TF_SYN) {
+            qfDynSynAck(&rval->tcp, tcpinfo->ack, lms);
+        } else {
+            qfDynAck(&rval->tcp, tcpinfo->ack, lms);
+        }
     }
     
     /* Store information from options */

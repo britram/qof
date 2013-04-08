@@ -222,19 +222,17 @@
 		F51922041672388F00514165 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				D36F0F4716E3B5720028EDAE /* qofifmap.h */,
 				F519221A1672388F00514165 /* decode.c */,
 				F519221E1672388F00514165 /* Makefile.am */,
 				F51922201672388F00514165 /* picq.c */,
-				F51922211672388F00514165 /* qofifmap.c */,
 				F51922221672388F00514165 /* ring.c */,
+				D3282A601708CF2100B2ABA4 /* bitmap.c */,
 				F51922231672388F00514165 /* yaf.c */,
 				F51922241672388F00514165 /* yaf.pod */,
 				F51922251672388F00514165 /* yaf.pod.in */,
 				F51922261672388F00514165 /* yafcap.c */,
 				F51922271672388F00514165 /* yafcap.h */,
 				F51922291672388F00514165 /* yafcore.c */,
-				F519222A1672388F00514165 /* qofctx.h */,
 				F519222B1672388F00514165 /* yafcygwin.c */,
 				F519222C1672388F00514165 /* yafdag.c */,
 				F519222D1672388F00514165 /* yafdag.h */,
@@ -249,11 +247,13 @@
 				F51922371672388F00514165 /* yafstat.c */,
 				F51922381672388F00514165 /* yafstat.h */,
 				F51922391672388F00514165 /* yaftab.c */,
+				F519222A1672388F00514165 /* qofctx.h */,
 				F52331DA16BC130400A3FA81 /* qofctx.c */,
 				D306F28D1701436C00FE09F5 /* qofdyn.c */,
-				D3282A601708CF2100B2ABA4 /* bitmap.c */,
-				D3EADBDC170BDDEC006FE1FE /* qofltrace.c */,
+				D36F0F4716E3B5720028EDAE /* qofifmap.h */,
+				F51922211672388F00514165 /* qofifmap.c */,
 				D3EADBDE170BE2B5006FE1FE /* qofltrace.h */,
+				D3EADBDC170BDDEC006FE1FE /* qofltrace.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -569,10 +569,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
 					"$(inherited)",
 					"HAVE_CONFIG_H=1",
 					"YAF_SOURCE=1",
+					"QF_DYN_DEBUG=1",
 				);
 				HEADER_SEARCH_PATHS = (
 					./include,

@@ -16,8 +16,6 @@
 #include <yaf/qofdyn.h>
 #include <yaf/yaftab.h>
 
-#define QF_DYN_DEBUG 0
-
 /** Constant - 2^32 (for sequence number calculations) */
 static const uint64_t k2e32 = 0x100000000ULL;
 
@@ -146,7 +144,7 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
     }
     
     /* good to sample, calculate next period */
-    if ((qd->dynflags & QF_DYN_SEQINIT) && (qd->dynflags & QF_DYN_ACKINIT)) {
+    if ((qd->dynflags & QF_DYN_SYNINIT) && (qd->dynflags & QF_DYN_ACKINIT)) {
         qd->sr_period = ((qd->fsn - qd->fan) / qd->mss) / qfSeqRingAvail(&qd->sr);
         if (qd->sr_period) qd->sr_period--;        
     } else {
@@ -214,9 +212,14 @@ static void qfDynRexmit(qfDyn_t     *qd,
 }
 
 static void qfDynCorrectRTT(qfDyn_t   *qd,
-                           uint32_t    crtt)
+                            uint32_t    crtt)
 {
-    if (!qd->rtt_corr || (crtt < qd->rtt_corr)) qd->rtt_corr = crtt;
+    if (crtt < qd->rtt_corr) {
+        qd->rtt_corr = crtt;
+#if QF_DYN_DEBUG
+        fprintf(stderr, "rttc %u ", qd->rtt_corr);
+#endif
+    }
 }
 
 static void qfDynTrackRTT(qfDyn_t   *qd,
@@ -259,8 +262,11 @@ void qfDynSyn(qfDyn_t     *qd,
               uint32_t    ms)
 {
     /* check for duplicate SYN */
-    if (qd->dynflags & QF_DYN_SEQINIT) {
+    if (qd->dynflags & QF_DYN_SYNINIT) {
         // FIXME what to do here?
+#if QF_DYN_DEBUG
+        fprintf(stderr, "qd ts %10u seq [%10s   %10u] dupsyn\n", ms, "", seq);
+#endif
         return;
     }
     
@@ -278,11 +284,11 @@ void qfDynSyn(qfDyn_t     *qd,
     qd->isn = qd->fsn = seq;
     
     /* note we've tracked the SYN */
-    qd->dynflags |= QF_DYN_SEQINIT;
-#if QF_DYN_DEBUG
-    fprintf(stderr, "init ");
-#endif
+    qd->dynflags |= QF_DYN_SYNINIT;
 
+#if QF_DYN_DEBUG
+    fprintf(stderr, "qd ts %10u seq [%10s   %10u] syn\n", ms, "", seq);
+#endif
 }
 
 void qfDynSeq(qfDyn_t     *qd,
@@ -292,7 +298,7 @@ void qfDynSeq(qfDyn_t     *qd,
 {
 
 #if QF_DYN_DEBUG
-    fprintf(stderr, "qd ts %u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq - oct, seq);
+    fprintf(stderr, "qd ts %10u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq - oct, seq);
 #endif
  
     /* short circuit on no octets */
@@ -304,10 +310,10 @@ void qfDynSeq(qfDyn_t     *qd,
     }
 
     /* short circuit on no syn - synack */
-    if (!(qd->dynflags & QF_DYN_SEQINIT) ||
+    if (!(qd->dynflags & QF_DYN_SYNINIT) ||
         !(qd->dynflags & QF_DYN_ACKINIT)) {
 #if QF_DYN_DEBUG
-        fprintf(stderr, "noinit\n");
+        fprintf(stderr, "nosyn\n");
 #endif
         return;
     }
@@ -321,12 +327,11 @@ void qfDynSeq(qfDyn_t     *qd,
     }
     
     /* update and minimize RTT correction factor if necessary */
-    if ((qd->dynflags & QF_DYN_RTTCORR) && (seq >= qd->fan)) {
+    if ((qd->dynflags & QF_DYN_RTTCORR) &&
+        (qfSeqCompare(seq, qd->fan) > -1))
+    {
         qd->dynflags &= ~QF_DYN_RTTCORR;
         qfDynCorrectRTT(qd, ms - qd->fanlms);
-#if QF_DYN_DEBUG
-        fprintf(stderr, "rttc %u ", qd->rtt_corr);
-#endif
     }
    
     /* track sequence numbers in binmap to detect order/loss */
@@ -380,6 +385,26 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
 }
 
+void qfDynSynAck(qfDyn_t     *qd,
+                 uint32_t    ack,
+                 uint32_t    ms)
+{
+    /* set ackinit */
+    qd->dynflags |= QF_DYN_ACKINIT;
+    
+    /* initialize ack number */
+    qd->fan = ack;
+    qd->fanlms = ms;
+    
+    /* initialize rttcorr high */
+    qd->rtt_corr = UINT32_MAX;
+
+#if QF_DYN_DEBUG
+    fprintf(stderr, "qd ts %u synack %10u\n", ms, ack);
+#endif
+
+}
+
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
               uint32_t    ms)
@@ -387,13 +412,12 @@ void qfDynAck(qfDyn_t     *qd,
     uint32_t irtt;
     
     /* advance ack number if necessary */
-    if (!(qd->dynflags & QF_DYN_ACKINIT) || (qfSeqCompare(ack, qd->fan) > 0)) {
-        qd->dynflags |= QF_DYN_ACKINIT;
+    if ((qd->dynflags & QF_DYN_ACKINIT) && (qfSeqCompare(ack, qd->fan) > 0)) {
         qd->fan = ack;
         qd->fanlms = ms;
  
 #if QF_DYN_DEBUG
-        fprintf(stderr, "qd ts %u ack %10u ", ms, ack);
+        fprintf(stderr, "qd ts %u    ack %10u ", ms, ack);
 #endif
         
         /* sample RTT */

@@ -76,7 +76,7 @@ int qfSeqBitsSegmentRtx(qfSeqBits_t *sb, uint32_t aseq, uint32_t bseq);
  * TCP dynamics structure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define QF_DYN_SEQINIT      0x00000001 /* first sequence number seen */
+#define QF_DYN_SYNINIT      0x00000001 /* first sequence number seen */
 #define QF_DYN_ACKINIT      0x00000002 /* first ack seen */
 #define QF_DYN_SEQADV       0x00000004 /* SEQ advanced on last operation */
 #define QF_DYN_RTTCORR      0x00000010 /* ACK advanced, update rtt_corr */
@@ -108,6 +108,10 @@ void qfDynFree(qfDyn_t      *qd);
 void qfDynSyn(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    ms);
+
+void qfDynSynAck(qfDyn_t     *qd,
+                 uint32_t    ack,
+                 uint32_t    ms);
 
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
