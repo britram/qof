@@ -256,7 +256,6 @@ void qfDynFree(qfDyn_t      *qd)
     qfSeqRingFree(&qd->sr);
 }
 
-
 void qfDynSyn(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    ms)
@@ -328,7 +327,7 @@ void qfDynSeq(qfDyn_t     *qd,
     
     /* update and minimize RTT correction factor if necessary */
     if ((qd->dynflags & QF_DYN_RTTCORR) &&
-        (qfSeqCompare(seq, qd->fan) > -1))
+        (qfSeqCompare(seq - qd->inflight_max, qd->fan) > -1))
     {
         qd->dynflags &= ~QF_DYN_RTTCORR;
         qfDynCorrectRTT(qd, ms - qd->fanlms);
@@ -439,7 +438,11 @@ void qfDynAck(qfDyn_t     *qd,
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
     uint64_t sc = qd->fsn - qd->isn + (k2e32 * qd->wrap_ct);
+    if ((flags & YF_TF_SYN) && sc) sc -= 1;
     if ((flags & YF_TF_FIN) && sc) sc -= 1;
+#if QF_DYN_DEBUG
+    fprintf(stderr, "qd seqcount (isn %10u fsn %10u wrap %u) %u\n", qd->isn, qd->fsn, qd->wrap_ct, sc);
+#endif
     return sc;
 }
 
