@@ -246,7 +246,7 @@ static void qfDynCorrectRTT(qfDyn_t     *qd,
         if (ms - qd->fanlms < qd->rtt_corr) {
             qd->rtt_corr = ms - qd->fanlms;
 #if QF_DYN_DEBUG
-            fprintf(stderr, "rttc %u ", qd->rtt_corr);
+            fprintf(stderr, "rttc %u (seq %10u fan %10u ifmax %10u) ", qd->rtt_corr, seq, qd->fan, qd->inflight_max);
 #endif
         }
     }

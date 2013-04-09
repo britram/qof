@@ -1000,10 +1000,11 @@ static const uint8_t *yfDecodeTCP(
     key->sp = g_ntohs(tcph->th_sport);
     key->dp = g_ntohs(tcph->th_dport);
 
-    /* Copy sequence number and flags */
+    /* Copy header info */
     if (tcpinfo) {
         tcpinfo->seq = g_ntohl(tcph->th_seq);
         tcpinfo->ack = g_ntohl(tcph->th_ack);
+        tcpinfo->rwin = g_ntohs(tcph->th_win);
         tcpinfo->flags = tcph->th_flags;
     }
 
@@ -1029,7 +1030,7 @@ static const uint8_t *yfDecodeTCP(
     pkt += YF_TCP_HLEN;
     
     /* Parse options while we still have them */
-    while (tcph_len > 0) {
+    while (tcpinfo && (tcph_len > 0)) {
 
         to_kind = *(pkt);
         

@@ -146,15 +146,15 @@ typedef struct yfTCPInfo_st {
     uint32_t        seq;
     /** TCP acknowledgment number */
     uint32_t        ack;
-    /** Receiver window (scaled) */
-    uint32_t        rwin;
     /** Timestamp value */
     uint32_t        tsval;
     /** Timestamp echo */
     uint32_t        tsecr;
-    /** Maximum segment size */
+    /** Receiver window (unscaled) */
+    uint16_t        rwin;
+    /** Maximum segment size option (SYN only) */
     uint16_t        mss;
-    /** Window scale shift count */
+    /** Window scale shift count (SYN only) */
     uint8_t         ws;
     /** TCP flags (including ECE/CWR) */
     uint8_t         flags;
