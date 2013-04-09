@@ -112,8 +112,6 @@ static size_t qfSeqRingAvail(qfSeqRing_t *sr)
 
 static int qfDynHasSeqring(qfDyn_t *qd) { return qd->sr.bin != 0; }
 
-static int qfDynHasSeqbin(qfDyn_t *qd) { return qd->sb.map.v != 0; }
-
 static int qfDynSeqSampleP(qfDyn_t     *qd,
                            uint64_t     ms)
 {
@@ -164,11 +162,14 @@ void qfSeqBitsFree(qfSeqBits_t *sb) {
     bimFree(&(sb->map));
 }
 
+static int qfDynHasSeqbits(qfDyn_t *qd) { return qd->sb.map.v != 0; }
+
 int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
                         uint32_t aseq, uint32_t bseq)
 {
     bimIntersect_t brv;
     uint32_t seqcap, maxseq;
+    uint64_t bits;
     
     /* set seqbase on first segment */
     if (!sb->seqbase) {
@@ -179,8 +180,11 @@ int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
     seqcap = sb->map.sz * k64Bits * sb->scale;
     maxseq = sb->seqbase + seqcap;
     while (qfSeqCompare(bseq, maxseq) > 0) {
-        sb->lostseq_ct +=
-            ((k64Bits - bimShiftDownAndCountSet(&sb->map)) * sb->scale);
+        bits = bimShiftDown(&sb->map);
+        sb->lostseq_ct += ((k64Bits - bimCountSet(bits)) * sb->scale);
+#if QF_DYN_DEBUG
+        fprintf(stderr, "(@%10u bits %016llx lostseq %u) ", sb->seqbase, bits, sb->lostseq_ct);
+#endif 
         sb->seqbase += sb->scale * k64Bits;
         maxseq = sb->seqbase + seqcap;
     }
@@ -200,6 +204,19 @@ int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
         return 1;
     } else {
         return 0;
+    }
+}
+
+void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb)
+{
+    uint64_t bits;
+    
+    while ((bits = bimShiftDown(&sb->map))) {
+        sb->lostseq_ct += ((bimHighBitSet(bits) - bimCountSet(bits)) * sb->scale);
+#if QF_DYN_DEBUG
+        fprintf(stderr, "qd finloss  @%10u bits %016llx lostseq %u\n", sb->seqbase, bits, sb->lostseq_ct);
+#endif
+        sb->seqbase += sb->scale * k64Bits;
     }
 }
 
@@ -333,7 +350,7 @@ void qfDynSeq(qfDyn_t     *qd,
     }
    
     /* track sequence numbers in binmap to detect order/loss */
-    if (qfDynHasSeqbin(qd)) {
+    if (qfDynHasSeqbits(qd)) {
         if (qfSeqBitsSegmentRtx(&(qd->sb), seq - oct, seq)) {
             qfDynRexmit(qd, seq, ms);
 #if QF_DYN_DEBUG
@@ -425,6 +442,10 @@ void qfDynAck(qfDyn_t     *qd,
         fprintf(stderr, "\n");
 #endif
     }
+}
+
+void qfDynClose(qfDyn_t *qd) {
+    if (qfDynHasSeqbits(qd)) qfSeqBitsFinalizeLoss(&qd->sb);
 }
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {

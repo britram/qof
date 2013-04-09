@@ -72,6 +72,8 @@ void qfSeqBitsFree(qfSeqBits_t *sb);
 
 int qfSeqBitsSegmentRtx(qfSeqBits_t *sb, uint32_t aseq, uint32_t bseq);
 
+void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * TCP dynamics structure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -103,7 +105,9 @@ typedef struct qfDyn_st {
     uint32_t        dynflags;
 } qfDyn_t;
 
-void qfDynFree(qfDyn_t      *qd);
+void qfDynClose(qfDyn_t   *qd);
+
+void qfDynFree(qfDyn_t    *qd);
 
 void qfDynSyn(qfDyn_t     *qd,
               uint32_t    seq,

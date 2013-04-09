@@ -121,7 +121,7 @@ static const uint64_t bimMaskB[] = {
 };
 
 
-static unsigned int bimCountBits(uint64_t v) {
+unsigned int bimCountSet(uint64_t v) {
     static const uint64_t mask[] = {
         0x5555555555555555ULL,
         0x3333333333333333ULL,
@@ -141,6 +141,15 @@ static unsigned int bimCountBits(uint64_t v) {
     c = ((c >> shift[3]) + c) & mask[3];
     c = ((c >> shift[4]) + c) & mask[4];
     return (unsigned int)((c >> shift[5]) + c) & mask[5];
+}
+
+unsigned int    bimHighBitSet(uint64_t v)
+{
+    uint64_t m = 0x8000000000000000ULL;
+    uint64_t bit = 64;
+    
+    while (m > v) { m >>= 1; bit--; }
+    return bit;
 }
 
 void bimInit(bimBitmap_t *bitmap, uint32_t capacity) {
@@ -217,80 +226,12 @@ bimIntersect_t  bimTestAndSetRange(bimBitmap_t *bitmap, uint32_t a, uint32_t b) 
     return res;
 }
 
-uint32_t bimShiftDownAndCountSet(bimBitmap_t *bitmap) {
-    uint32_t n = bimCountBits(bitmap->v[bitmap->base]);
+uint64_t bimShiftDown(bimBitmap_t *bitmap) {
+    uint64_t v = bitmap->v[bitmap->base];
+    bitmap->v[bitmap->base] = 0;
     bitmap->base = (bitmap->base + 1) % bitmap->sz;
-    return n;
+    return v;
 }
-
-
-#if 0
-static int qfDynHasSeqbin(qfDyn_t *qd) { return qd->sb.bin != 0; }
-
-
-
-
-void qfSeqBinFree(qfSeqBin_t *sb) {
-}
-
-
-static void qfSeqBinShiftComplete(qfSeqBin_t     *sb)
-{
-    while (sb->bin[sb->binbase] == UINT64_MAX) {
-        sb->bin[sb->binbase] = 0;
-        sb->binbase++;
-        if (sb->binbase >= sb->bincount) sb->binbase = 0;
-        sb->seqbase += sb->scale * sizeof(uint64_t) * 8;
-    }
-}
-
-static size_t qfSeqBinShiftToSeq(qfSeqBin_t *sb, uint32_t seq)
-{
-    unsigned int bits = 0;
-    
-    while (sb->seqbase < seq) {
-        bits += (8 * sizeof(uint64_t)) - qfCountBits(sb->bin[sb->binbase]);
-        sb->bin[sb->binbase] = 0;
-        sb->binbase++;
-        if (sb->binbase >= sb->bincount) sb->binbase = 0;
-        sb->seqbase += sb->scale * sizeof(uint64_t) * 8;
-    }
-    
-    return bits * sb->scale;
-}
-
-
-static qfSeqBinRes_t qfSeqBinTestMask(uint64_t bin, uint64_t omask, uint64_t imask) {
-#if QF_DYN_DEBUG
-    fprintf(stderr, "(bin %016llx omask %016llx imask %016llx ", bin, omask, imask);
-#endif
-    if ((bin & omask) == omask) {
-#if QF_DYN_DEBUG
-        fprintf(stderr, "+) " );
-#endif
-        return QF_SEQBIN_FULL_ISECT;
-    } else if ((bin & imask) == 0)  {
-#if QF_DYN_DEBUG
-        fprintf(stderr, "-) " );
-#endif
-        return QF_SEQBIN_NO_ISECT;
-    } else {
-#if QF_DYN_DEBUG
-        fprintf(stderr, "/) " );
-#endif
-        return QF_SEQBIN_PART_ISECT;
-    }
-}
-
-static qfSeqBinRes_t qfSeqBinResCombine(qfSeqBinRes_t a, qfSeqBinRes_t b)
-{
-    if (a == b)
-        return a;
-    else
-        return QF_SEQBIN_PART_ISECT;
-}
-
-#endif
 
 
 

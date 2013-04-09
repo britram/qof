@@ -1001,6 +1001,8 @@ gboolean yfWriteFlow(
     /* TCP flow; copy TCP data and enable export */
     if (flow->key.proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
+        qfDynClose(&flow->val.tcp);
+        qfDynClose(&flow->rval.tcp);
         rec.tcpSequenceCount = qfDynSequenceCount(&(flow->val.tcp),
                                 flow->val.iflags & flow->val.uflags);
         rec.reverseTcpSequenceCount = qfDynSequenceCount(&(flow->rval.tcp),
