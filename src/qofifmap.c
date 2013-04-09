@@ -119,7 +119,7 @@ static uint8_t qfMapSearch6(qfIfMapEntry6_t     *map,
     ssize_t x = 0;
     ssize_t y = map_sz - 1;
     
-    int i;
+    size_t i;
 
     /* and converge */
     while (x <= y) {

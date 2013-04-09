@@ -33,8 +33,11 @@ void sstAdd(sstV_t *v, uint32_t x) {
         v->mean = x;
         v->s = 0.0;
     } else {
-        if (x > v->max) v->max = x;
-        else if (x < v->min) v->min = x;
+        if (x > v->max) {
+            v->max = x;
+        } else if (x < v->min) {
+            v->min = x;
+        }
         
         pmean = v->mean;
         v->mean = v->mean + ((x - v->mean) / v->n);

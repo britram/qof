@@ -240,13 +240,14 @@ static void qfDynCorrectRTT(qfDyn_t     *qd,
     if (!(qd->dynflags & QF_DYN_RTTCORR)) return;
     
     /* check to see if we have a segment eligible for correction */
-    if (qfSeqCompare(seq, qd->fan + qd->inflight_max) > 0) {
+    if (qfSeqCompare(seq, qd->fan + qd->inflight.mean + qd->mss) > 0) {
         /* yep, cancel flag and take the min */
         qd->dynflags &= ~QF_DYN_RTTCORR;
         if (ms - qd->fanlms < qd->rtt_corr) {
             qd->rtt_corr = ms - qd->fanlms;
 #if QF_DYN_DEBUG
-            fprintf(stderr, "rttc %u (seq %10u fan %10u ifmax %10u) ", qd->rtt_corr, seq, qd->fan, qd->inflight_max);
+            fprintf(stderr, "rttc %u (seq %10u fan %10u ifmean %7.2f) ",
+                    qd->rtt_corr, seq, qd->fan, qd->inflight.mean);
 #endif
         }
     }
@@ -374,16 +375,8 @@ void qfDynSeq(qfDyn_t     *qd,
         fprintf(stderr, "adv ");
 #endif
         
-        /* update max inflight */
-        if ((qd->dynflags & QF_DYN_ACKINIT) &&
-            (qfSeqCompare(qd->nsn, qd->fan) > 0) &&
-            (qd->inflight_max < (qd->nsn - qd->fan)))
-        {
-            qd->inflight_max = (qd->nsn - qd->fan);
-#if QF_DYN_DEBUG
-            fprintf(stderr, "ifmax %u ", qd->inflight_max);
-#endif
-        }
+        /* update inflight */
+        if (qd->dynflags & QF_DYN_ACKINIT) sstAdd(&qd->inflight, qd->nsn - qd->fan);
         
         /* take time sample, if necessary */
         if (qfDynSeqSampleP(qd, ms)) {
@@ -397,8 +390,8 @@ void qfDynSeq(qfDyn_t     *qd,
         qd->dynflags &= ~QF_DYN_SEQADV;
         
         /* update max out of order */
-        if ((qd->nsn - (seq + oct)) > qd->reorder_max) {
-            qd->reorder_max = qd->nsn - (seq + oct);
+        if ((qd->nsn - seq) > qd->reorder_max) {
+            qd->reorder_max = qd->nsn - seq;
 #if QF_DYN_DEBUG
             fprintf(stderr, "remax %u ", qd->reorder_max);
 #endif
@@ -456,8 +449,9 @@ void qfDynClose(qfDyn_t *qd) {
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
     uint64_t sc = qd->nsn - qd->isn + (k2e32 * qd->wrap_ct);
-    if ((flags & YF_TF_SYN) && sc) sc -= 1;
-    if ((flags & YF_TF_FIN) && sc) sc -= 1;
+    if (sc) sc -= 1; /* remove one: nsn is the next expected sequence number */
+    if (sc & (flags & YF_TF_SYN) && sc) sc -= 1; /* remove one for the syn */
+    if (sc & (flags & YF_TF_FIN) && sc) sc -= 1; /* remove one for the fin */
 #if QF_DYN_DEBUG
     fprintf(stderr, "qd seqcount (isn %10u nsn %10u wrap %u) %llu\n", qd->isn, qd->nsn, qd->wrap_ct, sc);
 #endif

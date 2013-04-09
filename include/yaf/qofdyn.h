@@ -17,6 +17,7 @@
 
 #include <yaf/autoinc.h>
 #include <yaf/bitmap.h>
+#include <yaf/streamstat.h>
 
 /**
  * Compare sequence numbers A and B, accounting for 2e31 wraparound.
@@ -91,6 +92,8 @@ typedef struct qfDyn_st {
     qfSeqRing_t     sr;
     uint16_t        sr_skip;
     uint16_t        sr_period;
+    /* Inflight tracking */
+    sstV_t          inflight;
     /* Initial sequence number */
     uint32_t        isn;
     /* Next sequence number expected */
@@ -103,8 +106,6 @@ typedef struct qfDyn_st {
     uint32_t        wrap_ct;
     /* Detected retransmitted segment count */
     uint32_t        rtx_ct;
-    /* Maximum observed inflight (max seq - max ack) */
-    uint32_t        inflight_max;
     /* Maxumum observed reordering (nsn - seq) */
     uint32_t        reorder_max;
     /* Current estimated TCP RTT */

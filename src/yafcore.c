@@ -1030,8 +1030,8 @@ gboolean yfWriteFlow(
             (flow->rval.tcp.dynflags & QF_DYN_RTTVALID))
         {
             wtid |= YTF_RTT;
-            rec.maxTcpInflightSize = flow->val.tcp.inflight_max;
-            rec.reverseMaxTcpInflightSize = flow->rval.tcp.inflight_max;
+            rec.maxTcpInflightSize = flow->val.tcp.inflight.max;
+            rec.reverseMaxTcpInflightSize = flow->rval.tcp.inflight.max;
             rec.maxTcpReorderSize = flow->val.tcp.reorder_max;
             rec.reverseMaxTcpReorderSize = flow->val.tcp.reorder_max;
             rec.lastTcpRttMilliseconds = flow->val.tcp.rtt_est;
