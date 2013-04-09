@@ -64,7 +64,7 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
         if (sr->tail >= sr->bincount) sr->tail = 0;
         qf_dyn_stat_ringover++;
 #if QF_DYN_DEBUG
-        fprintf(stderr, "rtts-over (%u) ", qf_dyn_stat_ringover);
+        fprintf(stderr, "rtts-over (%llu) ", qf_dyn_stat_ringover);
 #endif
     }
     
@@ -143,7 +143,7 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
     
     /* good to sample, calculate next period */
     if ((qd->dynflags & QF_DYN_SYNINIT) && (qd->dynflags & QF_DYN_ACKINIT)) {
-        qd->sr_period = ((qd->fsn - qd->fan) / qd->mss) / qfSeqRingAvail(&qd->sr);
+        qd->sr_period = ((qd->nsn - qd->fan) / qd->mss) / qfSeqRingAvail(&qd->sr);
         if (qd->sr_period) qd->sr_period--;        
     } else {
         qd->sr_period = 0;
@@ -170,6 +170,9 @@ int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
     bimIntersect_t brv;
     uint32_t seqcap, maxseq;
     uint64_t bits;
+    
+    /* short-circuit on no seqbits */
+    if (!sb) return 0;
     
     /* set seqbase on first segment */
     if (!sb->seqbase) {
@@ -228,14 +231,24 @@ static void qfDynRexmit(qfDyn_t     *qd,
     qd->rtx_ct++;
 }
 
-static void qfDynCorrectRTT(qfDyn_t   *qd,
-                            uint32_t    crtt)
+static void qfDynCorrectRTT(qfDyn_t     *qd,
+                            uint32_t    seq,
+                            uint32_t    oct,
+                            uint32_t    ms)
 {
-    if (crtt < qd->rtt_corr) {
-        qd->rtt_corr = crtt;
+    /* short-circuit if we don't have a pending correction */
+    if (!(qd->dynflags & QF_DYN_RTTCORR)) return;
+    
+    /* check to see if we have a segment eligible for correction */
+    if (qfSeqCompare(seq, qd->fan + qd->inflight_max) > 0) {
+        /* yep, cancel flag and take the min */
+        qd->dynflags &= ~QF_DYN_RTTCORR;
+        if (ms - qd->fanlms < qd->rtt_corr) {
+            qd->rtt_corr = ms - qd->fanlms;
 #if QF_DYN_DEBUG
-        fprintf(stderr, "rttc %u ", qd->rtt_corr);
+            fprintf(stderr, "rttc %u ", qd->rtt_corr);
 #endif
+        }
     }
 }
 
@@ -258,7 +271,7 @@ static void qfDynTrackRTT(qfDyn_t   *qd,
         (!qd->rtt_min || (qd->rtt_est < qd->rtt_min)))
     {
         qd->rtt_min = qd->rtt_est;
-        qd->dynflags = QF_DYN_RTTVALID; // FIXME might want to be less eager here
+        qd->dynflags |= QF_DYN_RTTVALID; // FIXME might want to be less eager here
     }
 }
 
@@ -297,7 +310,7 @@ void qfDynSyn(qfDyn_t     *qd,
     }
     
     /* set initial sequence number */
-    qd->isn = qd->fsn = seq;
+    qd->isn = qd->nsn = seq;
     
     /* note we've tracked the SYN */
     qd->dynflags |= QF_DYN_SYNINIT;
@@ -314,7 +327,7 @@ void qfDynSeq(qfDyn_t     *qd,
 {
 
 #if QF_DYN_DEBUG
-    fprintf(stderr, "qd ts %10u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq - oct, seq);
+    fprintf(stderr, "qd ts %10u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq, seq + oct);
 #endif
  
     /* short circuit on no octets */
@@ -324,7 +337,7 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
         return;
     }
-
+    
     /* short circuit on no syn */
     if (!(qd->dynflags & QF_DYN_SYNINIT)) {
 #if QF_DYN_DEBUG
@@ -342,38 +355,31 @@ void qfDynSeq(qfDyn_t     *qd,
     }
     
     /* update and minimize RTT correction factor if necessary */
-    if ((qd->dynflags & QF_DYN_RTTCORR) &&
-        (qfSeqCompare(seq - qd->inflight_max, qd->fan) > -1))
-    {
-        qd->dynflags &= ~QF_DYN_RTTCORR;
-        qfDynCorrectRTT(qd, ms - qd->fanlms);
-    }
+    qfDynCorrectRTT(qd, seq, oct, ms);
    
     /* track sequence numbers in binmap to detect order/loss */
-    if (qfDynHasSeqbits(qd)) {
-        if (qfSeqBitsSegmentRtx(&(qd->sb), seq - oct, seq)) {
-            qfDynRexmit(qd, seq, ms);
+    if (qfSeqBitsSegmentRtx(&(qd->sb), seq, seq + oct)) {
+        qfDynRexmit(qd, seq, ms);
 #if QF_DYN_DEBUG
-            fprintf(stderr, "rexmit ");
+        fprintf(stderr, "rexmit ");
 #endif
-        }
     }
     
     /* advance sequence number if necessary */
-    if (qfSeqCompare(seq, qd->fsn) > 0) {
+    if (qfSeqCompare(seq, qd->nsn) > -1) {
+        if (seq + oct < qd->nsn) ++(qd->wrap_ct);
+        qd->nsn = seq + oct;
         qd->dynflags |= QF_DYN_SEQADV;
-        if (seq < qd->fsn) qd->wrap_ct++;
-        qd->fsn = seq;
 #if QF_DYN_DEBUG
         fprintf(stderr, "adv ");
 #endif
         
         /* update max inflight */
         if ((qd->dynflags & QF_DYN_ACKINIT) &&
-            (qfSeqCompare(qd->fsn, qd->fan) > 0) &&
-            (qd->inflight_max < (qd->fsn - qd->fan)))
+            (qfSeqCompare(qd->nsn, qd->fan) > 0) &&
+            (qd->inflight_max < (qd->nsn - qd->fan)))
         {
-            qd->inflight_max = (qd->fsn - qd->fan);
+            qd->inflight_max = (qd->nsn - qd->fan);
 #if QF_DYN_DEBUG
             fprintf(stderr, "ifmax %u ", qd->inflight_max);
 #endif
@@ -381,7 +387,7 @@ void qfDynSeq(qfDyn_t     *qd,
         
         /* take time sample, if necessary */
         if (qfDynSeqSampleP(qd, ms)) {
-            qfSeqRingAddSample(&(qd->sr), seq, ms);
+            qfSeqRingAddSample(&(qd->sr), qd->nsn, ms);
 #if QF_DYN_DEBUG
             fprintf(stderr, "rtts ");
 #endif
@@ -391,8 +397,8 @@ void qfDynSeq(qfDyn_t     *qd,
         qd->dynflags &= ~QF_DYN_SEQADV;
         
         /* update max out of order */
-        if ((qd->fsn - seq) > qd->reorder_max) {
-            qd->reorder_max = qd->fsn - seq;
+        if ((qd->nsn - (seq + oct)) > qd->reorder_max) {
+            qd->reorder_max = qd->nsn - (seq + oct);
 #if QF_DYN_DEBUG
             fprintf(stderr, "remax %u ", qd->reorder_max);
 #endif
@@ -449,11 +455,11 @@ void qfDynClose(qfDyn_t *qd) {
 }
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
-    uint64_t sc = qd->fsn - qd->isn + (k2e32 * qd->wrap_ct);
+    uint64_t sc = qd->nsn - qd->isn + (k2e32 * qd->wrap_ct);
     if ((flags & YF_TF_SYN) && sc) sc -= 1;
     if ((flags & YF_TF_FIN) && sc) sc -= 1;
 #if QF_DYN_DEBUG
-    fprintf(stderr, "qd seqcount (isn %10u fsn %10u wrap %u) %u\n", qd->isn, qd->fsn, qd->wrap_ct, sc);
+    fprintf(stderr, "qd seqcount (isn %10u nsn %10u wrap %u) %llu\n", qd->isn, qd->nsn, qd->wrap_ct, sc);
 #endif
     return sc;
 }

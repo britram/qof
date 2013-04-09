@@ -85,23 +85,39 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
 #define QF_DYN_RTTVALID     0x00000020 /* we think rtt is usable */
 
 typedef struct qfDyn_st {
+    /** Bitmap for storing seen sequence numbers */
     qfSeqBits_t     sb;
+    /** Ring for storing sequence number / timestamp samples */
     qfSeqRing_t     sr;
     uint16_t        sr_skip;
     uint16_t        sr_period;
+    /* Initial sequence number */
     uint32_t        isn;
-    uint32_t        fsn;
+    /* Next sequence number expected */
+    uint32_t        nsn;
+    /* Final acknowledgment number observed */
     uint32_t        fan;
+    /* Timestamp of final acknowledgment number observed (epoch ms mod 2^32) */
     uint32_t        fanlms;
+    /* Sequence number space wraparound count */
     uint32_t        wrap_ct;
+    /* Detected retransmitted segment count */
     uint32_t        rtx_ct;
+    /* Maximum observed inflight (max seq - max ack) */
     uint32_t        inflight_max;
-    uint32_t        reorder_max;    
+    /* Maxumum observed reordering (nsn - seq) */
+    uint32_t        reorder_max;
+    /* Current estimated TCP RTT */
     uint32_t        rtt_est;
+    /* Minimum estimated TCP RTT */
     uint32_t        rtt_min;
+    /* RTT correction factor (minimum observed "backside RTT") */
     uint32_t        rtt_corr;
+    /* Observed maximum segment size */
     uint16_t        mss;
+    /* Declared (via tcp option) maximum segment size */
     uint16_t        mss_opt;
+    /* Internal flags for controlling qfdyn */
     uint32_t        dynflags;
 } qfDyn_t;
 
