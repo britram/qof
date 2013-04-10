@@ -18,18 +18,29 @@
 #define _QOF_STREAMSTAT_H_
 
 #include <yaf/autoinc.h>
-typedef struct sstV_st {
+typedef struct sstMean_st {
     uint32_t    last;
     uint32_t    n;
     uint32_t    min;
     uint32_t    max;
     double      mean;
     double      s;
-} sstV_t;
+} sstMean_t;
 
-void sstInit(sstV_t *v);
-void sstAdd(sstV_t *v, uint32_t x);
-double sstVariance(sstV_t *v);
-double sstStdev(sstV_t *v);
+typedef struct sstLinSmooth_st {
+    uint32_t    alpha;
+    uint32_t    min;
+    uint32_t    max;
+    uint32_t    val;
+} sstLinSmooth_t;
+
+
+void sstMeanInit(sstMean_t *v);
+void sstMeanAdd(sstMean_t *v, uint32_t x);
+double sstVariance(sstMean_t *v);
+double sstStdev(sstMean_t *v);
+
+void sstLinSmoothInit(sstLinSmooth_t *v);
+void sstLinSmoothAdd(sstLinSmooth_t *v, uint32_t x);
 
 #endif /* idem hack */

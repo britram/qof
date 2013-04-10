@@ -1003,6 +1003,8 @@ gboolean yfWriteFlow(
         wtid |= YTF_TCP;
         qfDynClose(&flow->val.tcp);
         qfDynClose(&flow->rval.tcp);
+        qfIatDump(flow->fid, &flow->val.tcp.iat);
+        qfIatDump(flow->fid, &flow->rval.tcp.iat);
         rec.tcpSequenceCount = qfDynSequenceCount(&(flow->val.tcp),
                                 flow->val.iflags & flow->val.uflags);
         rec.reverseTcpSequenceCount = qfDynSequenceCount(&(flow->rval.tcp),

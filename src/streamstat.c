@@ -18,11 +18,13 @@
 #include <yaf/streamstat.h>
 #include <math.h>
 
-void sstInit(sstV_t *v) {
+static const uint32_t kDefaultAlpha = 8;
+
+void sstMeanInit(sstMean_t *v) {
     memset(v, 0, sizeof(*v));
 }
 
-void sstAdd(sstV_t *v, uint32_t x) {
+void sstMeanAdd(sstMean_t *v, uint32_t x) {
     double pmean;
     
     v->last = x;
@@ -45,11 +47,29 @@ void sstAdd(sstV_t *v, uint32_t x) {
     }
 }
 
-double sstVariance(sstV_t *v) {
+double sstVariance(sstMean_t *v) {
     if (v->n <= 1) return 0.0;
     return v->s / (v->n - 1);
 }
 
-double sstStdev(sstV_t *v) {
+double sstStdev(sstMean_t *v) {
     return sqrt(sstVariance(v));
+}
+
+void sstLinSmoothInit(sstLinSmooth_t *v) {
+    memset(v, 0, sizeof(*v));
+}
+
+void sstLinSmoothAdd(sstLinSmooth_t *v, uint32_t x) {
+    if (!v->val && !v->min && !v->max) {
+        v->val = v->max = v->min = x;
+        if (!v->alpha) v->alpha = kDefaultAlpha;
+    } else {
+        if (x > v->max) {
+            v->max = x;
+        } else if (x < v->min) {
+            v->min = x;
+        }
+        v->val = (v->val * (v->alpha - 1) + x) / v->alpha;
+    }
 }

@@ -18,6 +18,7 @@
 #include <yaf/autoinc.h>
 #include <yaf/bitmap.h>
 #include <yaf/streamstat.h>
+#include <yaf/qofiat.h>
 
 /**
  * Compare sequence numbers A and B, accounting for 2e31 wraparound.
@@ -93,7 +94,9 @@ typedef struct qfDyn_st {
     uint16_t        sr_skip;
     uint16_t        sr_period;
     /* Inflight tracking */
-    sstV_t          inflight;
+    sstMean_t          inflight;
+    /* Interarrival time tracking */
+    qfIat_t         iat;
     /* Initial sequence number */
     uint32_t        isn;
     /* Next sequence number expected */

@@ -15,6 +15,7 @@
 #define _YAF_SOURCE_
 #include <yaf/qofdyn.h>
 #include <yaf/yaftab.h>
+#include <yaf/qofiat.h>
 
 /** Constant - 2^32 (for sequence number calculations) */
 static const uint64_t k2e32 = 0x100000000ULL;
@@ -376,7 +377,10 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
         
         /* update inflight */
-        if (qd->dynflags & QF_DYN_ACKINIT) sstAdd(&qd->inflight, qd->nsn - qd->fan);
+        if (qd->dynflags & QF_DYN_ACKINIT) sstMeanAdd(&qd->inflight, qd->nsn - qd->fan);
+        
+        /* update iat */
+        qfIatSegment(&qd->iat, oct, ms);
         
         /* take time sample, if necessary */
         if (qfDynSeqSampleP(qd, ms)) {

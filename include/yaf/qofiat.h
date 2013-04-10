@@ -19,8 +19,14 @@
 #include <yaf/streamstat.h>
 
 typedef struct qfIat_st {
-    sstV_t     segiat;
-    sstV_t     fliat;
+    sstMean_t       seg;
+    sstLinSmooth_t  flight;
+    uint32_t        seg_lms;
+    uint32_t        flight_len;
 } qfIat_t;
+
+uint32_t    qfIatSegment(qfIat_t *iatv, uint32_t oct, uint32_t ms);
+
+void qfIatDump(uint64_t fid, qfIat_t *iatv);
 
 #endif
