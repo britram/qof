@@ -18,7 +18,6 @@
 #include <yaf/autoinc.h>
 #include <yaf/bitmap.h>
 #include <yaf/streamstat.h>
-#include <yaf/qofiat.h>
 
 /**
  * Compare sequence numbers A and B, accounting for 2e31 wraparound.

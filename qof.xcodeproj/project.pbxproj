@@ -13,7 +13,6 @@
 		D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EADBDC170BDDEC006FE1FE /* qofltrace.c */; };
 		D39F5C33170CDE480094B103 /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
 		D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E1D8BE1712764700E94E6D /* streamstat.c */; };
-		D3E1D8C41713DF6300E94E6D /* qofiat.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E1D8C31713DF6300E94E6D /* qofiat.c */; };
 		F519223B1672388F00514165 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = F519221A1672388F00514165 /* decode.c */; };
 		F519223E1672388F00514165 /* picq.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922201672388F00514165 /* picq.c */; };
 		F51922401672388F00514165 /* ring.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922221672388F00514165 /* ring.c */; };
@@ -81,8 +80,6 @@
 		D3E1B1C316E4EBD200C5D50C /* riptcp.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = riptcp.rb; sourceTree = "<group>"; };
 		D3E1D8BE1712764700E94E6D /* streamstat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = streamstat.c; sourceTree = "<group>"; };
 		D3E1D8C017127BDF00E94E6D /* streamstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = streamstat.h; sourceTree = "<group>"; };
-		D3E1D8C31713DF6300E94E6D /* qofiat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofiat.c; sourceTree = "<group>"; };
-		D3E1D8C51713DFCB00E94E6D /* qofiat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofiat.h; sourceTree = "<group>"; };
 		D3EADBDC170BDDEC006FE1FE /* qofltrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofltrace.c; sourceTree = "<group>"; };
 		D3EADBDE170BE2B5006FE1FE /* qofltrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofltrace.h; sourceTree = "<group>"; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
@@ -261,7 +258,6 @@
 				F51922211672388F00514165 /* qofifmap.c */,
 				D3EADBDE170BE2B5006FE1FE /* qofltrace.h */,
 				D3EADBDC170BDDEC006FE1FE /* qofltrace.c */,
-				D3E1D8C31713DF6300E94E6D /* qofiat.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -293,7 +289,6 @@
 				F519225E1672389900514165 /* yafrag.h */,
 				F519225F1672389900514165 /* yaftab.h */,
 				D39F27671703AB4C00089492 /* qofdyn.h */,
-				D3E1D8C51713DFCB00E94E6D /* qofiat.h */,
 				D39F5C34170D03150094B103 /* IANA_IE.h */,
 			);
 			path = yaf;
@@ -519,7 +514,6 @@
 				D3282A631709703600B2ABA4 /* bitmap.c in Sources */,
 				D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */,
 				D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */,
-				D3E1D8C41713DF6300E94E6D /* qofiat.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

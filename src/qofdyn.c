@@ -20,7 +20,7 @@
 static const uint64_t k2e32 = 0x100000000ULL;
 
 static const float        kFlightBreakIATDev = 2.0;
-static const uint32_t     kFlightMinSegments = 3;
+static const uint32_t     kFlightMinSegments = 10;
 
 static const unsigned int kSeqSamplePeriodMs = 1;
 
@@ -92,12 +92,12 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
 
     if (sr->head == sr->tail) return 0;
 
-#if QF_DYN_DEBUG
-    fprintf(stderr, "(seq %u @ %u ack %u @ %u) ",
-            sr->bin[sr->tail].seq,
-            sr->bin[sr->tail].ms,
-            ack, ms);
-#endif
+//#if QF_DYN_DEBUG
+//    fprintf(stderr, "(seq %u @ %u ack %u @ %u) ",
+//            sr->bin[sr->tail].seq,
+//            sr->bin[sr->tail].ms,
+//            ack, ms);
+//#endif
     
     rtt = ms - sr->bin[sr->tail].ms;
     sr->tail++;
@@ -233,7 +233,7 @@ static void qfDynRexmit(qfDyn_t     *qd,
     qd->rtx_ct++;
 }
 
-static void qfDynBreakFlight(qfDyn_t    *qd,
+static int qfDynBreakFlight(qfDyn_t    *qd,
                              uint32_t   iat)
 {
     if ((qd->seg_iat.n > kFlightMinSegments) &&
@@ -241,20 +241,44 @@ static void qfDynBreakFlight(qfDyn_t    *qd,
     {
         sstLinSmoothAdd(&qd->iatflight, qd->cur_iatflight);
         qd->cur_iatflight = 0;
+        return 1;
     }
+    return 0;
 }
 
-static void qfDynCorrectRTT(qfDyn_t     *qd,
-                            uint32_t    seq,
-                            uint32_t    oct,
-                            uint32_t    ms)
+static void qfDynStartRTTCorr(qfDyn_t     *qd,
+                              uint32_t    ack,
+                              uint32_t    ms)
+{
+    uint32_t    flightsize;
+    
+    /* only start a new correction if one's not already pending, and
+       we've seen enough segments to have some flight info */
+    if (!qd->rtt_corr_seq && qd->seg_iat.n > kFlightMinSegments) {
+        flightsize = qd->iatflight.val;
+        if (qd->cur_iatflight > flightsize) flightsize = qd->cur_iatflight;
+        
+        /* expected sequence number based on IAT flight size */
+        qd->rtt_corr_seq = qd->fan + flightsize;
+        qd->rtt_corr_lms = ms;
+#if QF_DYN_DEBUG
+        fprintf(stderr, "rcs %u ", qd->rtt_corr_seq);
+#endif
+    }
+
+}
+
+static void qfDynCorrRTT(qfDyn_t     *qd,
+                         uint32_t    seq,
+                         uint32_t    oct,
+                         uint32_t    ms)
 {
     /* short-circuit if we don't have a pending correction */
     if (!qd->rtt_corr_seq) return;
     
     if (seq >= qd->rtt_corr_seq) {
-        if (qd->rtt_corr < ms - qd->rtt_corr_lms) {
-            qd->rtt_corr = ms - qd->rtt_corr_lms;
+        if (qd->rtt_corr > (ms - qd->rtt_corr_lms)) {
+            qd->rtt_corr = (ms - qd->rtt_corr_lms);
         }
         qd->rtt_corr_seq = 0;
         qd->rtt_corr_lms = 0;
@@ -263,6 +287,21 @@ static void qfDynCorrectRTT(qfDyn_t     *qd,
 #endif
     }
 }
+
+static void qfDynMeasureRTT  (qfDyn_t     *qd,
+                              uint32_t    ack,
+                              uint32_t    ms)
+{
+    uint32_t irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
+    if (irtt) {
+        if (qd->rtt_corr < UINT32_MAX) irtt += qd->rtt_corr;
+        sstMeanAdd(&qd->rtt, irtt);
+#if QF_DYN_DEBUG
+        fprintf(stderr, "rtt %u mean %6.2f ", irtt, qd->rtt.mean);
+#endif
+    }
+}
+
 
 void qfDynSetParams(uint32_t bincap, uint32_t binscale, uint32_t ringcap) {
     qf_dyn_bincap = bincap;
@@ -369,7 +408,9 @@ void qfDynSeq(qfDyn_t     *qd,
         
         /* detect iat flight break */
         sstMeanAdd(&qd->seg_iat, iat);
-        qfDynBreakFlight(qd, iat);
+        if (qfDynBreakFlight(qd, iat)) {
+            
+        }
         
         /* count octets in this flight */
         qd->cur_iatflight += oct;
@@ -383,7 +424,7 @@ void qfDynSeq(qfDyn_t     *qd,
         }
         
         /* update and minimize RTT correction factor if necessary */
-        qfDynCorrectRTT(qd, seq, oct, ms);
+        qfDynCorrRTT(qd, seq, oct, ms);
         
     } else {        
         /* update max out of order */
@@ -405,44 +446,35 @@ void qfDynAck(qfDyn_t     *qd,
 {
     uint32_t irtt;
     
+#if QF_DYN_DEBUG
+    fprintf(stderr, "qd ts %u    ack %10u ", ms, ack);
+#endif
+
     /* initialize if necessary */
     if (!(qd->dynflags & QF_DYN_ACKINIT)) {
         qd->dynflags |= QF_DYN_ACKINIT;        
         qd->fan = ack;
         qd->rtt_corr = UINT32_MAX;
 #if QF_DYN_DEBUG
-        fprintf(stderr, "qd ts %u synack %10u\n", ms, ack);
+        fprintf(stderr, "init ");
 #endif
     } else if (qfSeqCompare(ack, qd->fan) > 0) {
         /* advance ack number */
         qd->fan = ack;
  
-#if QF_DYN_DEBUG
-        fprintf(stderr, "qd ts %u    ack %10u ", ms, ack);
-#endif
         
         /* do RTT stuff if enabled */
         if (qfDynHasSeqring(qd)) {
             /* sample RTT */
-            irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
-            if (irtt) {
-                sstMeanAdd(&qd->rtt, irtt + qd->rtt_corr);
-#if QF_DYN_DEBUG
-                fprintf(stderr, "irtt %u rtt %6.2u", irtt, qd->rtt.mean);
-#endif
-            }
-
-            /* prepare to get next backside RTT if necessary */
-            if (!qd->rtt_corr_seq) {
-                /* expected sequence number based on IAT flight size */
-                qd->rtt_corr_seq = qd->fan + qd->iatflight.val;
-                qd->rtt_corr_lms = ms;
-            }
-        }        
-#if QF_DYN_DEBUG
-        fprintf(stderr, "\n");
-#endif
+            qfDynMeasureRTT(qd, ack, ms);
+            
+            /* start the next correction */
+            qfDynStartRTTCorr(qd, ack, ms);
+        }
     }
+#if QF_DYN_DEBUG
+    fprintf(stderr, "\n");
+#endif
 }
 
 void qfDynClose(qfDyn_t *qd) {
