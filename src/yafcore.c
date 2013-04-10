@@ -185,8 +185,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMaxTcpInflightSize",          4, YTF_RTT },
     { "maxTcpReorderSize",                  4, YTF_RTT },
     { "reverseMaxTcpReorderSize",           4, YTF_RTT },
-    { "lastTcpRttMilliseconds",             2, YTF_RTT },
-    { "reverseLastTcpRttMilliseconds",      2, YTF_RTT },
+    { "meanTcpRttMilliseconds",             2, YTF_RTT },
+    { "reverseMeanTcpRttMilliseconds",      2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
     { "reverseMinTcpRttMilliseconds",       2, YTF_RTT },
     { "declaredTcpMss",                     2, YTF_TCP },
@@ -282,8 +282,8 @@ typedef struct yfIpfixFlow_st {
     uint32_t    reverseMaxTcpInflightSize;
     uint32_t    maxTcpReorderSize;
     uint32_t    reverseMaxTcpReorderSize;
-    uint16_t    lastTcpRttMilliseconds;
-    uint16_t    reverseLastTcpRttMilliseconds;
+    uint16_t    meanTcpRttMilliseconds;
+    uint16_t    reverseMeanTcpRttMilliseconds;
     uint16_t    minTcpRttMilliseconds;
     uint16_t    reverseMinTcpRttMilliseconds;
     uint16_t    declaredTcpMss;
@@ -409,8 +409,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpInflightSize,1);
     RUN_CHECKS(yfIpfixFlow_t,maxTcpReorderSize,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpReorderSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,lastTcpRttMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseLastTcpRttMilliseconds,1);
+    RUN_CHECKS(yfIpfixFlow_t,meanTcpRttMilliseconds,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,minTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMinTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,declaredTcpMss,1);
@@ -1003,8 +1003,6 @@ gboolean yfWriteFlow(
         wtid |= YTF_TCP;
         qfDynClose(&flow->val.tcp);
         qfDynClose(&flow->rval.tcp);
-        qfIatDump(flow->fid, &flow->val.tcp.iat);
-        qfIatDump(flow->fid, &flow->rval.tcp.iat);
         rec.tcpSequenceCount = qfDynSequenceCount(&(flow->val.tcp),
                                 flow->val.iflags & flow->val.uflags);
         rec.reverseTcpSequenceCount = qfDynSequenceCount(&(flow->rval.tcp),
@@ -1028,18 +1026,16 @@ gboolean yfWriteFlow(
         rec.ceMarkCount = flow->val.ecn_ce;
         rec.reverseCeMarkCount = flow->rval.ecn_ce;
         /* Enable RTT export if we have enough samples */
-        if ((flow->val.tcp.dynflags & QF_DYN_RTTVALID) ||
-            (flow->rval.tcp.dynflags & QF_DYN_RTTVALID))
-        {
+        if (flow->val.tcp.rtt.n + flow->rval.tcp.rtt.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
-            rec.maxTcpInflightSize = flow->val.tcp.inflight.max;
-            rec.reverseMaxTcpInflightSize = flow->rval.tcp.inflight.max;
+            rec.maxTcpInflightSize = flow->val.tcp.ack_inflight.max;
+            rec.reverseMaxTcpInflightSize = flow->rval.tcp.ack_inflight.max;
             rec.maxTcpReorderSize = flow->val.tcp.reorder_max;
             rec.reverseMaxTcpReorderSize = flow->val.tcp.reorder_max;
-            rec.lastTcpRttMilliseconds = flow->val.tcp.rtt_est;
-            rec.reverseLastTcpRttMilliseconds = flow->rval.tcp.rtt_est;
-            rec.minTcpRttMilliseconds = flow->val.tcp.rtt_min;
-            rec.reverseMinTcpRttMilliseconds = flow->rval.tcp.rtt_min;
+            rec.meanTcpRttMilliseconds = (uint32_t)flow->val.tcp.rtt.mean;
+            rec.reverseMeanTcpRttMilliseconds = (uint32_t)flow->rval.tcp.rtt.mean;
+            rec.minTcpRttMilliseconds = flow->val.tcp.rtt.min;
+            rec.reverseMinTcpRttMilliseconds = flow->rval.tcp.rtt.min;
         }
     }
     

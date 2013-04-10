@@ -15,12 +15,13 @@
 #define _YAF_SOURCE_
 #include <yaf/qofdyn.h>
 #include <yaf/yaftab.h>
-#include <yaf/qofiat.h>
 
 /** Constant - 2^32 (for sequence number calculations) */
 static const uint64_t k2e32 = 0x100000000ULL;
 
-static const unsigned int kAlpha = 8;
+static const float        kFlightBreakIATDev = 2.0;
+static const uint32_t     kFlightMinSegments = 3;
+
 static const unsigned int kSeqSamplePeriodMs = 1;
 
 static uint32_t qf_dyn_bincap = 0;
@@ -143,7 +144,7 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
     }
     
     /* good to sample, calculate next period */
-    if ((qd->dynflags & QF_DYN_SYNINIT) && (qd->dynflags & QF_DYN_ACKINIT)) {
+    if ((qd->dynflags & QF_DYN_SEQINIT) && (qd->dynflags & QF_DYN_ACKINIT)) {
         qd->sr_period = ((qd->nsn - qd->fan) / qd->mss) / qfSeqRingAvail(&qd->sr);
         if (qd->sr_period) qd->sr_period--;        
     } else {
@@ -232,48 +233,34 @@ static void qfDynRexmit(qfDyn_t     *qd,
     qd->rtx_ct++;
 }
 
+static void qfDynBreakFlight(qfDyn_t    *qd,
+                             uint32_t   iat)
+{
+    if ((qd->seg_iat.n > kFlightMinSegments) &&
+        (iat > (kFlightBreakIATDev * sstStdev(&qd->seg_iat))))
+    {
+        sstLinSmoothAdd(&qd->iatflight, qd->cur_iatflight);
+        qd->cur_iatflight = 0;
+    }
+}
+
 static void qfDynCorrectRTT(qfDyn_t     *qd,
                             uint32_t    seq,
                             uint32_t    oct,
                             uint32_t    ms)
 {
     /* short-circuit if we don't have a pending correction */
-    if (!(qd->dynflags & QF_DYN_RTTCORR)) return;
+    if (!qd->rtt_corr_seq) return;
     
-    /* check to see if we have a segment eligible for correction */
-    if (qfSeqCompare(seq, qd->fan + qd->inflight.mean + qd->mss) > 0) {
-        /* yep, cancel flag and take the min */
-        qd->dynflags &= ~QF_DYN_RTTCORR;
-        if (ms - qd->fanlms < qd->rtt_corr) {
-            qd->rtt_corr = ms - qd->fanlms;
-#if QF_DYN_DEBUG
-            fprintf(stderr, "rttc %u (seq %10u fan %10u ifmean %7.2f) ",
-                    qd->rtt_corr, seq, qd->fan, qd->inflight.mean);
-#endif
+    if (seq >= qd->rtt_corr_seq) {
+        if (qd->rtt_corr < ms - qd->rtt_corr_lms) {
+            qd->rtt_corr = ms - qd->rtt_corr_lms;
         }
-    }
-}
-
-static void qfDynTrackRTT(qfDyn_t   *qd,
-                          uint32_t  irtt)
-{
-    /* add correction factor to raw sample */
-    irtt += qd->rtt_corr;
-    
-    if (qd->rtt_est) {
-        /* moving average */
-        qd->rtt_est = (qd->rtt_est * (kAlpha - 1) + irtt) / kAlpha;
-    } else {
-        /* take initial sample */
-        qd->rtt_est = irtt;
-    }
-
-    /* minimize only if we have a correction term */
-    if (qd->rtt_corr &&
-        (!qd->rtt_min || (qd->rtt_est < qd->rtt_min)))
-    {
-        qd->rtt_min = qd->rtt_est;
-        qd->dynflags |= QF_DYN_RTTVALID; // FIXME might want to be less eager here
+        qd->rtt_corr_seq = 0;
+        qd->rtt_corr_lms = 0;
+#if QF_DYN_DEBUG
+        fprintf(stderr, "rttc %u", qd->rtt_corr);
+#endif
     }
 }
 
@@ -293,7 +280,7 @@ void qfDynSyn(qfDyn_t     *qd,
               uint32_t    ms)
 {
     /* check for duplicate SYN */
-    if (qd->dynflags & QF_DYN_SYNINIT) {
+    if (qd->dynflags & QF_DYN_SEQINIT) {
         // FIXME what to do here?
 #if QF_DYN_DEBUG
         fprintf(stderr, "qd ts %10u seq [%10s   %10u] dupsyn\n", ms, "", seq);
@@ -315,7 +302,7 @@ void qfDynSyn(qfDyn_t     *qd,
     qd->isn = qd->nsn = seq;
     
     /* note we've tracked the SYN */
-    qd->dynflags |= QF_DYN_SYNINIT;
+    qd->dynflags |= QF_DYN_SEQINIT;
 
 #if QF_DYN_DEBUG
     fprintf(stderr, "qd ts %10u seq [%10s   %10u] syn\n", ms, "", seq);
@@ -327,7 +314,8 @@ void qfDynSeq(qfDyn_t     *qd,
               uint32_t    oct,
               uint32_t    ms)
 {
-
+    uint32_t              iat;
+    
 #if QF_DYN_DEBUG
     fprintf(stderr, "qd ts %10u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq, seq + oct);
 #endif
@@ -341,7 +329,7 @@ void qfDynSeq(qfDyn_t     *qd,
     }
     
     /* short circuit on no syn */
-    if (!(qd->dynflags & QF_DYN_SYNINIT)) {
+    if (!(qd->dynflags & QF_DYN_SEQINIT)) {
 #if QF_DYN_DEBUG
         fprintf(stderr, "nosyn\n");
 #endif
@@ -356,9 +344,6 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
     }
     
-    /* update and minimize RTT correction factor if necessary */
-    qfDynCorrectRTT(qd, seq, oct, ms);
-   
     /* track sequence numbers in binmap to detect order/loss */
     if (qfSeqBitsSegmentRtx(&(qd->sb), seq, seq + oct)) {
         qfDynRexmit(qd, seq, ms);
@@ -370,17 +355,24 @@ void qfDynSeq(qfDyn_t     *qd,
     /* advance sequence number if necessary */
     if (qfSeqCompare(seq, qd->nsn) > -1) {
         if (seq + oct < qd->nsn) ++(qd->wrap_ct);
-        qd->nsn = seq + oct;
-        qd->dynflags |= QF_DYN_SEQADV;
+        qd->nsn = seq + oct;          // next expected seq
+        iat = ms - qd->advlms;        // calculate last IAT
+        qd->advlms = ms;              // update time of advance
 #if QF_DYN_DEBUG
         fprintf(stderr, "adv ");
 #endif
         
-        /* update inflight */
-        if (qd->dynflags & QF_DYN_ACKINIT) sstMeanAdd(&qd->inflight, qd->nsn - qd->fan);
+        /* update ack-based inflight */
+        if (qd->dynflags & QF_DYN_ACKINIT) {
+            sstMeanAdd(&qd->ack_inflight, qd->nsn - qd->fan);
+        }
         
-        /* update iat */
-        qfIatSegment(&qd->iat, oct, ms);
+        /* detect iat flight break */
+        sstMeanAdd(&qd->seg_iat, iat);
+        qfDynBreakFlight(qd, iat);
+        
+        /* count octets in this flight */
+        qd->cur_iatflight += oct;
         
         /* take time sample, if necessary */
         if (qfDynSeqSampleP(qd, ms)) {
@@ -390,9 +382,10 @@ void qfDynSeq(qfDyn_t     *qd,
 #endif
         }
         
-    } else {
-        qd->dynflags &= ~QF_DYN_SEQADV;
+        /* update and minimize RTT correction factor if necessary */
+        qfDynCorrectRTT(qd, seq, oct, ms);
         
+    } else {        
         /* update max out of order */
         if ((qd->nsn - seq) > qd->reorder_max) {
             qd->reorder_max = qd->nsn - seq;
@@ -416,7 +409,6 @@ void qfDynAck(qfDyn_t     *qd,
     if (!(qd->dynflags & QF_DYN_ACKINIT)) {
         qd->dynflags |= QF_DYN_ACKINIT;        
         qd->fan = ack;
-        qd->fanlms = ms;
         qd->rtt_corr = UINT32_MAX;
 #if QF_DYN_DEBUG
         fprintf(stderr, "qd ts %u synack %10u\n", ms, ack);
@@ -424,22 +416,28 @@ void qfDynAck(qfDyn_t     *qd,
     } else if (qfSeqCompare(ack, qd->fan) > 0) {
         /* advance ack number */
         qd->fan = ack;
-        qd->fanlms = ms;
  
 #if QF_DYN_DEBUG
         fprintf(stderr, "qd ts %u    ack %10u ", ms, ack);
 #endif
         
-        /* sample RTT */
+        /* do RTT stuff if enabled */
         if (qfDynHasSeqring(qd)) {
+            /* sample RTT */
             irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
             if (irtt) {
-                qfDynTrackRTT(qd, irtt);
+                sstMeanAdd(&qd->rtt, irtt + qd->rtt_corr);
 #if QF_DYN_DEBUG
-                fprintf(stderr, "irtt %u ", irtt);
+                fprintf(stderr, "irtt %u rtt %6.2u", irtt, qd->rtt.mean);
 #endif
             }
-            qd->dynflags |= QF_DYN_RTTCORR;
+
+            /* prepare to get next backside RTT if necessary */
+            if (!qd->rtt_corr_seq) {
+                /* expected sequence number based on IAT flight size */
+                qd->rtt_corr_seq = qd->fan + qd->iatflight.val;
+                qd->rtt_corr_lms = ms;
+            }
         }        
 #if QF_DYN_DEBUG
         fprintf(stderr, "\n");
@@ -453,9 +451,9 @@ void qfDynClose(qfDyn_t *qd) {
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
     uint64_t sc = qd->nsn - qd->isn + (k2e32 * qd->wrap_ct);
-    if (sc) sc -= 1; /* remove one: nsn is the next expected sequence number */
-    if (sc & (flags & YF_TF_SYN) && sc) sc -= 1; /* remove one for the syn */
-    if (sc & (flags & YF_TF_FIN) && sc) sc -= 1; /* remove one for the fin */
+    if (sc) sc -= 1; // remove one: nsn is the next expected sequence number
+    if (sc & (flags & YF_TF_SYN) && sc) sc -= 1; // remove one for the syn
+    if (sc & (flags & YF_TF_FIN) && sc) sc -= 1; // remove one for the fin
 #if QF_DYN_DEBUG
     fprintf(stderr, "qd seqcount (isn %10u nsn %10u wrap %u) %llu\n", qd->isn, qd->nsn, qd->wrap_ct, sc);
 #endif

@@ -80,7 +80,7 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
  * TCP dynamics structure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define QF_DYN_SYNINIT      0x00000001 /* first sequence number seen */
+#define QF_DYN_SEQINIT      0x00000001 /* first sequence number seen */
 #define QF_DYN_ACKINIT      0x00000002 /* first ack seen */
 #define QF_DYN_SEQADV       0x00000004 /* SEQ advanced on last operation */
 #define QF_DYN_RTTCORR      0x00000010 /* ACK advanced, update rtt_corr */
@@ -93,30 +93,36 @@ typedef struct qfDyn_st {
     qfSeqRing_t     sr;
     uint16_t        sr_skip;
     uint16_t        sr_period;
-    /* Inflight tracking */
-    sstMean_t          inflight;
-    /* Interarrival time tracking */
-    qfIat_t         iat;
+    /* SEQ/ACK inflight tracking */
+    sstMean_t       ack_inflight;
+    /* Non-empty segment interarrival time tracking */
+    sstMean_t       seg_iat;
+    /* Smoothed IAT flight size series */
+    sstLinSmooth_t  iatflight;
+    /* Current IAT flight size */
+    uint32_t        cur_iatflight;
+    /* Mean/min/max RTT */
+    sstMean_t       rtt;
+    /* RTT correction factor (minimum observed "backside RTT") */
+    uint32_t        rtt_corr;
+    /* Sequence number on which to calculate next backside RTT  */
+    uint32_t        rtt_corr_seq;
+    /* Time at which ACK for next backside RTT calculation was seen  */
+    uint32_t        rtt_corr_lms;
     /* Initial sequence number */
     uint32_t        isn;
     /* Next sequence number expected */
     uint32_t        nsn;
+    /* Timestamp of last sequence number advance */
+    uint32_t        advlms;
     /* Final acknowledgment number observed */
     uint32_t        fan;
-    /* Timestamp of final acknowledgment number observed (epoch ms mod 2^32) */
-    uint32_t        fanlms;
     /* Sequence number space wraparound count */
     uint32_t        wrap_ct;
     /* Detected retransmitted segment count */
     uint32_t        rtx_ct;
     /* Maxumum observed reordering (nsn - seq) */
     uint32_t        reorder_max;
-    /* Current estimated TCP RTT */
-    uint32_t        rtt_est;
-    /* Minimum estimated TCP RTT */
-    uint32_t        rtt_min;
-    /* RTT correction factor (minimum observed "backside RTT") */
-    uint32_t        rtt_corr;
     /* Observed maximum segment size */
     uint16_t        mss;
     /* Declared (via tcp option) maximum segment size */
