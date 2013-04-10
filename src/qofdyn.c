@@ -293,13 +293,14 @@ static void qfDynMeasureRTT  (qfDyn_t     *qd,
                               uint32_t    ms)
 {
     uint32_t irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
-    if (irtt) {
-        if (qd->rtt_corr < UINT32_MAX) irtt += qd->rtt_corr;
-        sstMeanAdd(&qd->rtt, irtt);
+    if (!irtt) return;
+    if (qd->rtt_corr == UINT32_MAX) return;
+    
+    irtt += qd->rtt_corr;
+    sstMeanAdd(&qd->rtt, irtt);
 #if QF_DYN_DEBUG
-        fprintf(stderr, "rtt %u mean %6.2f ", irtt, qd->rtt.mean);
+    fprintf(stderr, "rtt %u mean %6.2f ", irtt, qd->rtt.mean);
 #endif
-    }
 }
 
 
@@ -444,7 +445,6 @@ void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
               uint32_t    ms)
 {
-    uint32_t irtt;
     
 #if QF_DYN_DEBUG
     fprintf(stderr, "qd ts %u    ack %10u ", ms, ack);
