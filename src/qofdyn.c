@@ -312,6 +312,7 @@ void qfDynConfig(uint32_t bincap, uint32_t binscale, uint32_t ringcap) {
 void qfDynFree(qfDyn_t      *qd)
 {
     qfSeqRingFree(&qd->sr);
+    qfSeqBitsFree(&qd->sb);
 }
 
 void qfDynSyn(qfDyn_t     *qd,
