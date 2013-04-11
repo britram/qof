@@ -181,8 +181,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseCeMarkCount",                 4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
-    { "maxTcpInflightSize",                 4, YTF_RTT },
-    { "reverseMaxTcpInflightSize",          4, YTF_RTT },
+    { "maxTcpFlightSize",                 4, YTF_RTT },
+    { "reverseMaxTcpFlightSize",          4, YTF_RTT },
     { "maxTcpReorderSize",                  4, YTF_RTT },
     { "reverseMaxTcpReorderSize",           4, YTF_RTT },
     { "meanTcpRttMilliseconds",             2, YTF_RTT },
@@ -278,8 +278,8 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseCeMarkCount;
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
-    uint32_t    maxTcpInflightSize;
-    uint32_t    reverseMaxTcpInflightSize;
+    uint32_t    maxTcpFlightSize;
+    uint32_t    reverseMaxTcpFlightSize;
     uint32_t    maxTcpReorderSize;
     uint32_t    reverseMaxTcpReorderSize;
     uint16_t    meanTcpRttMilliseconds;
@@ -405,8 +405,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseCeMarkCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceNumber,1);
-    RUN_CHECKS(yfIpfixFlow_t,maxTcpInflightSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpInflightSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);
     RUN_CHECKS(yfIpfixFlow_t,maxTcpReorderSize,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpReorderSize,1);
     RUN_CHECKS(yfIpfixFlow_t,meanTcpRttMilliseconds,1);
@@ -1028,8 +1028,8 @@ gboolean yfWriteFlow(
         /* Enable RTT export if we have enough samples */
         if (flow->val.tcp.rtt.n + flow->rval.tcp.rtt.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
-            rec.maxTcpInflightSize = flow->val.tcp.ack_inflight.max;
-            rec.reverseMaxTcpInflightSize = flow->rval.tcp.ack_inflight.max;
+            rec.maxTcpFlightSize = flow->val.tcp.iatflight.max;
+            rec.reverseMaxTcpFlightSize = flow->rval.tcp.iatflight.max;
             rec.maxTcpReorderSize = flow->val.tcp.reorder_max;
             rec.reverseMaxTcpReorderSize = flow->val.tcp.reorder_max;
             rec.meanTcpRttMilliseconds = (uint32_t)flow->val.tcp.rtt.mean;
@@ -1040,6 +1040,8 @@ gboolean yfWriteFlow(
     }
     
     /* MAC layer information */
+    /* FIXME remove MAC mode; this is completely handled
+       by the template stuff in qofctx. */
     if (ctx->cfg->macmode) {
         wtid |= YTF_MAC;
         memcpy(rec.sourceMacAddress, flow->sourceMacAddr,

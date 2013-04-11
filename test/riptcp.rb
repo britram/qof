@@ -34,7 +34,12 @@ def fixread(c)
     # iterate over records
     c.each do |h, m|
         # skip if no rtt information
-        unless h[:meanTcpRttMilliseconds]
+        unless (h[:meanTcpRttMilliseconds] || h[:reverseMeanTcpRttMilliseconds])
+          next
+        end
+        
+        # skip small flows
+        unless (h[:initiatorPackets] + h[:responderPackets]) > 66
           next
         end
         
@@ -49,7 +54,7 @@ def fixread(c)
             h[:tcpRetransmitCount],
             h[:tcpSequenceLossCount],
             h[:maxTcpReorderSize],
-            h[:maxTcpInflightSize],
+            h[:maxTcpFlightSize],
             h[:minTcpRttMilliseconds],
             h[:meanTcpRttMilliseconds],
             h[:observedTcpMss],
@@ -68,7 +73,7 @@ def fixread(c)
             h[:reverseTcpRetransmitCount],
             h[:reverseTcpSequenceLossCount],
             h[:reverseMaxTcpReorderSize],
-            h[:reverseMaxTcpInflightSize],
+            h[:reverseMaxTcpFlightSize],
             h[:reverseMinTcpRttMilliseconds],
             h[:reverseMeanTcpRttMilliseconds],
             h[:reverseObservedTcpMss],
