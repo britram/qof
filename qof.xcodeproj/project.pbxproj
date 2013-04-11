@@ -75,6 +75,7 @@
 		D39F27671703AB4C00089492 /* qofdyn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdyn.h; sourceTree = "<group>"; };
 		D39F5C32170CDE480094B103 /* libtrace.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtrace.3.dylib; path = ../../opt/lib/libtrace.3.dylib; sourceTree = "<group>"; };
 		D39F5C34170D03150094B103 /* IANA_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IANA_IE.h; sourceTree = "<group>"; };
+		D3CCBE961716AF06006C25EB /* qofconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofconfig.c; sourceTree = "<group>"; };
 		D3D3887C16F8258B002B85A4 /* qof.iespec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = qof.iespec; sourceTree = "<group>"; };
 		D3D91D8016EE7F9E00748C63 /* qof-test.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "qof-test.yaml"; sourceTree = "<group>"; };
 		D3E1B1C316E4EBD200C5D50C /* riptcp.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = riptcp.rb; sourceTree = "<group>"; };
@@ -251,6 +252,7 @@
 				F51922371672388F00514165 /* yafstat.c */,
 				F51922381672388F00514165 /* yafstat.h */,
 				F51922391672388F00514165 /* yaftab.c */,
+				D3CCBE961716AF06006C25EB /* qofconfig.c */,
 				F519222A1672388F00514165 /* qofctx.h */,
 				F52331DA16BC130400A3FA81 /* qofctx.c */,
 				D306F28D1701436C00FE09F5 /* qofdyn.c */,

@@ -25,7 +25,7 @@ static const uint32_t     kFlightMinSegments = 10;
 static const unsigned int kSeqSamplePeriodMs = 1;
 
 static uint32_t qf_dyn_bincap = 0;
-static uint32_t qf_dyn_binscale = 0;
+static uint32_t qf_dyn_binscale = 1;
 static uint32_t qf_dyn_ringcap = 0;
 
 static uint64_t qf_dyn_stat_ringover = 0;
@@ -303,8 +303,7 @@ static void qfDynMeasureRTT  (qfDyn_t     *qd,
 #endif
 }
 
-
-void qfDynSetParams(uint32_t bincap, uint32_t binscale, uint32_t ringcap) {
+void qfDynConfig(uint32_t bincap, uint32_t binscale, uint32_t ringcap) {
     qf_dyn_bincap = bincap;
     qf_dyn_binscale = binscale;
     qf_dyn_ringcap = ringcap;

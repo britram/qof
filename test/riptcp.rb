@@ -39,9 +39,9 @@ def fixread(c)
         end
         
         # skip small flows
-        unless (h[:initiatorPackets] + h[:responderPackets]) > 66
-          next
-        end
+        #unless (h[:initiatorPackets] + h[:responderPackets]) > 66
+        #  next
+        #end
         
         if h[:octetDeltaCount] > 0
           puts [

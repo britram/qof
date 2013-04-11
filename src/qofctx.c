@@ -22,7 +22,7 @@
 
 #include "qofctx.h"
 
-static gboolean qfYamlError(GError                  **err,
+static gboolean qfYamlError(GError              **err,
                         const yaml_parser_t     *parser,
                         const char              *filename,
                         const char              *errmsg)
@@ -395,7 +395,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                         return qfYamlError(err, &parser, filename,
                                            "missing rtt-capacity");                        
                     }
-                    qfDynSetParams(qdbincap, qdbinscale, qdringcap);
+                    qfDynConfig(qdbincap, qdbinscale, qdringcap);
                     qcpstate = QCP_IN_DOC_MAP;
                     break;
                 }

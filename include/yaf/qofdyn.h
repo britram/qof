@@ -147,7 +147,9 @@ void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
               uint32_t    ms);
 
-void qfDynSetParams(uint32_t bincap, uint32_t binscale, uint32_t ringcap);
+void qfDynConfig(uint32_t bincap,
+                 uint32_t binscale,
+                 uint32_t ringcap);
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags);
 
