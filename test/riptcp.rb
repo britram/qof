@@ -59,7 +59,7 @@ def fixread(c)
             h[:meanTcpRttMilliseconds],
             h[:observedTcpMss],
             h[:minimumTTL],
-            h[:maximumTTL]].map { |s| s = 0 unless s; "%7u"%(s) }.join(", ")
+            h[:maximumTTL]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
         end
         
         if h[:reverseOctetDeltaCount] > 0
@@ -78,7 +78,7 @@ def fixread(c)
             h[:reverseMeanTcpRttMilliseconds],
             h[:reverseObservedTcpMss],
             h[:reverseMinimumTTL],
-            h[:reverseMaximumTTL]].map { |s| "%7u"%(s) }.join(", ")
+            h[:reverseMaximumTTL]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
         end
     end
 end
