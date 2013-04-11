@@ -29,12 +29,12 @@ typedef qfConfig_st {
     gboolean    enable_silk;    // SiLK compatibility mode
     gboolean    enable_gre;     // GRE decap mode
     /* Flow state configuration */
-    uint32_t    active_timeout;
-    uint32_t    idle_timeout;
+    uint32_t    ato_ms;
+    uint32_t    ito_ms;
     uint32_t    max_flowtab;
     uint32_t    max_fragtab;
-    uint64_t    max_flow_packets; // max packet count to force ATO (silk mode)
-    uint64_t    max_flow_octets;  // max octet count to force ATO  (silk mode)
+    uint64_t    max_flow_pkt;     // max packet count to force ATO (silk mode)
+    uint64_t    max_flow_oct;     // max octet count to force ATO  (silk mode)
     uint32_t    ato_rtt_multiple; // multiple of RTT to force ATO
     /* TCP dynamics state configuration */
     uint32_t    rtt_samples;

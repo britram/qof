@@ -384,11 +384,13 @@ void qfDynSeq(qfDyn_t     *qd,
     }
     
     /* track sequence numbers in binmap to detect order/loss */
-    if (qfSeqBitsSegmentRtx(&(qd->sb), seq, seq + oct)) {
-        qfDynRexmit(qd, seq, ms);
-#if QF_DYN_DEBUG
-        fprintf(stderr, "rexmit ");
-#endif
+    if (qfDynHasSeqbits(qd)) {
+        if (qfSeqBitsSegmentRtx(&(qd->sb), seq, seq + oct)) {
+            qfDynRexmit(qd, seq, ms);
+    #if QF_DYN_DEBUG
+            fprintf(stderr, "rexmit ");
+    #endif
+        }
     }
     
     /* advance sequence number if necessary */
@@ -406,25 +408,28 @@ void qfDynSeq(qfDyn_t     *qd,
             sstMeanAdd(&qd->ack_inflight, qd->nsn - qd->fan);
         }
         
-        /* detect iat flight break */
-        sstMeanAdd(&qd->seg_iat, iat);
-        if (qfDynBreakFlight(qd, iat)) {
+        /* do RTT stuff if enabled */
+        if (qfDynHasSeqring(qd)) {
+            /* detect iat flight break */
+            sstMeanAdd(&qd->seg_iat, iat);
+            if (qfDynBreakFlight(qd, iat)) {
+                
+            }
             
+            /* count octets in this flight */
+            qd->cur_iatflight += oct;
+            
+            /* take time sample, if necessary */
+            if (qfDynSeqSampleP(qd, ms)) {
+                qfSeqRingAddSample(&(qd->sr), qd->nsn, ms);
+    #if QF_DYN_DEBUG
+                fprintf(stderr, "rtts ");
+    #endif
+            }
+            
+            /* update and minimize RTT correction factor if necessary */
+            qfDynCorrRTT(qd, seq, oct, ms);
         }
-        
-        /* count octets in this flight */
-        qd->cur_iatflight += oct;
-        
-        /* take time sample, if necessary */
-        if (qfDynSeqSampleP(qd, ms)) {
-            qfSeqRingAddSample(&(qd->sr), qd->nsn, ms);
-#if QF_DYN_DEBUG
-            fprintf(stderr, "rtts ");
-#endif
-        }
-        
-        /* update and minimize RTT correction factor if necessary */
-        qfDynCorrRTT(qd, seq, oct, ms);
         
     } else {        
         /* update max out of order */
@@ -460,7 +465,6 @@ void qfDynAck(qfDyn_t     *qd,
     } else if (qfSeqCompare(ack, qd->fan) > 0) {
         /* advance ack number */
         qd->fan = ack;
- 
         
         /* do RTT stuff if enabled */
         if (qfDynHasSeqring(qd)) {
