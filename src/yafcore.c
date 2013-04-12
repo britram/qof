@@ -1012,6 +1012,8 @@ gboolean yfWriteFlow(
         rec.tcpRetransmitCount = flow->val.tcp.rtx_ct;
         rec.reverseTcpRetransmitCount = flow->rval.tcp.rtx_ct;
         rec.tcpSequenceNumber = flow->val.tcp.isn;
+        rec.maxTcpReorderSize = flow->val.tcp.reorder_max;
+        rec.reverseMaxTcpReorderSize = flow->rval.tcp.reorder_max;
         rec.reverseTcpSequenceNumber = flow->rval.tcp.isn;
         rec.initialTCPFlags = flow->val.iflags;
         rec.reverseInitialTCPFlags = flow->rval.iflags;
@@ -1030,8 +1032,6 @@ gboolean yfWriteFlow(
             wtid |= YTF_RTT;
             rec.maxTcpFlightSize = flow->val.tcp.iatflight.max;
             rec.reverseMaxTcpFlightSize = flow->rval.tcp.iatflight.max;
-            rec.maxTcpReorderSize = flow->val.tcp.reorder_max;
-            rec.reverseMaxTcpReorderSize = flow->val.tcp.reorder_max;
             rec.meanTcpRttMilliseconds = (uint32_t)flow->val.tcp.rtt.mean;
             rec.reverseMeanTcpRttMilliseconds = (uint32_t)flow->rval.tcp.rtt.mean;
             rec.minTcpRttMilliseconds = flow->val.tcp.rtt.min;
