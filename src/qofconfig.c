@@ -165,6 +165,40 @@ static gboolean qfYamlParseValue(yaml_parser_t      *parser,
     return TRUE;
 }
 
+static gboolean qfYamlParseU32(yaml_parser_t      *parser,
+                                  uint32_t           *val,
+                                  GError             **err)
+{
+    char valbuf[VALBUF_SIZE];
+    
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+
+}
+
+static gboolean qfYamlParseU64(yaml_parser_t      *parser,
+                                  uint32_t           *val,
+                                  GError             **err)
+{
+    
+}
+
+static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
+                                      uint32_t           *addr,
+                                      unsigned int       *mask,
+                                      GError             **err)
+{
+    
+}
+
+static gboolean qfYamlParsePrefixedV6(yaml_parser_t      *parser,
+                                      uint32_t           *addr,
+                                      unsigned int       *mask,
+                                      GError             **err)
+{
+    
+}
+
+
 static gboolean qfYamlTemplate(qfConfig_t       *cfg,
                                yaml_parser_t    *parser,
                                GError           **err)
