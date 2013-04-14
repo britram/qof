@@ -360,7 +360,7 @@ if test "x$withval" != "xno"; then
     AC_CHECK_LIB(trace, trace_create,[
         AC_DEFINE(YAF_ENABLE_LIBTRACE, 1, [Define to 1 to enable libtrace support])
         AC_SUBST(YAF_HAS_LIBTRACE, [1])
-        LIBS="-ltrace -lwandio ${LIBS}"
+        LIBS="-ltrace ${LIBS}"
         RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace"
         OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${LIBS}|"
     ],[

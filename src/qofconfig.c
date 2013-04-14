@@ -20,6 +20,7 @@
 
 #include <yaml.h>
 
+#define VALBUF_SIZE 256
 
 typedef qfConfig_st {
     /* Template */
@@ -166,13 +167,17 @@ static gboolean qfYamlParseValue(yaml_parser_t      *parser,
 }
 
 static gboolean qfYamlParseU32(yaml_parser_t      *parser,
-                                  uint32_t           *val,
-                                  GError             **err)
+                                  uint32_t        *val,
+                                  GError          **err)
 {
     char valbuf[VALBUF_SIZE];
+    int rv;
     
     if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
 
+    if (sscanf(valbuf, "%u", val) < 1) {
+        qfYamlError(err, parser, "expected integer value");
+    }
 }
 
 static gboolean qfYamlParseU64(yaml_parser_t      *parser,
