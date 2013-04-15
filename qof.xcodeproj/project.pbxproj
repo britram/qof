@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		D306F28E1701436C00FE09F5 /* qofdyn.c in Sources */ = {isa = PBXBuildFile; fileRef = D306F28D1701436C00FE09F5 /* qofdyn.c */; };
 		D3282A631709703600B2ABA4 /* bitmap.c in Sources */ = {isa = PBXBuildFile; fileRef = D3282A601708CF2100B2ABA4 /* bitmap.c */; };
+		D377338E171CA875004FF28F /* qofconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = D3CCBE961716AF06006C25EB /* qofconfig.c */; };
 		D38872B716946DDF00E66A70 /* qofifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922211672388F00514165 /* qofifmap.c */; };
 		D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EADBDC170BDDEC006FE1FE /* qofltrace.c */; };
 		D39F5C33170CDE480094B103 /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
@@ -516,6 +517,7 @@
 				D3282A631709703600B2ABA4 /* bitmap.c in Sources */,
 				D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */,
 				D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */,
+				D377338E171CA875004FF28F /* qofconfig.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
