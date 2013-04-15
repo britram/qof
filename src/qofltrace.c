@@ -166,7 +166,7 @@ gboolean qfTraceMain(yfContext_t             *ctx)
             return FALSE;
         }
         
-        if (trace_config(lts->trace, TRACE_OPTION_SNAPLEN, lts->filter) == -1) {
+        if (trace_config(lts->trace, TRACE_OPTION_FILTER, lts->filter) == -1) {
             terr = trace_get_err(lts->trace);
             g_warning("Could not set libtrace filter: %s", terr.problem);
             return FALSE;
