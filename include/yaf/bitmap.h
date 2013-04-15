@@ -46,6 +46,8 @@ void            bimFree(bimBitmap_t *bitmap);
 
 bimIntersect_t  bimTestAndSetRange(bimBitmap_t *bitmap, uint32_t a, uint32_t b);
 
+unsigned int    bimTestBit(bimBitmap_t *bitmap, uint32_t a);
+
 unsigned int    bimCountSet(uint64_t v);
 
 unsigned int    bimHighBitSet(uint64_t v);

@@ -67,11 +67,17 @@ typedef struct qfSeqBits_st {
     uint32_t        lostseq_ct;
 } qfSeqBits_t;
 
+typedef enum {
+    QF_SEQ_INORDER,
+    QF_SEQ_REORDER,
+    QF_SEQ_REXMIT
+} qfSeqStat_t;
+
 void qfSeqBitsInit(qfSeqBits_t *sb, uint32_t capacity, uint32_t scale);
 
 void qfSeqBitsFree(qfSeqBits_t *sb);
 
-int qfSeqBitsSegmentRtx(qfSeqBits_t *sb, uint32_t aseq, uint32_t bseq);
+qfSeqStat_t qfSeqBitsSegment(qfSeqBits_t *sb, uint32_t aseq, uint32_t bseq);
 
 void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
 
@@ -120,6 +126,8 @@ typedef struct qfDyn_st {
     uint32_t        wrap_ct;
     /* Detected retransmitted segment count */
     uint32_t        rtx_ct;
+    /* Detected reordered segment count */
+    uint32_t        reorder_ct;
     /* Maxumum observed reordering (nsn - seq) */
     uint32_t        reorder_max;
     /* Observed maximum segment size */

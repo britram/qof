@@ -226,6 +226,16 @@ bimIntersect_t  bimTestAndSetRange(bimBitmap_t *bitmap, uint32_t a, uint32_t b) 
     return res;
 }
 
+unsigned int    bimTestBit(bimBitmap_t *bitmap, uint32_t a) {
+    uint32_t        i;
+    
+    /* compute index */
+    i = (bitmap->base + (a / k64Bits)) % bitmap->sz;
+    a %= k64Bits;
+    
+    return bitmap->v[i] & bimBit[a] ? 1 : 0;
+}
+
 uint64_t bimShiftDown(bimBitmap_t *bitmap) {
     uint64_t v = bitmap->v[bitmap->base];
     bitmap->v[bitmap->base] = 0;

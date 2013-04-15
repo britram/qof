@@ -166,22 +166,20 @@ void qfSeqBitsFree(qfSeqBits_t *sb) {
 
 static int qfDynHasSeqbits(qfDyn_t *qd) { return qd->sb.map.v != 0; }
 
-int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
-                        uint32_t aseq, uint32_t bseq)
-{
+qfSeqStat_t qfSeqBitsSegment(qfSeqBits_t *sb, uint32_t aseq, uint32_t bseq) {
     bimIntersect_t brv;
     uint32_t seqcap, maxseq;
     uint64_t bits;
     
     /* short-circuit on no seqbits */
-    if (!sb) return 0;
+    if (!sb) return QF_SEQ_INORDER;
     
     /* set seqbase on first segment */
     if (!sb->seqbase) {
         sb->seqbase = (aseq / sb->scale) * sb->scale;
     }
     
-    /* move range forward if necessary to cover EOR */
+    /* move range forward if necessary to cover last sn, noting loss */
     seqcap = sb->map.sz * k64Bits * sb->scale;
     maxseq = sb->seqbase + seqcap;
     while (qfSeqCompare(bseq, maxseq) > 0) {
@@ -195,7 +193,7 @@ int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
     }
     
     /* entire range already seen (or rotated past): signal retransmission */
-    if (qfSeqCompare(bseq, sb->seqbase) < 0) return 1;
+    if (qfSeqCompare(bseq, sb->seqbase) < 0) return QF_SEQ_REXMIT;
     
     /* clip overlapping bottom of range */
     if (qfSeqCompare(aseq, sb->seqbase) < 0) aseq = sb->seqbase;
@@ -206,9 +204,15 @@ int qfSeqBitsSegmentRtx(qfSeqBits_t *sb,
     
     /* translate intersection to retransmission detect */
     if (brv == BIM_PART || brv == BIM_FULL) {
-        return 1;
+        return QF_SEQ_REXMIT; // partial intersection -> retransmission
+    } else if (brv == BIM_START || brv == BIM_EDGE) {
+        return QF_SEQ_INORDER; // overlap at start or both sides -> inorder
+    } else if (((aseq - sb->seqbase)/sb->scale) == 0) {
+        return QF_SEQ_INORDER; // beginning of range -> presumed inorder
+    } else if (bimTestBit(&sb->map, (aseq - sb->seqbase)/sb->scale) - 1) {
+        return QF_SEQ_INORDER; // previous bit set -> inorder
     } else {
-        return 0;
+        return QF_SEQ_REORDER; // otherwise reordered
     }
 }
 
@@ -232,6 +236,15 @@ static void qfDynRexmit(qfDyn_t     *qd,
     /* increment retransmit counter */
     qd->rtx_ct++;
 }
+
+static void qfDynReorder(qfDyn_t     *qd,
+                         uint32_t    seq,
+                         uint64_t    ms)
+{
+    /* increment reorder counter */
+    qd->reorder_ct++;
+}
+
 
 static int qfDynBreakFlight(qfDyn_t    *qd,
                              uint32_t   iat)
@@ -356,6 +369,7 @@ void qfDynSeq(qfDyn_t     *qd,
               uint32_t    ms)
 {
     uint32_t              iat;
+    qfSeqStat_t           seqstat;
     
 #if QF_DYN_DEBUG
     fprintf(stderr, "qd ts %10u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq, seq + oct);
@@ -387,12 +401,20 @@ void qfDynSeq(qfDyn_t     *qd,
     
     /* track sequence numbers in binmap to detect order/loss */
     if (qfDynHasSeqbits(qd)) {
-        if (qfSeqBitsSegmentRtx(&(qd->sb), seq, seq + oct)) {
+        seqstat = qfSeqBitsSegment(&(qd->sb), seq, seq + oct);
+        if (seqstat == QF_SEQ_REXMIT) {
             qfDynRexmit(qd, seq, ms);
-    #if QF_DYN_DEBUG
+#if QF_DYN_DEBUG
             fprintf(stderr, "rexmit ");
-    #endif
+#endif
+        } else if (seqstat == QF_SEQ_REORDER) {
+            qfDynReorder(qd, seq, ms);
+#if QF_DYN_DEBUG
+            fprintf(stderr, "ooo ");
+#endif
         }
+    } else {
+        seqstat = QF_SEQ_INORDER; // presume in order
     }
     
     /* advance sequence number if necessary */
@@ -414,9 +436,7 @@ void qfDynSeq(qfDyn_t     *qd,
         if (qfDynHasSeqring(qd)) {
             /* detect iat flight break */
             sstMeanAdd(&qd->seg_iat, iat);
-            if (qfDynBreakFlight(qd, iat)) {
-                // FIXME what to do in case of flight break?
-            }
+            if (seqstat == QF_SEQ_INORDER) qfDynBreakFlight(qd, iat);
             
             /* count octets in this flight */
             qd->cur_iatflight += oct;
