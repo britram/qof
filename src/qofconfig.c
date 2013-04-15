@@ -27,7 +27,7 @@ typedef qfConfig_st {
     /* Template */
     // FIXME how to specify template?
     /* Features enabled by template selection */
-    gboolean    enable_biflow;  // RFC5103 biflow export
+    gboolean    enable_biflow;  // RFC5103 biflow export 
     gboolean    enable_ipv4     // IPv4 address export (false = map v4 to v6)
     gboolean    enable_ipv6     // IPv6 address export (false = drop v6)
     gboolean    enable_mac;     // store MAC addresses and vlan tags
@@ -61,16 +61,49 @@ typedef enum {
     QF_CONFIG_U32,
     QF_CONFIG_U64,
     QF_CONFIG_BOOL,
-    QF_CONFIG_FUNC,
 } qfConfigKeyType_t;
 
 typedef struct qfConfigKeyAction_st {
     char                *key;
-    void                *vp;
+    size_t              off;
     qfConfigKeyType_t   vt;
 } qfConfigKeyAction_t;
 
-typedef (gboolean) *qfConfigParseFn(qfConfig_t*, yaml_parser_t*, GError**);
+#define CFG_OFF(_F_) offsetof(qfConfig_t, _F_)
+
+static qfConfigKeyAction_t cfg_key_actions[] = {
+    {"active-timeout",         CFG_OFF(ato_ms), QF_CONFIG_U32},
+    {"idle-timeout",           CFG_OFF(ito_ms), QF_CONFIG_U32},
+    {"max-flows",              CFG_OFF(max_flowtab), QF_CONFIG_U32},
+    {"max-frags",              CFG_OFF(max_fragtab), QF_CONFIG_U32},
+    {"active-timeout-octets",  CFG_OFF(max_flow_oct), QF_CONFIG_U64},
+    {"active-timeout-packets", CFG_OFF(max_flow_pkt), QF_CONFIG_U64},
+    {"active-timeout-rtts",    CFG_OFF(ato_rtts), QF_CONFIG_U32},
+    {"rtx-span",               CFG_OFF(rtx_span), QF_CONFIG_U32},
+    {"rtx-scale",              CFG_OFF(rtx_scale), QF_CONFIG_U32},
+    {"rtt-samples",            CFG_OFF(rtt_samples), QF_CONFIG_U32},
+    {"gre-decap",              CFG_OFF(enable_gre), QF_CONFIG_BOOL},
+    {"silk-compatible",        CFG_OFF(enable_silk), QF_CONFIG_BOOL},
+    {NULL, NULL, QF_CONFIG_NOTYPE}
+}
+
+static qfConfigKeyAction_t cfg_ie_features[] = {
+    {"sourceIPv4Address",       CFG_OFF(enable_ipv4), QF_CONFIG_BOOL},
+    {"destinationIPv4Address",  CFG_OFF(enable_ipv4), QF_CONFIG_BOOL},
+    {"sourceIPv6Address",       CFG_OFF(enable_ipv6), QF_CONFIG_BOOL},
+    {"destinationIPv6Address",  CFG_OFF(enable_ipv6), QF_CONFIG_BOOL},
+    {"sourceMacAddress",        CFG_OFF(enable_mac), QF_CONFIG_BOOL},
+    {"destinationMacAddress",   CFG_OFF(enable_mac), QF_CONFIG_BOOL},
+    {"vlanId",                  CFG_OFF(enable_mac), QF_CONFIG_BOOL},
+    {"tcpSequenceCount",        CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
+    {"maxTcpReorderSize",       CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
+    {"tcpSequenceLossCount",    CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
+    {"tcpRetransmitCount",      CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
+    {"minTcpRttMilliseconds",   CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
+    {"meanTcpRttMilliseconds",  CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
+    {"maxTcpFlightSize",        CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
+    {NULL, NULL, QF_CONFIG_NOTYPE}
+}
 
 static gboolean qfYamlError(GError                  **err,
                             const yaml_parser_t     *parser,
@@ -217,7 +250,7 @@ static gboolean qfYamlParseU64(yaml_parser_t      *parser,
 
 static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
                                       uint32_t           *addr,
-                                      unsigned int       *mask,
+                                      uint8_t            *mask,
                                       GError             **err)
 {
     char valbuf[VALBUF_SIZE];
@@ -226,7 +259,7 @@ static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
     
     if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
     
-    rv = sscanf(valbuf, "%15[0-9.]/%u", addrbuf, mask));
+    rv = sscanf(valbuf, "%15[0-9.]/%hhu", addrbuf, mask));
     if (rv < 1) {
         return qfYamlError(err, parser, "expected IPv4 address");        
     } else if (rv == 1) {
@@ -245,7 +278,7 @@ static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
 
 static gboolean qfYamlParsePrefixedV6(yaml_parser_t      *parser,
                                       uint32_t           *addr,
-                                      unsigned int       *mask,
+                                      uint8_t            *mask,
                                       GError             **err)
 {
     char valbuf[VALBUF_SIZE];
@@ -254,7 +287,7 @@ static gboolean qfYamlParsePrefixedV6(yaml_parser_t      *parser,
     
     if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
     
-    rv = sscanf(valbuf, "%39[0-9a-fA-F:.]/%u", addrbuf, mask));
+    rv = sscanf(valbuf, "%39[0-9a-fA-F:.]/%hhu", addrbuf, mask));
     if (rv < 1) {
         return qfYamlError(err, parser, "expected IPv6 address");
     } else if (rv == 1) {
@@ -296,11 +329,10 @@ static gboolean qfYamlTemplate(qfConfig_t       *cfg,
 {
     char valbuf[VALBUF_SIZE];
     
-    /* consume events to get us into the template list */
+    /* consume sequence start for template list */
     if (!qfYamlRequireEvent(parser, YAML_SEQUENCE_START_EVENT)) return FALSE;
 
     while (qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) {
-        // FIXME add logic to search a list of enable-able things
         
     }
 
@@ -311,11 +343,49 @@ static gboolean qfYamlTemplate(qfConfig_t       *cfg,
     return TRUE;
 }
 
+static gboolean qfYamlParseMapEntry(yaml_parser_t *parser,
+                                    uint32_t        *v4addr,
+                                    uint8_t         *v4mask,
+                                    uint8_t         *v6addr,
+                                    uint8_t         *v6mask,
+                                    uint8_t         *ingress,
+                                    uint8_t         *egress)
+{
+    // FIXME code goes here
+}
+
 static gboolean qfYamlInterfaceMap(qfConfig_t       *cfg,
                                    yaml_parser_t    *parser,
                                    GError           **err)
 {
-
+    uint32_t    v4addr = 0;
+    uint8_t     v6addr[16];
+    
+    /* consume sequence start for interface-map mapping list */
+    if (!qfYamlRequireEvent(parser, YAML_SEQUENCE_START_EVENT)) return FALSE;
+    
+    memset(v6addr, 0, sizeof(v6addr));
+    
+    /* consume map entries until we see a sequence end */
+    while (qfYamlParseMapEntry(parser, &v4addr, &v4mask,
+                               &v6addr, &v6mask, &ingress, &egress, err))
+    {
+        if (v4addr) {
+            qfIfMapAddIPv4Mapping(&cfg->map, v4addr, v4mask, ingress, egress);
+            v4addr = 0;
+        }
+        
+        if (v6addr[0]) {
+            qfIfMapAddIPv6Mapping(&cfg->map, v6addr, v6mask, ingress, egress);
+            memset(v6addr, 0, sizeof(v6addr));
+        }
+    }
+    
+    /* check for error on last entry parse */
+    if (*err) return FALSE;
+    
+    /* done */
+    return TRUE;
 }
 
 
@@ -323,24 +393,6 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
                                yaml_parser_t    *parser,
                                GError           **err)
 {
-    // FIXME base this on offsets instead
-    qfConfigKeyAction_t actions[] = {
-        {"active-timeout",      &(cfg->ato_ms), QF_CONFIG_U32},
-        {"idle-timeout",        &(cfg->ito_ms), QF_CONFIG_U32},
-        {"max-flows",           &(cfg->max_flowtab), QF_CONFIG_U32},
-        {"max-frags",           &(cfg->max_fragtab), QF_CONFIG_U32},
-        {"active-timeout-octets",  &(cfg->max_flow_oct), QF_CONFIG_U64},
-        {"active-timeout-packets", &(cfg->max_flow_pkt), QF_CONFIG_U64},
-        {"active-timeout-rtts",    &(cfg->ato_rtts), QF_CONFIG_U32},
-        {"rtx-span",        &(cfg->rtx_span), QF_CONFIG_U32},
-        {"rtx-scale",       &(cfg->rtx_scale), QF_CONFIG_U32},
-        {"rtt-samples",     &(cfg->rtt_samples), QF_CONFIG_U32},
-        {"gre-decap",       &(cfg->enable_gre), QF_CONFIG_BOOL},
-        {"silk-compatible", &(cfg->enable_silk), QF_CONFIG_BOOL},
-        {"interface-map",   qfYamlInterfaceMap, QF_CONFIG_FUNC},
-        {"template",        qfYamlTemplate, QF_CONFIG_FUNC},
-        {NULL, NULL, QF_CONFIG_NOTYPE}
-    }
     
     int i, keyfound;
     gboolean rv;
@@ -355,13 +407,27 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
     
     /* eat keys and dispatch actions */
     while (qfYamlParseKey(parser, keybuf, sizeof(keybuf), err)) {
+        
         keyfound = 0;
-        for (i = 0; (!keyfound) && actions[i].key; i++) {
-            if (strncmp(keybuf, actions[i].key, sizeof(keybuf)) == 0) {
+        
+        /* check for template */
+        if (strncmp("template", keybuf, sizeof(keybuf) {
+            if (!qfYamlTemplate(cfg, parser, err)) return NULL;
+            keyfound = 1;
+        }
+        
+        /* check interface map */
+        if (strncmp("interface-map", keybuf, sizeof(keybuf) {
+            if (!qfYamlInterfaceMap(cfg, parser, err)) return NULL;
+            keyfound = 1;
+        }
+        
+        /* nope; check action list */
+        for (i = 0; (!keyfound) && cfg_key_actions[i].key; i++) {
+            if (strncmp(keybuf, cfg_key_actions[i].key, sizeof(keybuf)) == 0) {
                 
-                /* add action offset to cfg base pointer */
-                cvp = ((void *)cfg) + actions[i].vp;
-                
+                /* get pointer into cfg, parse based on type */
+                cvp = ((void *)cfg) + cfg_key_actions[i].off;
                 switch (actions[i].vp) {
                   case QF_CONFIG_U32:
                     rv = qfYamlParseU32(parser, (uint32_t*)cvp, err);
@@ -372,17 +438,12 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
                   case QF_CONFIG_BOOL:
                     rv = qfYamlParseBool(parser, (gboolean*)cvp, err);
                     break;
-                  case QF_CONFIG_FUNC:
-                    rv = (qfConfigParseFn)actions[i].vp(cfg, parser, err);
-                    break;
                   default:
                     return qfYamlError(err, parser, "internal error in map dispatch");
                 }
 
-                /* check for error on value parse */
-                if (!rv) {
-                    return FALSE;
-                }
+                /* check for error */
+                if (!rv) return FALSE;
                 
                 /* good value, jump to next key */
                 keyfound = 1;
