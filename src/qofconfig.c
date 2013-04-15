@@ -55,6 +55,19 @@ typedef qfConfig_st {
     qfIfMap_t   ifmap;
 } qfConfig_t;
 
+typedef enum {
+    QF_CONFIG_STRING,
+    QF_CONFIG_U32,
+    QF_CONFIG_U64
+} qfConfigKeyType_t;
+
+typedef struct qfConfigKeyAction_st {
+    char                *key;
+    void                *vp;
+    qfConfigKeyType_t   vt;
+    (gboolean)          *parse_fn(qfConfig_t*, yaml_parser_t*, GError**);
+} qfConfigKeyAction_t;
+
 static gboolean qfYamlError(GError                  **err,
                             const yaml_parser_t     *parser,
                             const char              *errmsg)
@@ -185,8 +198,8 @@ static gboolean qfYamlParseU32(yaml_parser_t      *parser,
 
 
 static gboolean qfYamlParseU64(yaml_parser_t      *parser,
-                                  uint32_t           *val,
-                                  GError             **err)
+                               uint64_t           *val,
+                               GError             **err)
 {
     char valbuf[VALBUF_SIZE];
     int rv;
@@ -263,10 +276,25 @@ static gboolean qfYamlTemplate(qfConfig_t       *cfg,
 
 }
 
+static gboolean qfYamlInterfaceMap(qfConfig_t       *cfg,
+                                   yaml_parser_t    *parser,
+                                   GError           **err)
+{
+    
+}
+
+
 static gboolean qfYamlDocument(qfConfig_t       *cfg,
                                yaml_parser_t    *parser,
                                GError           **err)
 {
+    qfConfigKeyAction_t actions[] = {
+        {"active-timeout", &(cfg->ato_ms), QF_CONFIG_U32, NULL},
+        {"idle-timeout",   &(cfg->ito_ms), QF_CONFIG_U32, NULL},
+        {NULL, NULL, QF_CONFIG_NOTYPE, NULL}
+    }
+    
+    
 }
 
 gboolean qfConfigParseYaml(qfConfig_t           *cfg,

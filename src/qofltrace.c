@@ -64,22 +64,15 @@ qfTraceSource_t *qfTraceOpen(const char *uri,
     if (trace_is_err(lts->trace)) {
         terr = trace_get_err(lts->trace);
         g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_IO,
-                    "Count not open libtrace URI %s: %s",
+                    "Could not open libtrace URI %s: %s",
                     uri, terr.problem);
         goto err;
     }
     
     if (trace_config(lts->trace, TRACE_OPTION_SNAPLEN, &snaplen) == -1) {
-        g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_IO,
-                    "Count not set snaplen on libtrace URI %s: %s",
-                    uri, terr.problem);
-        goto err;
-    }
-
-    if (trace_start(lts->trace) == -1) {
         terr = trace_get_err(lts->trace);
         g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_IO,
-                    "Count not start processing libtrace URI %s: %s",
+                    "Could not set snaplen on libtrace URI %s: %s",
                     uri, terr.problem);
         goto err;
     }
@@ -115,11 +108,6 @@ static void qfTraceHandle(qfTraceSource_t             *lts,
     uint32_t                    caplen;
     
     struct timeval tv;
-    
-    /* shortcut if filter doesn't match */
-    if (lts->filter && trace_apply_filter(lts->filter, lts->packet) < 1) {
-        return;
-    }
     
     /* get next spot in ring buffer */
     pbuf = (yfPBuf_t *)rgaNextHead(ctx->pbufring);
@@ -162,7 +150,7 @@ gboolean qfTraceMain(yfContext_t             *ctx)
 {
     gboolean                ok = TRUE;
     qfTraceSource_t         *lts = (qfTraceSource_t *)ctx->pktsrc;
-    char                    *bpf= (char *)ctx->cfg->bpf_expr;
+    char                    *bpf = (char *)ctx->cfg->bpf_expr;
     GTimer                  *stimer = NULL;  /* to export stats */
     libtrace_err_t          terr;
     
@@ -171,12 +159,25 @@ gboolean qfTraceMain(yfContext_t             *ctx)
         stimer = g_timer_new();
     }    
 
-    /* compile BPF */
+    /* compile BPF and apply to trace */
     if (bpf) {
         if (!(lts->filter = trace_create_filter(bpf))) {
             g_warning("Could not compile libtrace BPF %s", bpf);
             return FALSE;
         }
+        
+        if (trace_config(lts->trace, TRACE_OPTION_SNAPLEN, lts->filter) == -1) {
+            terr = trace_get_err(lts->trace);
+            g_warning("Could not set libtrace filter: %s", terr.problem);
+            return FALSE;
+        }
+    }
+    
+    /* start processing */
+    if (trace_start(lts->trace) == -1) {
+        terr = trace_get_err(lts->trace);
+        g_warning("libtrace trace_start() error: %s", terr.problem);
+        return FALSE;
     }
 
     /* process input until we're done */
