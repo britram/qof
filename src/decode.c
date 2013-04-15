@@ -1041,6 +1041,9 @@ static const uint8_t *yfDecodeTCP(
         /* get option length */
         if (tcph_len < 2) goto OPT_ERR;
         to_len = *(pkt + 1);
+        
+        /* die on malformed option length */
+        if (to_len < 2) goto OPT_ERR;
 
         /* handle multi-byte options */
         switch (to_kind) {

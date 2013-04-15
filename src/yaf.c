@@ -415,7 +415,7 @@ static void yfParseOptions(
 
     versionString = yfCleanVersionString(VERSION, YAF_ACONF_STRING_STR);
 
-    logc_add_option_group(aoctx, "yaf", versionString);
+    logc_add_option_group(aoctx, "qof", versionString);
 
     air_option_context_set_help_enabled(aoctx);
 
@@ -803,9 +803,9 @@ int main (
 
     /* Print exit message */
     if (loop_ok) {
-        g_debug("yaf terminating");
+        g_debug("qof terminating");
     } else {
-        g_warning("yaf terminating on error: %s", ctx.err->message);
+        g_warning("qof terminating on error: %s", ctx.err->message);
     }
 
     return loop_ok ? 0 : 1;
