@@ -20,7 +20,8 @@
 
 #include <yaml.h>
 
-#define VALBUF_SIZE 256
+#define VALBUF_SIZE     80
+#define ADDRBUF_SIZE    42
 
 typedef qfConfig_st {
     /* Template */
@@ -176,15 +177,27 @@ static gboolean qfYamlParseU32(yaml_parser_t      *parser,
     if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
 
     if (sscanf(valbuf, "%u", val) < 1) {
-        qfYamlError(err, parser, "expected integer value");
+        return qfYamlError(err, parser, "expected integer value");
     }
+    
+    return TRUE;
 }
+
 
 static gboolean qfYamlParseU64(yaml_parser_t      *parser,
                                   uint32_t           *val,
                                   GError             **err)
 {
+    char valbuf[VALBUF_SIZE];
+    int rv;
     
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+    
+    if (sscanf(valbuf, "%llu", val) < 1) {
+        return qfYamlError(err, parser, "expected integer value");
+    }
+    
+    return TRUE;
 }
 
 static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
@@ -192,7 +205,27 @@ static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
                                       unsigned int       *mask,
                                       GError             **err)
 {
+    char valbuf[VALBUF_SIZE];
+    char addrbuf[ADDRBUF_SIZE];
+    int rv;
     
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+    
+    rv = sscanf(valbuf, "%15[0-9.]/%u", addrbuf, mask));
+    if (rv < 1) {
+        return qfYamlError(err, parser, "expected IPv4 address");        
+    } else if (rv == 1) {
+        *mask = 32; // implicit mask
+    }
+    
+    rv = inet_pton(AF_INET, addrbuf, addr);
+    if (rv == 0) {
+       return qfYamlError(err, parser, "invalid IPv4 address");
+    } else if (rv == -1) {
+       return qfYamlError(err, parser, strerror(errno));
+    }
+
+    return TRUE;
 }
 
 static gboolean qfYamlParsePrefixedV6(yaml_parser_t      *parser,
@@ -200,9 +233,28 @@ static gboolean qfYamlParsePrefixedV6(yaml_parser_t      *parser,
                                       unsigned int       *mask,
                                       GError             **err)
 {
+    char valbuf[VALBUF_SIZE];
+    char addrbuf[ADDRBUF_SIZE];
+    int rv;
     
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+    
+    rv = sscanf(valbuf, "%39[0-9a-fA-F:.]/%u", addrbuf, mask));
+    if (rv < 1) {
+        return qfYamlError(err, parser, "expected IPv6 address");
+    } else if (rv == 1) {
+        *mask = 128; // implicit mask
+    }
+    
+    rv = inet_pton(AF_INET, addrbuf, addr);
+    if (rv == 0) {
+        return qfYamlError(err, parser, "invalid IPv6 address");
+    } else if (rv == -1) {
+        return qfYamlError(err, parser, strerror(errno));
+    }
+    
+    return TRUE;
 }
-
 
 static gboolean qfYamlTemplate(qfConfig_t       *cfg,
                                yaml_parser_t    *parser,
@@ -215,8 +267,6 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
                                yaml_parser_t    *parser,
                                GError           **err)
 {
-    if (!qfYamlNextEvent(parser, err))
-    switch ()
 }
 
 gboolean qfConfigParseYaml(qfConfig_t           *cfg,

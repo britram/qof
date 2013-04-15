@@ -340,6 +340,7 @@ void qfDynSyn(qfDyn_t     *qd,
     
     /* set initial sequence number */
     qd->isn = qd->nsn = seq;
+    qd->advlms = ms;
     
     /* note we've tracked the SYN */
     qd->dynflags |= QF_DYN_SEQINIT;
@@ -414,7 +415,7 @@ void qfDynSeq(qfDyn_t     *qd,
             /* detect iat flight break */
             sstMeanAdd(&qd->seg_iat, iat);
             if (qfDynBreakFlight(qd, iat)) {
-                
+                // FIXME what to do in case of flight break?
             }
             
             /* count octets in this flight */
