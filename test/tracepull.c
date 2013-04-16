@@ -211,6 +211,18 @@ int main (int argc, char * const argv[])
         terr = trace_get_err(trace_in);
         err("Could not start input: %s", terr.problem);
     }
+    
+    /* print greeting */
+    fprintf(stderr, "tracepull starting:\n");
+    if (tracepkt) {
+        fprintf(stderr, " reading %10u packets from %s", tracepkt, uri_in);
+    } else {
+        fprintf(stderr, " reading forever from %s", uri_in);
+    }
+    fprintf(stderr, " snaplen %5u, %s\n",
+            snaplen, bpfexpr ? bpfexpr : "unfiltered");
+    fprintf(stderr, "  writing %s to %s\n",
+            zlevel ? "compressed" : "uncompressed", uri_out);
 
     /* copy packets from input to output */
     while (!did_quit && trace_read_packet(trace_in, packet) > 0) {
@@ -230,11 +242,10 @@ int main (int argc, char * const argv[])
     }
 
     /* dump statistics */
-    fprintf(stderr, "read       %10llu packets from %s\n", trace_get_received_packets(trace_in), uri_in);
+    fprintf(stderr, "read       %10llu packets from %s\n", trace_get_accepted_packets(trace_in));
     fprintf(stderr, "  filtered %10llu\n", trace_get_filtered_packets(trace_in));
     fprintf(stderr, "  dropped  %10llu\n", trace_get_dropped_packets(trace_in));
-    fprintf(stderr, "  accepted %10llu\n", trace_get_accepted_packets(trace_in));
-    fprintf(stderr, "wrote      %10u packets to %s\n", pktct, uri_out);
+    fprintf(stderr, "wrote      %10u packets to   %s\n", pktct, uri_out);
 
     /* close up shop */
     trace_destroy(trace_in);
