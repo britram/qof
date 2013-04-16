@@ -503,7 +503,14 @@ void qfDynAck(qfDyn_t     *qd,
 }
 
 void qfDynClose(qfDyn_t *qd) {
-    if (qfDynHasSeqbits(qd)) qfSeqBitsFinalizeLoss(&qd->sb);
+    // count loss
+    if (qfDynHasSeqbits(qd)) {
+        qfSeqBitsFinalizeLoss(&qd->sb);
+    }
+    // add last flight
+    if (qfDynHasSeqring(qd)) {
+        sstLinSmoothAdd(&qd->iatflight, qd->cur_iatflight);
+    }
 }
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {

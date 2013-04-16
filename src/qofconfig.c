@@ -69,6 +69,7 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"maxTcpReorderSize",       CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
     {"tcpSequenceLossCount",    CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
     {"tcpRetransmitCount",      CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
+    {"tcpReorderCount",         CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
     {"meanTcpRttMilliseconds",  CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
     {"maxTcpFlightSize",        CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},

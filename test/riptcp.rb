@@ -27,9 +27,8 @@ def fixread(c)
     
     puts ["synrtt","l3pkt","l7pkt",
           "l3oct","l4oct","l7oct",
-          "rtx","loss","maxooo","maxif",
-          "minrtt","rtt","mss",
-          "minttl","maxttl"].map { |s| "%7s"%(s) }.join(", ")
+          "rtx","loss","oooc","maxooo","maxif",
+          "minrtt","rtt","mss"].map { |s| "%7s"%(s) }.join(", ")
 
     # iterate over records
     c.each do |h, m|
@@ -53,13 +52,12 @@ def fixread(c)
             h[:tcpSequenceCount],
             h[:tcpRetransmitCount],
             h[:tcpSequenceLossCount],
+            h[:tcpReorderCount],
             h[:maxTcpReorderSize],
             h[:maxTcpFlightSize],
             h[:minTcpRttMilliseconds],
             h[:meanTcpRttMilliseconds],
-            h[:observedTcpMss],
-            h[:minimumTTL],
-            h[:maximumTTL]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
+            h[:observedTcpMss]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
         end
         
         if h[:reverseOctetDeltaCount] > 0
@@ -72,13 +70,12 @@ def fixread(c)
             h[:reverseTcpSequenceCount],
             h[:reverseTcpRetransmitCount],
             h[:reverseTcpSequenceLossCount],
+            h[:reverseTcpReorderCount],
             h[:reverseMaxTcpReorderSize],
             h[:reverseMaxTcpFlightSize],
             h[:reverseMinTcpRttMilliseconds],
             h[:reverseMeanTcpRttMilliseconds],
-            h[:reverseObservedTcpMss],
-            h[:reverseMinimumTTL],
-            h[:reverseMaximumTTL]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
+            h[:reverseObservedTcpMss]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
         end
     end
 end
