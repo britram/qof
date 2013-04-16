@@ -134,13 +134,12 @@ int main (int argc, char * const argv[])
 
     unsigned int        pktct = 0;
 
-    libtrace_t          *trace_in;
-    libtrace_filter_t   *filter_in;
+    libtrace_t          *trace_in = NULL;
+    libtrace_filter_t   *filter_in = NULL;
+    libtrace_out_t      *trace_out = NULL;
+    libtrace_packet_t   *packet = NULL;
+
     libtrace_err_t      terr;
-
-    libtrace_out_t   *trace_out;
-
-    libtrace_packet_t   *packet;
 
     trace_option_compresstype_t ctype = TRACE_OPTION_COMPRESSTYPE_ZLIB;
 
@@ -181,7 +180,7 @@ int main (int argc, char * const argv[])
         terr = trace_get_err_output(trace_out);
         err("Could not open output URI %s: %s", uri_out, terr.problem);
     }
-
+     
     if (zlevel) {
         if (trace_config_output(trace_out,
                                 TRACE_OPTION_OUTPUT_COMPRESSTYPE, &ctype) == -1)
@@ -215,11 +214,11 @@ int main (int argc, char * const argv[])
     /* print greeting */
     fprintf(stderr, "tracepull starting:\n");
     if (tracepkt) {
-        fprintf(stderr, " reading %10u packets from %s", tracepkt, uri_in);
+        fprintf(stderr, "  reading %10u packets from %s", tracepkt, uri_in);
     } else {
-        fprintf(stderr, " reading forever from %s", uri_in);
+        fprintf(stderr, "  reading forever from %s", uri_in);
     }
-    fprintf(stderr, " snaplen %5u, %s\n",
+    fprintf(stderr, ", snaplen %u, %s\n",
             snaplen, bpfexpr ? bpfexpr : "unfiltered");
     fprintf(stderr, "  writing %s to %s\n",
             zlevel ? "compressed" : "uncompressed", uri_out);
