@@ -455,9 +455,7 @@ static void yfParseOptions(
     if (!yaf_config.deltamode) {
         yfWriterExportTotals(TRUE);
     }
-    
-    // FIXME harmonize with YAML config -- anon mode is selected there
-    
+        
     /* Pre-process input options */
     if (yaf_config.livetype) {
         /* can't use caplist with live */
@@ -565,9 +563,9 @@ static void yfParseOptions(
                 yaf_config.yaf_udp_template_timeout =
                     yaf_config.yaf_udp_template_timeout * 1000;
             }
-    } else {
-        air_opterr("Unsupported IPFIX transport protocol %s",
-                   yaf_opt_ipfix_transport);
+        } else {
+            air_opterr("Unsupported IPFIX transport protocol %s",
+                       yaf_opt_ipfix_transport);
         }
 
         /* grab TLS password from environment */
@@ -758,8 +756,7 @@ int main (
 
     /* Set up fragment table - ONLY IF USER SAYS */
     if (!yaf_opt_nofrag) {
-        ctx.fragtab = yfFragTabAlloc(30000,
-                                     yaf_opt_max_frags);
+        ctx.fragtab = yfFragTabAlloc(30000, yaf_opt_max_frags);
     }
 
 

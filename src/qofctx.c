@@ -365,13 +365,15 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
             case QCP_IN_TMPL:
                 QCP_EVENT_NEXT_STATE(YAML_SEQUENCE_START_EVENT, QCP_IN_TMPL_SEQ)
                 QCP_DEFAULT("template must be a sequence of IE names")
+                
+                yfWriterExportReset();
                 break;
                 
             case QCP_IN_TMPL_SEQ:
                 QCP_EVENT_NEXT_STATE(YAML_SEQUENCE_END_EVENT, QCP_IN_DOC_MAP)
                 QCP_REQUIRE_SCALAR("template must be a sequence of IE names")
                 
-                if (!yfWriterSpecifyExportIE(QCP_SV, err)) {
+                if (!yfWriterExportIE(QCP_SV, err)) {
                     return FALSE;
                 }
                 break;

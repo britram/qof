@@ -128,9 +128,7 @@
 
 static uint64_t yaf_start_time = 0;
 
-/* Internal flow record template. 
-   Must match  */
- 
+/* Internal flow record template. Must match structure of yfIpfixFlow_t */
 static fbInfoElementSpec_t qof_internal_spec[] = {
     /* Flow ID */
     { "flowId",                             8, 0 },
@@ -220,7 +218,7 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
 FB_IESPEC_NULL
 };
 
-#define QOF_EXPORT_SPEC_SZ 61
+#define QOF_EXPORT_SPEC_SZ 74
 static fbInfoElementSpec_t qof_export_spec[QOF_EXPORT_SPEC_SZ];
 static size_t qof_export_spec_count = 0;
 
@@ -483,14 +481,14 @@ void yfWriterUseInterfaceMap(
     yaf_core_use_ifmap = ifmap_mode;
 }
 
-gboolean yfWriterSpecifyExportIE(const char *iename, GError **err) {
+void yfWriterExportReset() {
+    qof_export_spec_count = 0;
+    memset(qof_export_spec, 0, sizeof(qof_export_spec));
+}
+
+gboolean yfWriterExportIE(const char *iename, GError **err) {
     int i;
     gboolean rv = FALSE;
-    
-    /* initialize export spec if we need to */
-    if (!qof_export_spec_count) {
-        memset(qof_export_spec, 0, sizeof(qof_export_spec));
-    }
     
     /* shortcircuit if we're full */
     if (qof_export_spec_count >= QOF_EXPORT_SPEC_SZ - 1) {

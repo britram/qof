@@ -14,7 +14,9 @@
 
 #define _YAF_SOURCE_
 #include <yaf/autoinc.h>
-#include "qofifmap.h"
+#include <airframe/airopt.h>
+
+#include "qofconfig.h"
 
 #include <arpa/inet.h>
 
@@ -22,36 +24,6 @@
 
 #define VALBUF_SIZE     80
 #define ADDRBUF_SIZE    42
-
-typedef struct qfConfig_st {
-    /* Features enabled by template selection */
-    gboolean    enable_biflow;  // RFC5103 biflow export 
-    gboolean    enable_ipv4;    // IPv4 address export (false = map v4 to v6)
-    gboolean    enable_ipv6;    // IPv6 address export (false = drop v6)
-    gboolean    enable_mac;     // store MAC addresses and vlan tags
-    gboolean    enable_dyn;     // qfdyn master switch (seqno tracking)
-    gboolean    enable_dyn_rtx; // qfdyn seqno rtx/loss detection
-    gboolean    enable_dyn_rtt; // qfdyn RTT/IAT calculation
-    gboolean    enable_tcpopt;  // require TCP options parsing
-    gboolean    enable_iface;   // store interface information
-    /* Features enabled explicitly */
-    gboolean    enable_silk;    // SiLK compatibility mode
-    gboolean    enable_gre;     // GRE decap mode
-    /* Flow state configuration */
-    uint32_t    ato_ms;
-    uint32_t    ito_ms;
-    uint32_t    max_flowtab;
-    uint32_t    max_fragtab;
-    uint64_t    max_flow_pkt;     // max packet count to force ATO (silk mode)
-    uint64_t    max_flow_oct;     // max octet count to force ATO  (silk mode)
-    uint32_t    ato_rtts;         // multiple of RTT to force ATO
-    /* TCP dynamics state configuration */
-    uint32_t    rtt_samples;
-    uint32_t    rtx_span;
-    uint32_t    rtx_scale;
-    /* Interface map */
-    qfIfMap_t   ifmap;
-} qfConfig_t;
 
 typedef enum {
     QF_CONFIG_NOTYPE = 0,
@@ -353,6 +325,11 @@ static gboolean qfYamlTemplate(qfConfig_t       *cfg,
         /* Add IE to the export template */
         if (!yfWriterExportIE(valbuf, err)) return FALSE;
         
+        /* Enable biflow export */
+        if (strncmp("reverse", valbuf, 7) == 0) {
+            cfg->enable_biflow = TRUE;
+        }
+        
         /* Search IE list for features to enable */
         for (i = 0; cfg_ie_features[i].key; i++) {
             if (strncmp(cfg_ie_features[i].key, valbuf, sizeof(valbuf)) == 0) {
@@ -578,3 +555,76 @@ gboolean qfConfigParseYaml(qfConfig_t           *cfg,
     
     return rv;
 }
+
+void qfContextSetupOutput(qfOutputContext_t *octx)
+{
+    /* transport means use IPFIX via the network */
+    if (octx->transport) {
+        
+        /* set default port */
+        if (!octx->connspec.svc) {
+            octx->connspec.svc = octx->enable_tls ? "4740" : "4739";
+        }
+        
+        /* Require a hostname for IPFIX output */
+        air_opterr("--ipfix requires hostname in --out");
+                
+        /* set hostname */
+        octx->connspec.host = octx->outspec;
+        
+        if ((*octx->transport == (char)0) ||
+            (strcmp(octx->transport, "sctp") == 0))
+        {
+            if (octx->enable_tls) {
+                octx->connspec.transport = FB_DTLS_SCTP;
+            } else {
+                octx->connspec.transport = FB_SCTP;
+            }
+        } else if (strcmp(octx->transport, "tcp") == 0) {
+            if (octx->enable_tls) {
+                octx->connspec.transport = FB_TLS_TCP;
+            } else {
+                octx->connspec.transport = FB_TCP;
+            }
+        } else if (strcmp(octx->transport, "udp") == 0) {
+            if (octx->enable_tls) {
+                octx->connspec.transport = FB_DTLS_UDP;
+            } else {
+                octx->connspec.transport = FB_UDP;
+            }
+            if (!octx->template_rtx_period) {
+                octx->template_rtx_period = 600000; // 10 minutes
+            } else {
+                octx->template_rtx_period *= 1000; // convert to milliseconds
+            }
+        } else {
+            air_opterr("Unsupported IPFIX transport protocol %s",
+                       octx->transport);
+        }
+        
+        /* grab TLS password from environment */
+        if (octx->enable_tls) {
+            octx->connspec.ssl_key_pass = getenv("YAF_TLS_PASS");
+        }
+        
+    } else {
+        if (!octx->outspec || !strlen(octx->outspec)) {
+            if (octx->rotate_period) {
+                /* Require a path prefix for IPFIX output */
+                air_opterr("--rotate requires prefix in --out");
+            } else {
+                /* Default to stdout for no output without rotation */
+                octx->outspec = "-";
+            }
+        }
+    }
+        
+    /* Check for terminal stdout */
+    if ((strlen(octx->outspec) == 1) && octx->outspec[0] == '-') {
+        /* Don't open stdout if it's a terminal */
+        if (isatty(fileno(stdout))) {
+            air_opterr("Refusing to write to terminal on stdout");
+        }
+    }
+}
+

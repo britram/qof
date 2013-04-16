@@ -453,7 +453,9 @@ void yfWriterUseInterfaceMap(gboolean ifmap_mode);
  * FIXME doc
  */
 
-gboolean yfWriterSpecifyExportIE(const char *iename, GError **err);
+void yfWriterExportReset();
+
+gboolean yfWriterExportIE(const char *iename, GError **err);
 
 /**
  * Get an IPFIX message buffer for reading YAF flows from an open file pointer.
