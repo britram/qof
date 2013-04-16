@@ -63,6 +63,9 @@
 #include <yaf/decode.h>
 #include <airframe/airutil.h>
 
+/* HACK. Replace me with a runtime configuration parameter */
+static const int kEnableTCPOptionDecode = 0;
+
 /* Definitions of the various headers the decoder understands */
 
 typedef struct yfHdrEn10Mb_st {
@@ -1011,7 +1014,7 @@ static const uint8_t *yfDecodeTCP(
     if (fraginfo && fraginfo->frag) {
         fraginfo->l4hlen = tcph_len;
     }
-    
+        
     /* Now verify we have all options as well */
     if (*caplen < tcph_len) {
         if (fraginfo && fraginfo->frag) {
@@ -1025,6 +1028,8 @@ static const uint8_t *yfDecodeTCP(
     /* Set caplen post-options (use tcp_hlen from here for pkt bounds) */
     *caplen -= tcph_len;
 
+    if (!kEnableTCPOptionDecode) return pkt + tcph_len;
+    
     /* Skip to start of options */
     tcph_len -= YF_TCP_HLEN;
     pkt += YF_TCP_HLEN;
@@ -1068,7 +1073,6 @@ OPT_NEXT:
         tcph_len -= to_len;
         pkt += to_len;
     }
-    
 OPT_EOL:
     /* Advance beyond any skipped options */
     return pkt + tcph_len;

@@ -28,6 +28,7 @@
 
 #include "qofltrace.h"
 
+#define TRACE_PACKET_GROUP 32
 
 /* Quit flag support */
 extern int yaf_quit;
@@ -154,6 +155,8 @@ gboolean qfTraceMain(yfContext_t             *ctx)
     GTimer                  *stimer = NULL;  /* to export stats */
     libtrace_err_t          terr;
     
+    int i, trv;
+    
     /* start stats timer */
     if (!ctx->cfg->nostats) {
         stimer = g_timer_new();
@@ -181,8 +184,26 @@ gboolean qfTraceMain(yfContext_t             *ctx)
     }
 
     /* process input until we're done */
-    while (!yaf_quit && (trace_read_packet(lts->trace, lts->packet) > 0)) {
-        qfTraceHandle(lts, ctx);
+    while (!yaf_quit) {
+        
+        for (i = 0;
+             i < TRACE_PACKET_GROUP && !yaf_quit &&
+                (trv = trace_read_packet(lts->trace, lts->packet)) > 0;
+             i++)
+        {
+            qfTraceHandle(lts, ctx);
+        }
+        
+        /* Check for error */
+        if (trace_is_err(lts->trace)) {
+            terr = trace_get_err(lts->trace);
+            g_warning("libtrace error: %s", terr.problem);
+            ok = FALSE;
+            break;
+        }
+
+        /* Check for quit or EOF */
+        if (yaf_quit || trv == 0) break;
 
         /* Process the packet buffer */
         if (ok && !yfProcessPBufRing(ctx, &(ctx->err))) {
@@ -208,13 +229,6 @@ gboolean qfTraceMain(yfContext_t             *ctx)
         }
     }
 
-    /* Check for error */
-    if (trace_is_err(lts->trace)) {
-        terr = trace_get_err(lts->trace);
-        g_warning("libtrace error: %s", terr.problem);
-        ok = FALSE;
-    }
-        
     /* Handle final flush */
     if (!ctx->cfg->nostats) {
         /* add one for final flush */
