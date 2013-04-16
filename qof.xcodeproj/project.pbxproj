@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		D306F28E1701436C00FE09F5 /* qofdyn.c in Sources */ = {isa = PBXBuildFile; fileRef = D306F28D1701436C00FE09F5 /* qofdyn.c */; };
 		D3282A631709703600B2ABA4 /* bitmap.c in Sources */ = {isa = PBXBuildFile; fileRef = D3282A601708CF2100B2ABA4 /* bitmap.c */; };
+		D377339E171E0B40004FF28F /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
+		D377339F171E0B55004FF28F /* tracepull.c in Sources */ = {isa = PBXBuildFile; fileRef = D3773390171DF9E4004FF28F /* tracepull.c */; };
 		D38872B716946DDF00E66A70 /* qofifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922211672388F00514165 /* qofifmap.c */; };
 		D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EADBDC170BDDEC006FE1FE /* qofltrace.c */; };
 		D39F5C33170CDE480094B103 /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
@@ -52,6 +54,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		D3773393171E0B2C004FF28F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		F52D56BE16723812006D32A1 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -73,6 +84,8 @@
 		D36F0F4A16E3B6B80028EDAE /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		D36F0F4B16E3BA480028EDAE /* acinclude.m4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = acinclude.m4; sourceTree = "<group>"; };
 		D377338F171CFB50004FF28F /* qofconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofconfig.h; sourceTree = "<group>"; };
+		D3773390171DF9E4004FF28F /* tracepull.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tracepull.c; sourceTree = "<group>"; };
+		D3773395171E0B2C004FF28F /* tracepull */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tracepull; sourceTree = BUILT_PRODUCTS_DIR; };
 		D39F27671703AB4C00089492 /* qofdyn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdyn.h; sourceTree = "<group>"; };
 		D39F5C32170CDE480094B103 /* libtrace.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtrace.3.dylib; path = ../../opt/lib/libtrace.3.dylib; sourceTree = "<group>"; };
 		D39F5C34170D03150094B103 /* IANA_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IANA_IE.h; sourceTree = "<group>"; };
@@ -198,6 +211,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		D3773392171E0B2C004FF28F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D377339E171E0B40004FF28F /* libtrace.3.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F52D56BD16723812006D32A1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -220,6 +241,7 @@
 				D3D91D8016EE7F9E00748C63 /* qof-test.yaml */,
 				D3E1B1C316E4EBD200C5D50C /* riptcp.rb */,
 				D31013E416A94BA80068059F /* test_ifmap.c */,
+				D3773390171DF9E4004FF28F /* tracepull.c */,
 			);
 			path = test;
 			sourceTree = "<group>";
@@ -426,6 +448,7 @@
 			isa = PBXGroup;
 			children = (
 				F52D56C016723812006D32A1 /* qof */,
+				D3773395171E0B2C004FF28F /* tracepull */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -433,6 +456,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		D3773394171E0B2C004FF28F /* tracepull */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D377339B171E0B2C004FF28F /* Build configuration list for PBXNativeTarget "tracepull" */;
+			buildPhases = (
+				D3773391171E0B2C004FF28F /* Sources */,
+				D3773392171E0B2C004FF28F /* Frameworks */,
+				D3773393171E0B2C004FF28F /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = tracepull;
+			productName = tracepull;
+			productReference = D3773395171E0B2C004FF28F /* tracepull */;
+			productType = "com.apple.product-type.tool";
+		};
 		F52D56BF16723812006D32A1 /* qof */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F52D56CA16723812006D32A1 /* Build configuration list for PBXNativeTarget "qof" */;
@@ -472,11 +512,20 @@
 			projectRoot = "";
 			targets = (
 				F52D56BF16723812006D32A1 /* qof */,
+				D3773394171E0B2C004FF28F /* tracepull */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		D3773391171E0B2C004FF28F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D377339F171E0B55004FF28F /* tracepull.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F52D56BC16723812006D32A1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -524,6 +573,44 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		D377339C171E0B2C004FF28F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				HEADER_SEARCH_PATHS = (
+					$HOME/opt/include,
+					/opt/local/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../opt/lib\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		D377339D171E0B2C004FF28F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				HEADER_SEARCH_PATHS = (
+					$HOME/opt/include,
+					/opt/local/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../opt/lib\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		F52D56C816723812006D32A1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -632,6 +719,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		D377339B171E0B2C004FF28F /* Build configuration list for PBXNativeTarget "tracepull" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D377339C171E0B2C004FF28F /* Debug */,
+				D377339D171E0B2C004FF28F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		F52D56BA16723812006D32A1 /* Build configuration list for PBXProject "qof" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
