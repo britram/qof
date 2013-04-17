@@ -241,7 +241,7 @@ int main (int argc, char * const argv[])
     }
 
     /* dump statistics */
-    fprintf(stderr, "read       %10llu packets from %s\n", trace_get_accepted_packets(trace_in));
+    fprintf(stderr, "read       %10llu packets from %s\n", trace_get_accepted_packets(trace_in), uri_in);
     fprintf(stderr, "  filtered %10llu\n", trace_get_filtered_packets(trace_in));
     fprintf(stderr, "  dropped  %10llu\n", trace_get_dropped_packets(trace_in));
     fprintf(stderr, "wrote      %10u packets to   %s\n", pktct, uri_out);
