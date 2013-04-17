@@ -236,6 +236,8 @@ int main (int argc, char * const argv[])
     fprintf(stderr, "tracepull starting:\n");
     if (tracepkt) {
         fprintf(stderr, "  reading %10u packets from %s", tracepkt, uri_in);
+    } else if (tracesec) {
+        fprintf(stderr, "  reading %5u seconds from %s", tracesec, uri_in);
     } else {
         fprintf(stderr, "  reading forever from %s", uri_in);
     }
@@ -251,8 +253,10 @@ int main (int argc, char * const argv[])
             err("Could not write packet to %s: %s", uri_out, terr.problem);
         }
 
+        ++pktct;
+        
         /* stop reading packets after nth */
-        if (tracepkt && (++pktct >= tracepkt)) break;
+        if (tracepkt && (pktct >= tracepkt)) break;
     }
             
     /* check for input error */
