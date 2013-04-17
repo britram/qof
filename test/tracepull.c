@@ -20,9 +20,10 @@ void err(const char *fmt, ...)
 }
 
 void usage(const char *progname) {
-    fprintf(stderr, "usage: %s [-s n] [-p n] [-z n] uri_in uri_out [bpf]\n", progname);
+    fprintf(stderr, "usage: %s [-s n] [-p n] [-t n] [-z n] uri_in uri_out [bpf]\n", progname);
     fprintf(stderr, "-s n : snaplen [0-65535], truncate packets to n bytes.\n");
     fprintf(stderr, "-p n : packet-count, capture n packets then exit.\n");
+    fprintf(stderr, "-t n : timer, capture for n seconds then exit.\n");
     fprintf(stderr, "-z n : compression-level [0-9], 0 = no compression.\n");
     exit(2);
 }
@@ -35,19 +36,22 @@ void parse_args(int argc,
                 const char **uri_out,
                 const char **bpfexpr,
                 unsigned int *snaplen,
+                unsigned int *tracesec,
                 unsigned int *tracepkt,
                 unsigned int *zlevel)
 {
     char *bpfcp = bpfbuf;
+    char *progname = argv[0];
     
     /* defaults */
     *snaplen = 65536;
+    *tracesec = 0;
     *tracepkt = 0;
     *zlevel = 0;
     
     char c;
     
-    while ((c = getopt(argc, argv, "p:s:z:")) != -1) {
+    while ((c = getopt(argc, argv, "p:s:t:z:")) != -1) {
         switch (c) {
             case 'p':
                 if (sscanf(optarg, "%u", tracepkt) < 1) {
@@ -62,6 +66,11 @@ void parse_args(int argc,
                     err("bad -s %u", *snaplen);
                 }
                 break;
+            case 't':
+                if (sscanf(optarg, "%u", tracesec) < 1) {
+                    err("bad -t %s", optarg);
+                }
+                break;
             case 'z':
                 if (sscanf(optarg, "%u", zlevel) < 1) {
                     err("bad -z %s", optarg);
@@ -72,13 +81,13 @@ void parse_args(int argc,
                 break;
             case '?':
             default:
-                usage(argv[0]);
+                usage(progname);
         }
     }
     argc -= optind;
     argv += optind;
     
-    if (argc < 2) usage(argv[0]);
+    if (argc < 2) usage(progname);
     
     *uri_in = argv[0]; argc--; argv++;
     *uri_out = argv[0]; argc--; argv++;
@@ -120,6 +129,14 @@ static void setup_quit() {
     if (sigaction(SIGTERM,&sa,&osa)) {
         err("sigaction(SIGTERM) failed: %s", strerror(errno));
     }
+    
+    sa.sa_handler = do_quit;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGALRM,&sa,&osa)) {
+        err("sigaction(SIGALRM) failed: %s", strerror(errno));
+    }
+
 }
 
 int main (int argc, char * const argv[])
@@ -130,6 +147,7 @@ int main (int argc, char * const argv[])
     const char          *bpfexpr;
     unsigned int        snaplen;
     unsigned int        tracepkt;
+    unsigned int        tracesec;
     unsigned int        zlevel;
 
     unsigned int        pktct = 0;
@@ -144,7 +162,7 @@ int main (int argc, char * const argv[])
     trace_option_compresstype_t ctype = TRACE_OPTION_COMPRESSTYPE_ZLIB;
 
     parse_args(argc, argv, &uri_in, &uri_out,
-               &bpfexpr, &snaplen, &tracepkt, &zlevel);
+               &bpfexpr, &snaplen, &tracesec, &tracepkt, &zlevel);
 
     if (!(packet = trace_create_packet())) {
         err("Could not initialize libtrace packet");
@@ -198,6 +216,9 @@ int main (int argc, char * const argv[])
 
     /* set up quit flag */
     setup_quit();
+    
+    /* set alarm if on timer */
+    if (tracesec) alarm(tracesec);
 
     /* start output */
     if (trace_start_output(trace_out) == -1) {
