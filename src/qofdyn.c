@@ -16,6 +16,8 @@
 #include <yaf/qofdyn.h>
 #include <yaf/yaftab.h>
 
+#include "qofdyntmi.h"
+
 /** Constant - 2^32 (for sequence number calculations) */
 static const uint64_t k2e32 = 0x100000000ULL;
 
@@ -65,9 +67,6 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
         sr->tail++;
         if (sr->tail >= sr->bincount) sr->tail = 0;
         qf_dyn_stat_ringover++;
-#if QF_DYN_DEBUG
-        fprintf(stderr, "rtts-over (%llu) ", qf_dyn_stat_ringover);
-#endif
     }
     
     /* insert sample */
@@ -91,13 +90,6 @@ uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
     }
 
     if (sr->head == sr->tail) return 0;
-
-//#if QF_DYN_DEBUG
-//    fprintf(stderr, "(seq %u @ %u ack %u @ %u) ",
-//            sr->bin[sr->tail].seq,
-//            sr->bin[sr->tail].ms,
-//            ack, ms);
-//#endif
     
     rtt = ms - sr->bin[sr->tail].ms;
     sr->tail++;
@@ -119,26 +111,17 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
 {
     /* don't sample without seqring */
     if (!qfDynHasSeqring(qd)) {
-#if QF_DYN_DEBUG
-        fprintf(stderr, "nortts-nil ");
-#endif
         return 0;
     }
     
     /* don't sample higher than sample rate */
     if ((qd->sr.bin[qd->sr.head].ms + kSeqSamplePeriodMs) > ms)
     {
-#if QF_DYN_DEBUG
-        fprintf(stderr, "nortts-rate ");
-#endif        
         return 0;
     }
     
     /* don't sample until we've waited out the sample period */
     if (qd->sr_skip < qd->sr_period) {
-#if QF_DYN_DEBUG
-        fprintf(stderr, "nortts-skip (%u of %u)", qd->sr_skip, qd->sr_period);
-#endif
         qd->sr_skip++;
         return 0;
     }
@@ -185,9 +168,6 @@ qfSeqStat_t qfSeqBitsSegment(qfSeqBits_t *sb, uint32_t aseq, uint32_t bseq) {
     while (qfSeqCompare(bseq, maxseq) > 0) {
         bits = bimShiftDown(&sb->map);
         sb->lostseq_ct += ((k64Bits - bimCountSet(bits)) * sb->scale);
-#if QF_DYN_DEBUG
-        fprintf(stderr, "(@%10u bits %016llx lostseq %u) ", sb->seqbase, bits, sb->lostseq_ct);
-#endif 
         sb->seqbase += sb->scale * k64Bits;
         maxseq = sb->seqbase + seqcap;
     }
@@ -222,9 +202,6 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb)
     
     while ((bits = bimShiftDown(&sb->map))) {
         sb->lostseq_ct += ((bimHighBitSet(bits) - bimCountSet(bits)) * sb->scale);
-#if QF_DYN_DEBUG
-        fprintf(stderr, "qd finloss  @%10u bits %016llx lostseq %u\n", sb->seqbase, bits, sb->lostseq_ct);
-#endif
         sb->seqbase += sb->scale * k64Bits;
     }
 }
@@ -274,11 +251,7 @@ static void qfDynStartRTTCorr(qfDyn_t     *qd,
         /* expected sequence number based on IAT flight size */
         qd->rtt_corr_seq = qd->fan + flightsize;
         qd->rtt_corr_lms = ms;
-#if QF_DYN_DEBUG
-        fprintf(stderr, "rcs %u ", qd->rtt_corr_seq);
-#endif
     }
-
 }
 
 static void qfDynCorrRTT(qfDyn_t     *qd,
@@ -295,9 +268,6 @@ static void qfDynCorrRTT(qfDyn_t     *qd,
         }
         qd->rtt_corr_seq = 0;
         qd->rtt_corr_lms = 0;
-#if QF_DYN_DEBUG
-        fprintf(stderr, "rttc %u", qd->rtt_corr);
-#endif
     }
 }
 
@@ -311,9 +281,6 @@ static void qfDynMeasureRTT  (qfDyn_t     *qd,
     
     irtt += qd->rtt_corr;
     sstMeanAdd(&qd->rtt, irtt);
-#if QF_DYN_DEBUG
-    fprintf(stderr, "rtt %u mean %6.2f ", irtt, qd->rtt.mean);
-#endif
 }
 
 void qfDynConfig(uint32_t bincap, uint32_t binscale, uint32_t ringcap) {
@@ -328,16 +295,15 @@ void qfDynFree(qfDyn_t      *qd)
     qfSeqBitsFree(&qd->sb);
 }
 
-void qfDynSyn(qfDyn_t     *qd,
+void qfDynSyn(uint64_t    fid,
+              gboolean    rev,
+              qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    ms)
 {
     /* check for duplicate SYN */
     if (qd->dynflags & QF_DYN_SEQINIT) {
         // FIXME what to do here?
-#if QF_DYN_DEBUG
-        fprintf(stderr, "qd ts %10u seq [%10s   %10u] dupsyn\n", ms, "", seq);
-#endif
         return;
     }
     
@@ -357,13 +323,11 @@ void qfDynSyn(qfDyn_t     *qd,
     
     /* note we've tracked the SYN */
     qd->dynflags |= QF_DYN_SEQINIT;
-
-#if QF_DYN_DEBUG
-    fprintf(stderr, "qd ts %10u seq [%10s   %10u] syn\n", ms, "", seq);
-#endif
 }
 
-void qfDynSeq(qfDyn_t     *qd,
+void qfDynSeq(uint64_t    fid,
+              gboolean    rev,
+              qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,
               uint32_t    ms)
@@ -371,32 +335,18 @@ void qfDynSeq(qfDyn_t     *qd,
     uint32_t              iat;
     qfSeqStat_t           seqstat;
     
-#if QF_DYN_DEBUG
-    fprintf(stderr, "qd ts %10u seq [%10u - %10u] ", (uint32_t) (ms & UINT32_MAX), seq, seq + oct);
-#endif
- 
     /* short circuit on no octets */
     if (!oct) {
-#if QF_DYN_DEBUG
-        fprintf(stderr, "empty\n");
-#endif
         return;
     }
     
-    /* short circuit on no syn */
     if (!(qd->dynflags & QF_DYN_SEQINIT)) {
-#if QF_DYN_DEBUG
-        fprintf(stderr, "nosyn\n");
-#endif
         return;
     }
     
     /* update MSS */
     if (oct > qd->mss) {
         qd->mss = oct;
-#if QF_DYN_DEBUG
-        fprintf(stderr, "mss %u ", oct);
-#endif
     }
     
     /* track sequence numbers in binmap to detect order/loss */
@@ -404,14 +354,8 @@ void qfDynSeq(qfDyn_t     *qd,
         seqstat = qfSeqBitsSegment(&(qd->sb), seq, seq + oct);
         if (seqstat == QF_SEQ_REXMIT) {
             qfDynRexmit(qd, seq, ms);
-#if QF_DYN_DEBUG
-            fprintf(stderr, "rexmit ");
-#endif
         } else if (seqstat == QF_SEQ_REORDER) {
             qfDynReorder(qd, seq, ms);
-#if QF_DYN_DEBUG
-            fprintf(stderr, "ooo ");
-#endif
         }
     } else {
         seqstat = QF_SEQ_INORDER; // presume in order
@@ -423,10 +367,10 @@ void qfDynSeq(qfDyn_t     *qd,
         qd->nsn = seq + oct;          // next expected seq
         iat = ms - qd->advlms;        // calculate last IAT
         qd->advlms = ms;              // update time of advance
-#if QF_DYN_DEBUG
-        fprintf(stderr, "adv ");
+
+#if QOF_DYN_TMI_ENABLE
+        qfDynTmiWrite(fid, rev, seq, qd->fan, iat, qd->rtt.last, qd->rtt_corr);
 #endif
-        
         /* update ack-based inflight */
         if (qd->dynflags & QF_DYN_ACKINIT) {
             sstMeanAdd(&qd->ack_inflight, qd->nsn - qd->fan);
@@ -444,9 +388,6 @@ void qfDynSeq(qfDyn_t     *qd,
             /* take time sample, if necessary */
             if (qfDynSeqSampleP(qd, ms)) {
                 qfSeqRingAddSample(&(qd->sr), qd->nsn, ms);
-    #if QF_DYN_DEBUG
-                fprintf(stderr, "rtts ");
-    #endif
             }
             
             /* update and minimize RTT correction factor if necessary */
@@ -457,33 +398,19 @@ void qfDynSeq(qfDyn_t     *qd,
         /* update max out of order */
         if ((qd->nsn - seq) > qd->reorder_max) {
             qd->reorder_max = qd->nsn - seq;
-#if QF_DYN_DEBUG
-            fprintf(stderr, "remax %u ", qd->reorder_max);
-#endif
         }
     }
-#if QF_DYN_DEBUG
-    fprintf(stderr, "\n");
-#endif
 }
 
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
               uint32_t    ms)
 {
-    
-#if QF_DYN_DEBUG
-    fprintf(stderr, "qd ts %u    ack %10u ", ms, ack);
-#endif
-
     /* initialize if necessary */
     if (!(qd->dynflags & QF_DYN_ACKINIT)) {
         qd->dynflags |= QF_DYN_ACKINIT;        
         qd->fan = ack;
         qd->rtt_corr = UINT32_MAX;
-#if QF_DYN_DEBUG
-        fprintf(stderr, "init ");
-#endif
     } else if (qfSeqCompare(ack, qd->fan) > 0) {
         /* advance ack number */
         qd->fan = ack;
@@ -497,9 +424,6 @@ void qfDynAck(qfDyn_t     *qd,
             qfDynStartRTTCorr(qd, ack, ms);
         }
     }
-#if QF_DYN_DEBUG
-    fprintf(stderr, "\n");
-#endif
 }
 
 void qfDynClose(qfDyn_t *qd) {
@@ -518,9 +442,6 @@ uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
     if (sc) sc -= 1; // remove one: nsn is the next expected sequence number
     if (sc & (flags & YF_TF_SYN) && sc) sc -= 1; // remove one for the syn
     if (sc & (flags & YF_TF_FIN) && sc) sc -= 1; // remove one for the fin
-#if QF_DYN_DEBUG
-    fprintf(stderr, "qd seqcount (isn %10u nsn %10u wrap %u) %llu\n", qd->isn, qd->nsn, qd->wrap_ct, sc);
-#endif
     return sc;
 }
 

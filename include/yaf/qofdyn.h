@@ -142,11 +142,15 @@ void qfDynClose(qfDyn_t   *qd);
 
 void qfDynFree(qfDyn_t    *qd);
 
-void qfDynSyn(qfDyn_t     *qd,
+void qfDynSyn(uint64_t    fid,
+              gboolean    rev,
+              qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    ms);
 
-void qfDynSeq(qfDyn_t     *qd,
+void qfDynSeq(uint64_t    fid,
+              gboolean    rev,
+              qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,
               uint32_t    ms);

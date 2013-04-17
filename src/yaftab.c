@@ -788,13 +788,12 @@ static void yfFlowPktTCP(
     }
 
     /* track tcp dynamics */
-#if QF_DYN_DEBUG
-    fprintf(stderr, "flow %6u %2s ", fn->f.fid, &(fn->f.val) == val ? "->" : "<-");
-#endif
     if (tcpinfo->flags & YF_TF_SYN) {
-        qfDynSyn(&val->tcp, tcpinfo->seq, lms);
+        qfDynSyn(fn->f.fid, (val == &fn->f.rval),
+                 &val->tcp, tcpinfo->seq, lms);
     } else {
-        qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen, lms);
+        qfDynSeq(fn->f.fid, (val == &fn->f.rval),
+                 &val->tcp, tcpinfo->seq, (uint32_t)datalen, lms);
     }
     
     if (tcpinfo->flags & YF_TF_ACK) {

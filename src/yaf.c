@@ -70,6 +70,8 @@
 #include "yafstat.h"
 #include "qofctx.h"
 
+#include "qofdyntmi.h"
+
 #if YAF_ENABLE_LIBTRACE
 #include "qofltrace.h"
 #endif
@@ -759,7 +761,11 @@ int main (
         ctx.fragtab = yfFragTabAlloc(30000, yaf_opt_max_frags);
     }
 
-
+    /* Set up dynamics TMI output (compile-time switch) */
+#if QOF_DYN_TMI_ENABLE
+    qfDynTmiOpen("qof_dyn_tmi.csv");
+#endif
+    
     /* We have a packet source, an output stream,
        and all the tables we need. Run with it. */
 
@@ -797,6 +803,11 @@ int main (
     if (ctx.pbufring) {
         rgaFree(ctx.pbufring);
     }
+    
+#if QOF_DYN_TMI_ENABLE
+    qfDynTmiClose();
+#endif
+
 
     /* Print exit message */
     if (loop_ok) {

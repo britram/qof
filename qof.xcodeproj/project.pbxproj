@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D306F28E1701436C00FE09F5 /* qofdyn.c in Sources */ = {isa = PBXBuildFile; fileRef = D306F28D1701436C00FE09F5 /* qofdyn.c */; };
 		D3282A631709703600B2ABA4 /* bitmap.c in Sources */ = {isa = PBXBuildFile; fileRef = D3282A601708CF2100B2ABA4 /* bitmap.c */; };
 		D377339E171E0B40004FF28F /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
 		D377339F171E0B55004FF28F /* tracepull.c in Sources */ = {isa = PBXBuildFile; fileRef = D3773390171DF9E4004FF28F /* tracepull.c */; };
@@ -15,6 +14,8 @@
 		D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EADBDC170BDDEC006FE1FE /* qofltrace.c */; };
 		D39F5C33170CDE480094B103 /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
 		D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E1D8BE1712764700E94E6D /* streamstat.c */; };
+		D3F2AA6D171EA76E009DC254 /* qofdyn.c in Sources */ = {isa = PBXBuildFile; fileRef = D306F28D1701436C00FE09F5 /* qofdyn.c */; };
+		D3F2AA6F171F53BB009DC254 /* qofdyntmi.c in Sources */ = {isa = PBXBuildFile; fileRef = D37733A0171E43A0004FF28F /* qofdyntmi.c */; };
 		F519223B1672388F00514165 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = F519221A1672388F00514165 /* decode.c */; };
 		F519223E1672388F00514165 /* picq.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922201672388F00514165 /* picq.c */; };
 		F51922401672388F00514165 /* ring.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922221672388F00514165 /* ring.c */; };
@@ -86,6 +87,7 @@
 		D377338F171CFB50004FF28F /* qofconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofconfig.h; sourceTree = "<group>"; };
 		D3773390171DF9E4004FF28F /* tracepull.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tracepull.c; sourceTree = "<group>"; };
 		D3773395171E0B2C004FF28F /* tracepull */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tracepull; sourceTree = BUILT_PRODUCTS_DIR; };
+		D37733A0171E43A0004FF28F /* qofdyntmi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qofdyntmi.c; sourceTree = "<group>"; };
 		D39F27671703AB4C00089492 /* qofdyn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdyn.h; sourceTree = "<group>"; };
 		D39F5C32170CDE480094B103 /* libtrace.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtrace.3.dylib; path = ../../opt/lib/libtrace.3.dylib; sourceTree = "<group>"; };
 		D39F5C34170D03150094B103 /* IANA_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IANA_IE.h; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 		D3E1D8C017127BDF00E94E6D /* streamstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = streamstat.h; sourceTree = "<group>"; };
 		D3EADBDC170BDDEC006FE1FE /* qofltrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofltrace.c; sourceTree = "<group>"; };
 		D3EADBDE170BE2B5006FE1FE /* qofltrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofltrace.h; sourceTree = "<group>"; };
+		D3F2AA70171F5506009DC254 /* qofdyntmi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdyntmi.h; sourceTree = "<group>"; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F51922201672388F00514165 /* picq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = picq.c; sourceTree = "<group>"; };
@@ -280,6 +283,8 @@
 				F519222A1672388F00514165 /* qofctx.h */,
 				F52331DA16BC130400A3FA81 /* qofctx.c */,
 				D306F28D1701436C00FE09F5 /* qofdyn.c */,
+				D37733A0171E43A0004FF28F /* qofdyntmi.c */,
+				D3F2AA70171F5506009DC254 /* qofdyntmi.h */,
 				D36F0F4716E3B5720028EDAE /* qofifmap.h */,
 				F51922211672388F00514165 /* qofifmap.c */,
 				D3EADBDE170BE2B5006FE1FE /* qofltrace.h */,
@@ -563,10 +568,11 @@
 				F5192344167238A400514165 /* privconfig.c in Sources */,
 				D38872B716946DDF00E66A70 /* qofifmap.c in Sources */,
 				F52331DB16BC130400A3FA81 /* qofctx.c in Sources */,
-				D306F28E1701436C00FE09F5 /* qofdyn.c in Sources */,
 				D3282A631709703600B2ABA4 /* bitmap.c in Sources */,
 				D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */,
 				D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */,
+				D3F2AA6D171EA76E009DC254 /* qofdyn.c in Sources */,
+				D3F2AA6F171F53BB009DC254 /* qofdyntmi.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -669,7 +675,7 @@
 					"$(inherited)",
 					"HAVE_CONFIG_H=1",
 					"YAF_SOURCE=1",
-					"QF_DYN_DEBUG=0",
+					"QF_DYN_TMI_ENABLE=1",
 				);
 				HEADER_SEARCH_PATHS = (
 					./include,
@@ -726,6 +732,7 @@
 				D377339D171E0B2C004FF28F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F52D56BA16723812006D32A1 /* Build configuration list for PBXProject "qof" */ = {
 			isa = XCConfigurationList;

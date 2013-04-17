@@ -1,3 +1,5 @@
+// FIXME replace qofctx with this interface, integrate throughout.
+
 #include <yaf/autoinc.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
@@ -66,6 +68,8 @@ typedef struct qfOutputContext_st {
     uint32_t        rotate_period;
     /** Last UDP template retransmission */
     uint64_t        rotate_last;
+    /** Use output lock buffer */
+    gboolean        enable_lock;
     /** Output lock buffer */
     AirLock         lockbuf;
     /** Output IPFIX buffer */

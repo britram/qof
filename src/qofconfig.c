@@ -1,6 +1,6 @@
 /**
  ** qofconfig.c
- ** QoF configuration -- parse YAML configuration into QOF config object
+ ** QoF configuration and YAML parser
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2013      Brian Trammell. All Rights Reserved
