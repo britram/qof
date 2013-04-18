@@ -56,6 +56,7 @@ void parse_args(int argc,
         switch (c) {
             case 'v':
                 verbose_mode = 1;
+                break;
             case 'p':
                 if (sscanf(optarg, "%u", tracepkt) < 1) {
                     err("bad -p %s", optarg);
