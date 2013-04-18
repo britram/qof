@@ -5,9 +5,11 @@
 
 void qfDynTmiOpen(const char *filename);
 
-void qfDynTmiWrite(uint64_t fid, gboolean rev, uint32_t seq,
-                   uint32_t fan, uint32_t iat,
-                   uint32_t rttm, uint32_t rttc);
+void qfDynTmiFlow(uint64_t ms, uint64_t fid, gboolean rev);
+
+void qfDynTmiDynamics(uint32_t seq, uint32_t fan, uint32_t flight,
+                      uint32_t iat, uint32_t rttm, uint32_t rttc,
+                      uint32_t rtx, uint32_t reo);
 
 void qfDynTmiClose();
 

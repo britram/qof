@@ -763,7 +763,7 @@ int main (
 
     /* Set up dynamics TMI output (compile-time switch) */
 #if QOF_DYN_TMI_ENABLE
-    qfDynTmiOpen("qof_dyn_tmi.csv");
+    qfDynTmiOpen("qof_dyn_tmi.txt");
 #endif
     
     /* We have a packet source, an output stream,

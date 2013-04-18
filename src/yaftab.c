@@ -789,11 +789,13 @@ static void yfFlowPktTCP(
 
     /* track tcp dynamics */
     if (tcpinfo->flags & YF_TF_SYN) {
-        qfDynSyn(fn->f.fid, (val == &fn->f.rval),
-                 &val->tcp, tcpinfo->seq, lms);
+        qfDynSyn(&val->tcp, tcpinfo->seq, lms);
     } else {
-        qfDynSeq(fn->f.fid, (val == &fn->f.rval),
-                 &val->tcp, tcpinfo->seq, (uint32_t)datalen, lms);
+#if QOF_DYN_TMI_ENABLE
+        qfDynTmiFlow(flowtab->ctime - fn->f.stime,
+                     fn->f.fid, val == &fn->f.rval);
+#endif
+        qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen, lms);
     }
     
     if (tcpinfo->flags & YF_TF_ACK) {

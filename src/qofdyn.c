@@ -295,9 +295,7 @@ void qfDynFree(qfDyn_t      *qd)
     qfSeqBitsFree(&qd->sb);
 }
 
-void qfDynSyn(uint64_t    fid,
-              gboolean    rev,
-              qfDyn_t     *qd,
+void qfDynSyn(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    ms)
 {
@@ -325,9 +323,7 @@ void qfDynSyn(uint64_t    fid,
     qd->dynflags |= QF_DYN_SEQINIT;
 }
 
-void qfDynSeq(uint64_t    fid,
-              gboolean    rev,
-              qfDyn_t     *qd,
+void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,
               uint32_t    ms)
@@ -358,7 +354,7 @@ void qfDynSeq(uint64_t    fid,
             qfDynReorder(qd, seq, ms);
         }
     } else {
-        seqstat = QF_SEQ_INORDER; // presume in order
+        seqstat = QF_SEQ_INORDER; // presume in order (need this for IAT)
     }
     
     /* advance sequence number if necessary */
@@ -368,9 +364,6 @@ void qfDynSeq(uint64_t    fid,
         iat = ms - qd->advlms;        // calculate last IAT
         qd->advlms = ms;              // update time of advance
 
-#if QOF_DYN_TMI_ENABLE
-        qfDynTmiWrite(fid, rev, seq, qd->fan, iat, qd->rtt.last, qd->rtt_corr);
-#endif
         /* update ack-based inflight */
         if (qd->dynflags & QF_DYN_ACKINIT) {
             sstMeanAdd(&qd->ack_inflight, qd->nsn - qd->fan);
@@ -393,6 +386,14 @@ void qfDynSeq(uint64_t    fid,
             /* update and minimize RTT correction factor if necessary */
             qfDynCorrRTT(qd, seq, oct, ms);
         }
+        
+        /* output situation after processing of segment to TMI if necessary */
+#if QOF_DYN_TMI_ENABLE
+        qfDynTmiDynamics(seq - qd->isn, qd->fan - qd->isn,
+                         qd->rtt_corr_seq - qd->isn,
+                         iat, qd->rtt.last, qd->rtt_corr,
+                         qd->rtx_ct, qd->reorder_ct);
+#endif
         
     } else {        
         /* update max out of order */
