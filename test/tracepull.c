@@ -29,6 +29,7 @@ void usage(const char *progname) {
 }
 
 static char bpfbuf[65536];
+static unsigned int verbose_mode = 0;
 
 void parse_args(int argc,
                 char * const argv[],
@@ -51,8 +52,10 @@ void parse_args(int argc,
     
     char c;
     
-    while ((c = getopt(argc, argv, "p:s:t:z:")) != -1) {
+    while ((c = getopt(argc, argv, "vp:s:t:z:")) != -1) {
         switch (c) {
+            case 'v':
+                verbose_mode = 1;
             case 'p':
                 if (sscanf(optarg, "%u", tracepkt) < 1) {
                     err("bad -p %s", optarg);
@@ -233,19 +236,21 @@ int main (int argc, char * const argv[])
     }
     
     /* print greeting */
-    fprintf(stderr, "tracepull starting:\n");
-    if (tracepkt) {
-        fprintf(stderr, "  reading %10u packets from %s", tracepkt, uri_in);
-    } else if (tracesec) {
-        fprintf(stderr, "  reading %5u seconds from %s", tracesec, uri_in);
-    } else {
-        fprintf(stderr, "  reading forever from %s", uri_in);
+    if (verbose_mode) {
+        fprintf(stderr, "tracepull starting:\n");
+        if (tracepkt) {
+            fprintf(stderr, "  reading %10u packets from %s", tracepkt, uri_in);
+        } else if (tracesec) {
+            fprintf(stderr, "  reading %5u seconds from %s", tracesec, uri_in);
+        } else {
+            fprintf(stderr, "  reading forever from %s", uri_in);
+        }
+        fprintf(stderr, ", snaplen %u, %s\n",
+                snaplen, bpfexpr ? bpfexpr : "unfiltered");
+        fprintf(stderr, "  writing %s to %s\n",
+                zlevel ? "compressed" : "uncompressed", uri_out);
     }
-    fprintf(stderr, ", snaplen %u, %s\n",
-            snaplen, bpfexpr ? bpfexpr : "unfiltered");
-    fprintf(stderr, "  writing %s to %s\n",
-            zlevel ? "compressed" : "uncompressed", uri_out);
-
+    
     /* copy packets from input to output */
     while (!did_quit && trace_read_packet(trace_in, packet) > 0) {
         if (trace_write_packet(trace_out, packet) <= 0) {
@@ -265,12 +270,14 @@ int main (int argc, char * const argv[])
         err("Could not read packet from %s: %s", uri_in, terr.problem);
     }
 
-    /* dump statistics */
-    fprintf(stderr, "read       %10llu packets from %s\n", trace_get_accepted_packets(trace_in), uri_in);
-    fprintf(stderr, "  filtered %10llu\n", trace_get_filtered_packets(trace_in));
-    fprintf(stderr, "  dropped  %10llu\n", trace_get_dropped_packets(trace_in));
-    fprintf(stderr, "wrote      %10u packets to   %s\n", pktct, uri_out);
-
+    /* dump statistics if interesting */
+    if (verbose_mode || trace_get_dropped_packets(trace_in)) {
+        fprintf(stderr, "read       %10llu packets from %s\n", trace_get_accepted_packets(trace_in), uri_in);
+        fprintf(stderr, "  filtered %10llu\n", trace_get_filtered_packets(trace_in));
+        fprintf(stderr, "  dropped  %10llu\n", trace_get_dropped_packets(trace_in));
+        fprintf(stderr, "wrote      %10u packets to   %s\n", pktct, uri_out);
+    }
+    
     /* close up shop */
     trace_destroy(trace_in);
     trace_destroy_output(trace_out);
