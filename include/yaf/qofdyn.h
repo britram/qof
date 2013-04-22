@@ -30,37 +30,6 @@
 int qfSeqCompare(uint32_t a, uint32_t b);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Sequence number - timestamp sampling structure 
- * REMOVING in rttwalk branch
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-#if 0
-struct qfSeqTime_st;
-typedef struct qfSeqTime_st qfSeqTime_t;
-
-/** Ring of sequence number / time tuples */
-typedef struct qfSeqRing_st {
-    qfSeqTime_t     *bin;
-    uint32_t        bincount;
-    uint32_t        head;
-    uint32_t        tail;
-} qfSeqRing_t;
-
-void qfSeqRingInit(qfSeqRing_t              *sr,
-                   uint32_t                 capacity);
-
-void qfSeqRingFree(qfSeqRing_t              *sr);
-
-void qfSeqRingAddSample(qfSeqRing_t         *sr,
-                        uint32_t            seq,
-                        uint32_t            ms);
-
-uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
-                      uint32_t              ack,
-                      uint32_t              ms);
-#endif
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Sequence number bitmap structure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 typedef struct qfSeqBits_st {
@@ -111,6 +80,8 @@ typedef struct qfDyn_st {
     uint32_t        rtt_next_san;
     /* Time at which rwwt next determination was made ( + rttx = ctime) */
     uint32_t        rtt_next_lms;
+    /* Time at which rwwt next determination was made ( + rttx = ctime) */
+    uint32_t        rtt_tsval;
     /* observed forward RTT (rtt measured) */
     uint32_t        rttm;
     /* observed reverse RTT (rtt correction term) */
@@ -150,10 +121,14 @@ void qfDynSyn(qfDyn_t     *qd,
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,
+              uint32_t    tsval,
+              uint32_t    tsecr,
               uint32_t    ms);
 
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
+              uint32_t    tsval,
+              uint32_t    tsecr,
               uint32_t    ms);
 
 void qfDynConfig(uint32_t bincap,

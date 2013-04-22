@@ -27,121 +27,9 @@ static const uint32_t     kFlightMinSegments = 10;
 static uint32_t qf_dyn_bincap = 0;
 static uint32_t qf_dyn_binscale = 1;
 
-static uint64_t qf_dyn_stat_ringover = 0;
-
 int qfSeqCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
 }
-
-/* *******************************************************************
- * REMOVING SeqTime/SeqRing in rttwalk branch - begin cut
- * *******************************************************************/
-#if 0
-/** Sequence number / time tuple */
-struct qfSeqTime_st {
-    uint32_t    ms;
-    uint32_t    seq;
-};
-
-void qfSeqRingInit(qfSeqRing_t              *sr,
-                   uint32_t                 capacity)
-{
-    /* zero structure */
-    memset(sr, 0, sizeof(*sr));
-    
-    /* allocate bin array */
-    sr->bincount = capacity;
-    sr->bin = yg_slice_alloc0(sr->bincount * sizeof(qfSeqTime_t));
-}
-
-void qfSeqRingFree(qfSeqRing_t              *sr)
-{
-    if (sr->bin) yg_slice_free1(sr->bincount * sizeof(qfSeqTime_t), sr->bin);
-}
-
-void qfSeqRingAddSample(qfSeqRing_t         *sr,
-                        uint32_t            seq,
-                        uint32_t            ms)
-{
-    /* overrun if we need to */
-    if (((sr->head + 1) % sr->bincount) == sr->tail) {
-        sr->tail++;
-        if (sr->tail >= sr->bincount) sr->tail = 0;
-        qf_dyn_stat_ringover++;
-    }
-    
-    /* insert sample */
-    sr->bin[sr->head].seq = seq;
-    sr->bin[sr->head].ms = ms;
-    sr->head++;
-    if (sr->head >= sr->bincount) sr->head = 0;
-}
-
-uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
-                      uint32_t              ack,
-                      uint32_t              ms)
-{
-    uint32_t rtt;
-        
-    while (sr->head != sr->tail &&
-           qfSeqCompare(sr->bin[sr->tail].seq, ack-1) < 0)
-    {
-        sr->tail++;
-        if (sr->tail >= sr->bincount) sr->tail = 0;
-    }
-
-    if (sr->head == sr->tail) return 0;
-    
-    rtt = ms - sr->bin[sr->tail].ms;
-    sr->tail++;
-    if (sr->tail >= sr->bincount) sr->tail = 0;
-    return rtt;
-}
-
-static size_t qfSeqRingAvail(qfSeqRing_t *sr)
-{
-    ssize_t occ = sr->head - sr->tail;
-    if (occ < 0) occ += sr->bincount;
-    return sr->bincount - occ;
-}
-
-static int qfDynHasSeqring(qfDyn_t *qd) { return qd->sr.bin != 0; }
-
-static int qfDynSeqSampleP(qfDyn_t     *qd,
-                           uint64_t     ms)
-{
-    /* don't sample without seqring */
-    if (!qfDynHasSeqring(qd)) {
-        return 0;
-    }
-    
-    /* don't sample higher than sample rate */
-    if ((qd->sr.bin[qd->sr.head].ms + kSeqSamplePeriodMs) > ms)
-    {
-        return 0;
-    }
-    
-    /* don't sample until we've waited out the sample period */
-    if (qd->sr_skip < qd->sr_period) {
-        qd->sr_skip++;
-        return 0;
-    }
-    
-    /* good to sample, calculate next period */
-    if ((qd->dynflags & QF_DYN_SEQINIT) && (qd->dynflags & QF_DYN_ACKINIT)) {
-        qd->sr_period = ((qd->nsn - qd->fan) / qd->mss) / qfSeqRingAvail(&qd->sr);
-        if (qd->sr_period) qd->sr_period--;        
-    } else {
-        qd->sr_period = 0;
-    }
-    qd->sr_skip = 0;
-    
-    return 1;
-}
-#endif
-/* *******************************************************************
- * REMOVING SeqTime/SeqRing in rttwalk branch - end cut
- * *******************************************************************/
 
 void qfSeqBitsInit(qfSeqBits_t *sb, uint32_t capacity, uint32_t scale) {
     bimInit(&sb->map, capacity / scale);
@@ -250,17 +138,24 @@ static uint32_t qfDynRttWalkEpbdp(qfDyn_t     *qd)
 }
 
 static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
-                         uint32_t    seq,
-                         uint32_t    oct,
-                         uint32_t    ms)
+                                uint32_t    seq,
+                                uint32_t    oct,
+                                uint32_t    tsecr,
+                                uint32_t    ms)
 {
     /* short-circuit if we're looking for an ack */
     if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_SA) return FALSE;
 
     /* try rttc measurement if we're looking for a seq */
     if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_AS) {
-        if (qfSeqCompare(seq, qd->rtt_next_san) >= 0) {
-            /* found. update rttc. */
+        if (tsecr && qd->rtt_tsval && qfSeqCompare(tsecr, qd->rtt_tsval) >= 0) {
+            /* found via TS, update rttc. */
+            qd->rttc = ms - qd->rtt_next_lms;
+            if (qd->rttc && qd->rttm) {
+                sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+            }            
+        } else if (qfSeqCompare(seq, qd->rtt_next_san) >= 0) {
+            /* found via EPBDP, update rttc. */
             qd->rttc = ms - qd->rtt_next_lms;
             if (qd->rttc && qd->rttm) {
                 sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
@@ -280,8 +175,9 @@ static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
 }
 
 static gboolean qfDynRttWalkAck  (qfDyn_t     *qd,
-                              uint32_t    ack,
-                              uint32_t    ms)
+                                  uint32_t    ack,
+                                  uint32_t    tsval,
+                                  uint32_t    ms)
 {
     /* short-circuit if we're not looking for an ack */
     if ((qd->dynflags & QF_DYN_RTTW_STATE) != QF_DYN_RTTW_SA) return FALSE;
@@ -294,10 +190,11 @@ static gboolean qfDynRttWalkAck  (qfDyn_t     *qd,
             sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
         }
         
-        /* set next expected seq */
+        /* set next expected seq and tsecr */
         qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_SA) | QF_DYN_RTTW_AS;
         qd->rtt_next_lms = ms;
         qd->rtt_next_san = ack + qfDynRttWalkEpbdp(qd);
+        qd->rtt_tsval = tsval;
         return TRUE;
     }
 
@@ -341,6 +238,8 @@ void qfDynSyn(qfDyn_t     *qd,
 void qfDynSeq(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    oct,
+              uint32_t    tsval,
+              uint32_t    tsecr,
               uint32_t    ms)
 {
     uint32_t              iat;
@@ -391,7 +290,7 @@ void qfDynSeq(qfDyn_t     *qd,
         qd->cur_iatflight += oct;
 
         /* Do seq-side RTT calculation */
-        qfDynRttWalkSeq(qd, seq, oct, ms);
+        qfDynRttWalkSeq(qd, seq, oct, tsecr, ms);
         
         /* output situation after processing of segment to TMI if necessary */
 #if QOF_DYN_TMI_ENABLE
@@ -411,6 +310,8 @@ void qfDynSeq(qfDyn_t     *qd,
 
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
+              uint32_t    tsval,
+              uint32_t    tsecr,
               uint32_t    ms)
 {
     /* initialize if necessary */
@@ -422,7 +323,7 @@ void qfDynAck(qfDyn_t     *qd,
         qd->fan = ack;
         
         /* Do ack-side RTT calculation */
-        qfDynRttWalkAck(qd, ack, ms);
+        qfDynRttWalkAck(qd, ack, tsval, ms);
     }
 }
 
@@ -444,8 +345,5 @@ uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
 }
 
 void qfDynDumpStats() {
-    if (qf_dyn_stat_ringover) {
-        g_warning("%"PRIu64" RTT sample buffer overruns.",
-                  qf_dyn_stat_ringover);
-    }
+    /* no more ring overruns, nothing to print */
 }

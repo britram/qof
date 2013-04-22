@@ -72,6 +72,8 @@
 #include "qofctx.h"
 #include "decode.h"
 
+#include "qofdyntmi.h"
+
 #ifndef YFDEBUG_FLOWTABLE
 #define YFDEBUG_FLOWTABLE 0
 #endif
@@ -795,11 +797,13 @@ static void yfFlowPktTCP(
         qfDynTmiFlow(flowtab->ctime - fn->f.stime,
                      fn->f.fid, val == &fn->f.rval);
 #endif
-        qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen, lms);
+        qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen,
+                 tcpinfo->tsval, tcpinfo->tsecr, lms);
     }
     
     if (tcpinfo->flags & YF_TF_ACK) {
-        qfDynAck(&rval->tcp, tcpinfo->ack, lms);
+        qfDynAck(&rval->tcp, tcpinfo->ack,
+                 tcpinfo->tsval, tcpinfo->tsecr, lms);
     }
     
     /* Store information from options */
