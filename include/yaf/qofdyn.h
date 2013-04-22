@@ -66,8 +66,6 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
 typedef struct qfDyn_st {
     /** Bitmap for storing seen sequence numbers */
     qfSeqBits_t     sb;
-    /* SEQ/ACK inflight tracking -- WARNING this is OP dependent */
-    sstMean_t       ack_inflight;
     /* Non-empty segment interarrival time tracking */
     sstMean_t       seg_iat;
     /* Smoothed IAT flight size series */
@@ -76,12 +74,10 @@ typedef struct qfDyn_st {
     uint32_t        cur_iatflight;
     /* Mean/min/max RTT */
     sstMean_t       rtt;
-    /* Next sequence/ack number espected (see dynflags & QF_DYN_RTTW_STATE) */
-    uint32_t        rtt_next_san;
+    /* Next ack/tsecr expected */
+    uint32_t        rtt_next_tsack;
     /* Time at which rwwt next determination was made ( + rttx = ctime) */
     uint32_t        rtt_next_lms;
-    /* Time at which rwwt next determination was made ( + rttx = ctime) */
-    uint32_t        rtt_tsval;
     /* observed forward RTT (rtt measured) */
     uint32_t        rttm;
     /* observed reverse RTT (rtt correction term) */

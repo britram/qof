@@ -129,14 +129,6 @@ static int qfDynBreakFlight(qfDyn_t    *qd,
     return 0;
 }
 
-static uint32_t qfDynRttWalkEpbdp(qfDyn_t     *qd)
-{
-    /* simple flight-size based EPBDP */
-    uint32_t flightsize = qd->iatflight.val;
-    if (qd->cur_iatflight > flightsize) flightsize = qd->cur_iatflight;
-    return flightsize;
-}
-
 static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
                                 uint32_t    seq,
                                 uint32_t    oct,
@@ -148,17 +140,17 @@ static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
 
     /* try rttc measurement if we're looking for a seq */
     if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_AS) {
-        if (tsecr && qd->rtt_tsval && qfSeqCompare(tsecr, qd->rtt_tsval) >= 0) {
-            /* found via TS, update rttc. */
-            qd->rttc = ms - qd->rtt_next_lms;
-            if (qd->rttc && qd->rttm) {
-                sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
-            }            
-        } else if (qfSeqCompare(seq, qd->rtt_next_san) >= 0) {
-            /* found via EPBDP, update rttc. */
-            qd->rttc = ms - qd->rtt_next_lms;
-            if (qd->rttc && qd->rttm) {
-                sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+        if (tsecr && (qfSeqCompare(tsecr, qd->rtt_next_tsack) >= 0)) {
+                /* found via TS, update rttc. */
+                qd->rttc = ms - qd->rtt_next_lms;
+                if (qd->rttc && qd->rttm) {
+                    sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+                }
+        } else if (!qd->rtt_next_tsack) {
+            /* no timestamps for this flow. RTTC remains 0, go to SA state. */
+            qd->rttc = 0;
+            if (qd->rttm) {
+                sstMeanAdd(&qd->rtt, qd->rttm);
             }
         } else {
             /* not found. skip state switch. */
@@ -169,7 +161,7 @@ static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
     /* updated rttc or in initial state; take seq and look for ack. */
     qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_AS) | QF_DYN_RTTW_SA;
     qd->rtt_next_lms = ms;
-    qd->rtt_next_san = seq + oct;
+    qd->rtt_next_tsack = seq + oct;
     
     return TRUE;
 }
@@ -183,18 +175,17 @@ static gboolean qfDynRttWalkAck  (qfDyn_t     *qd,
     if ((qd->dynflags & QF_DYN_RTTW_STATE) != QF_DYN_RTTW_SA) return FALSE;
 
     /* try rttm measurement */
-    if (qfSeqCompare(ack, qd->rtt_next_san) >= 0) {
+    if (qfSeqCompare(ack, qd->rtt_next_tsack) >= 0) {
         /* yep, got the ack we're looking for */
         qd->rttm = ms - qd->rtt_next_lms;
         if (qd->rttc && qd->rttm) {
             sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
         }
         
-        /* set next expected seq and tsecr */
+        /* set next expected tsecr */
         qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_SA) | QF_DYN_RTTW_AS;
         qd->rtt_next_lms = ms;
-        qd->rtt_next_san = ack + qfDynRttWalkEpbdp(qd);
-        qd->rtt_tsval = tsval;
+        qd->rtt_next_tsack = tsval;
         return TRUE;
     }
 
@@ -278,11 +269,6 @@ void qfDynSeq(qfDyn_t     *qd,
         iat = ms - qd->advlms;        // calculate last IAT
         qd->advlms = ms;              // update time of advance
 
-        /* update ack-based inflight */
-        if (qd->dynflags & QF_DYN_ACKINIT) {
-            sstMeanAdd(&qd->ack_inflight, qd->nsn - qd->fan);
-        }
-        
         /* detect iat flight break */
         sstMeanAdd(&qd->seg_iat, iat);
         if (seqstat == QF_SEQ_INORDER) qfDynBreakFlight(qd, iat);
@@ -295,7 +281,7 @@ void qfDynSeq(qfDyn_t     *qd,
         /* output situation after processing of segment to TMI if necessary */
 #if QOF_DYN_TMI_ENABLE
         qfDynTmiDynamics(seq - qd->isn, qd->fan - qd->isn,
-                         qd->rtt_next_san - qd->isn,
+                         qd->rtt_next_tsack - qd->isn,
                          iat, qd->rttm, qd->rttc,
                          qd->rtx_ct, qd->reorder_ct);
 #endif
