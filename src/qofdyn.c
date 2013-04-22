@@ -281,7 +281,7 @@ void qfDynSeq(qfDyn_t     *qd,
         /* output situation after processing of segment to TMI if necessary */
 #if QOF_DYN_TMI_ENABLE
         qfDynTmiDynamics(seq - qd->isn, qd->fan - qd->isn,
-                         qd->rtt_next_tsack - qd->isn,
+                         qd->cur_iatflight,
                          iat, qd->rttm, qd->rttc,
                          qd->rtx_ct, qd->ooo_ct);
 #endif

@@ -25,9 +25,9 @@ def fixread(c)
         STDERR.puts " **** bad sequence for domain #{message.domain}: got #{message.sequence}, expected #{expected} ****"
     end
     
-    puts ["synrtt","l3pkt","l7pkt",
+    puts ["fid","l3pkt","l7pkt",
           "l3oct","l4oct","l7oct",
-          "rtx","loss","oooc","maxooo","maxif",
+          "rtx","ooo","maxooo","maxflight",
           "minrtt","rtt","mss"].map { |s| "%7s"%(s) }.join(", ")
 
     # iterate over records
@@ -36,22 +36,31 @@ def fixread(c)
         unless (h[:meanTcpRttMilliseconds] || h[:reverseMeanTcpRttMilliseconds])
           next
         end
+
+        # skip lossy flows
+        if (h[:tcpSequenceLossCount] + h[:reverseTcpSequenceLossCount]) > 0
+            next
+        end
+
+        # skip non-mss flows
+        if h[:observedTcpMss] < 1400 && h[:reverseObservedTcpMss] < 1400
+            next
+        end
         
         # skip small flows
-        #unless (h[:initiatorPackets] + h[:responderPackets]) > 66
-        #  next
-        #end
+        if (h[:initiatorPackets] + h[:responderPackets]) < 66
+          next
+        end
         
         if h[:octetDeltaCount] > 0
           puts [
-            h[:reverseFlowDeltaMilliseconds],
+            h[:flowId],
             h[:packetDeltaCount],
             h[:initiatorPackets],
             h[:octetDeltaCount],
             h[:initiatorOctets],
             h[:tcpSequenceCount],
             h[:tcpRetransmitCount],
-            h[:tcpSequenceLossCount],
             h[:tcpOutOfOrderCount],
             h[:maxTcpReorderSize],
             h[:maxTcpFlightSize],
@@ -62,14 +71,13 @@ def fixread(c)
         
         if h[:reverseOctetDeltaCount] > 0
           puts [ 
-            0,
+            h[:flowId],
             h[:reversePacketDeltaCount],
             h[:responderPackets],
             h[:reverseOctetDeltaCount],
             h[:responderOctets],
             h[:reverseTcpSequenceCount],
             h[:reverseTcpRetransmitCount],
-            h[:reverseTcpSequenceLossCount],
             h[:reverseTcpOutOfOrderCount],
             h[:reverseMaxTcpReorderSize],
             h[:reverseMaxTcpFlightSize],
