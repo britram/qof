@@ -26,7 +26,7 @@ void qfDynTmiOpen(const char *filename) {
     
     if (tmifp) {
         fprintf(tmifp, "%8s %10s %1s %10s %10s %10s %6s %6s %6s %6s %6s\n",
-                "time", "flow", "d", "seq", "fan", "rcseq", "iat", "rttm", "rttc", "rtx", "reo");
+                "time", "flow", "d", "seq", "fan", "flight", "iat", "rttm", "rttc", "rtx", "ooo");
     } else {
         g_warning("cannot open dynamics TMI file %s: %s", filename, strerror(errno));
     }
@@ -40,16 +40,14 @@ void qfDynTmiFlow(uint64_t ms, uint64_t fid, gboolean rev) {
     }
 }
 
-void qfDynTmiDynamics(uint32_t seq, uint32_t fan, uint32_t rcseq,
+void qfDynTmiDynamics(uint32_t seq, uint32_t fan, uint32_t flight,
                       uint32_t iat, uint32_t rttm, uint32_t rttc,
-                      uint32_t rtx, uint32_t reo)
+                      uint32_t rtx, uint32_t ooo)
 {
     if (tmifp) {
         fprintf(tmifp, "%8.3f %10llu %1s %10u %10u %10u %6u %6u %6u %6u %6u\n",
                 tmims / 1000.0, tmifid, tmirev ? "r" : "f",
-                seq, fan, rcseq, iat,
-                rttm, rttc == UINT32_MAX ? 0 : rttc,
-                rtx, reo);
+                seq, fan, flight, iat, rttm, rttc, rtx, ooo);
     }
 }
                          

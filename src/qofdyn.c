@@ -112,7 +112,7 @@ static void qfDynReorder(qfDyn_t     *qd,
                          uint64_t    ms)
 {
     /* increment reorder counter */
-    qd->reorder_ct++;
+    qd->ooo_ct++;
 }
 
 
@@ -283,13 +283,13 @@ void qfDynSeq(qfDyn_t     *qd,
         qfDynTmiDynamics(seq - qd->isn, qd->fan - qd->isn,
                          qd->rtt_next_tsack - qd->isn,
                          iat, qd->rttm, qd->rttc,
-                         qd->rtx_ct, qd->reorder_ct);
+                         qd->rtx_ct, qd->ooo_ct);
 #endif
         
     } else {        
         /* update max out of order */
-        if ((qd->nsn - seq) > qd->reorder_max) {
-            qd->reorder_max = qd->nsn - seq;
+        if ((qd->nsn - seq) > qd->ooo_max) {
+            qd->ooo_max = qd->nsn - seq;
         }
     }
 }

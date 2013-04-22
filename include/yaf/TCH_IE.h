@@ -31,7 +31,7 @@ static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("declaredTcpMss", TCH_PEN, 1033, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("observedTcpMss", TCH_PEN, 1034, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("tcpSequenceLossCount", TCH_PEN, 1035, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
-     FB_IE_INIT("tcpReorderCount", TCH_PEN, 1036, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("tcpOutOfOrderCount", TCH_PEN, 1036, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
 };
 
 #endif

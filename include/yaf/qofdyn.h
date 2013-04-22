@@ -76,7 +76,7 @@ typedef struct qfDyn_st {
     sstMean_t       rtt;
     /* Next ack/tsecr expected */
     uint32_t        rtt_next_tsack;
-    /* Time at which rwwt next determination was made ( + rttx = ctime) */
+    /* Time of tsval or ack ( + rttx = ctime) */
     uint32_t        rtt_next_lms;
     /* observed forward RTT (rtt measured) */
     uint32_t        rttm;
@@ -95,9 +95,9 @@ typedef struct qfDyn_st {
     /* Detected retransmitted segment count */
     uint32_t        rtx_ct;
     /* Detected reordered segment count */
-    uint32_t        reorder_ct;
+    uint32_t        ooo_ct;
     /* Maxumum observed reordering (nsn - seq) */
-    uint32_t        reorder_max;
+    uint32_t        ooo_max;
     /* Observed maximum segment size */
     uint16_t        mss;
     /* Declared (via tcp option) maximum segment size */
