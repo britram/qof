@@ -64,7 +64,7 @@
 #include <airframe/airutil.h>
 
 /* HACK. Replace me with a runtime configuration parameter */
-static const int kEnableTCPOptionDecode = 0;
+static const int kEnableTCPOptionDecode = 1;
 
 /* Definitions of the various headers the decoder understands */
 

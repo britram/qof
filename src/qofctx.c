@@ -393,11 +393,7 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                         return qfYamlError(err, &parser, filename,
                                            "missing sn-capacity");
                     }
-                    if (!qdringcap) {
-                        return qfYamlError(err, &parser, filename,
-                                           "missing rtt-capacity");                        
-                    }
-                    qfDynConfig(qdbincap, qdbinscale, qdringcap);
+                    qfDynConfig(qdbincap, qdbinscale);
                     qcpstate = QCP_IN_DOC_MAP;
                     break;
                 }
@@ -405,7 +401,6 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 QCP_REQUIRE_SCALAR("internal error: missing key")
                 QCP_SCALAR_NEXT_STATE("sn-capacity", QCP_IN_TCP_SBCAP)
                 QCP_SCALAR_NEXT_STATE("sn-scale", QCP_IN_TCP_SBSCALE)
-                QCP_SCALAR_NEXT_STATE("rtt-capacity", QCP_IN_TCP_SRCAP)
                 QCP_DEFAULT("unknown tcp-state key")
                 break;
 
@@ -438,22 +433,6 @@ gboolean qfParseYamlConfig(yfContext_t           *ctx,
                 }
                 qcpstate = QCP_IN_TCPSTATE_KEY;
                 break;
-
-            case QCP_IN_TCP_SRCAP:
-                if (event.type == YAML_SCALAR_EVENT) {
-                    rv = sscanf(QCP_SV, "%u", &qdringcap);
-                    if (rv != 1) {
-                        return qfYamlError(err, &parser, filename,
-                                           "invalid value for rtt-capacity");
-                        return FALSE;
-                    }
-                } else {
-                    return qfYamlError(err, &parser, filename,
-                                       "missing value for rtt-capacity");
-                }
-                qcpstate = QCP_IN_TCPSTATE_KEY;
-                break;
-                
                 
             default:
                 return qfYamlError(err, &parser, filename,

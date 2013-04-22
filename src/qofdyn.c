@@ -24,11 +24,8 @@ static const uint64_t k2e32 = 0x100000000ULL;
 static const float        kFlightBreakIATDev = 2.0;
 static const uint32_t     kFlightMinSegments = 10;
 
-static const unsigned int kSeqSamplePeriodMs = 1;
-
 static uint32_t qf_dyn_bincap = 0;
 static uint32_t qf_dyn_binscale = 1;
-static uint32_t qf_dyn_ringcap = 0;
 
 static uint64_t qf_dyn_stat_ringover = 0;
 
@@ -36,6 +33,10 @@ int qfSeqCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
 }
 
+/* *******************************************************************
+ * REMOVING SeqTime/SeqRing in rttwalk branch - begin cut
+ * *******************************************************************/
+#if 0
 /** Sequence number / time tuple */
 struct qfSeqTime_st {
     uint32_t    ms;
@@ -137,6 +138,10 @@ static int qfDynSeqSampleP(qfDyn_t     *qd,
     
     return 1;
 }
+#endif
+/* *******************************************************************
+ * REMOVING SeqTime/SeqRing in rttwalk branch - end cut
+ * *******************************************************************/
 
 void qfSeqBitsInit(qfSeqBits_t *sb, uint32_t capacity, uint32_t scale) {
     bimInit(&sb->map, capacity / scale);
@@ -236,62 +241,76 @@ static int qfDynBreakFlight(qfDyn_t    *qd,
     return 0;
 }
 
-static void qfDynStartRTTCorr(qfDyn_t     *qd,
-                              uint32_t    ack,
-                              uint32_t    ms)
+static uint32_t qfDynRttWalkEpbdp(qfDyn_t     *qd)
 {
-    uint32_t    flightsize;
-    
-    /* only start a new correction if one's not already pending, and
-       we've seen enough segments to have some flight info */
-    if (!qd->rtt_corr_seq && qd->seg_iat.n > kFlightMinSegments) {
-        flightsize = qd->iatflight.val;
-        if (qd->cur_iatflight > flightsize) flightsize = qd->cur_iatflight;
-        
-        /* expected sequence number based on IAT flight size */
-        qd->rtt_corr_seq = qd->fan + flightsize;
-        qd->rtt_corr_lms = ms;
-    }
+    /* simple flight-size based EPBDP */
+    uint32_t flightsize = qd->iatflight.val;
+    if (qd->cur_iatflight > flightsize) flightsize = qd->cur_iatflight;
+    return flightsize;
 }
 
-static void qfDynCorrRTT(qfDyn_t     *qd,
+static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
                          uint32_t    seq,
                          uint32_t    oct,
                          uint32_t    ms)
 {
-    /* short-circuit if we don't have a pending correction */
-    if (!qd->rtt_corr_seq) return;
-    
-    if (seq >= qd->rtt_corr_seq) {
-        if (qd->rtt_corr > (ms - qd->rtt_corr_lms)) {
-            qd->rtt_corr = (ms - qd->rtt_corr_lms);
+    /* short-circuit if we're looking for an ack */
+    if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_SA) return FALSE;
+
+    /* try rttc measurement if we're looking for a seq */
+    if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_AS) {
+        if (qfSeqCompare(seq, qd->rtt_next_san) >= 0) {
+            /* found. update rttc. */
+            qd->rttc = ms - qd->rtt_next_lms;
+            if (qd->rttc && qd->rttm) {
+                sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+            }
+        } else {
+            /* not found. skip state switch. */
+            return FALSE;
         }
-        qd->rtt_corr_seq = 0;
-        qd->rtt_corr_lms = 0;
     }
+    
+    /* updated rttc or in initial state; take seq and look for ack. */
+    qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_AS) | QF_DYN_RTTW_SA;
+    qd->rtt_next_lms = ms;
+    qd->rtt_next_san = seq + oct;
+    
+    return TRUE;
 }
 
-static void qfDynMeasureRTT  (qfDyn_t     *qd,
+static gboolean qfDynRttWalkAck  (qfDyn_t     *qd,
                               uint32_t    ack,
                               uint32_t    ms)
 {
-    uint32_t irtt = qfSeqRingRTT(&(qd->sr), ack, ms);
-    if (!irtt) return;
-    if (qd->rtt_corr == UINT32_MAX) return;
-    
-    irtt += qd->rtt_corr;
-    sstMeanAdd(&qd->rtt, irtt);
+    /* short-circuit if we're not looking for an ack */
+    if ((qd->dynflags & QF_DYN_RTTW_STATE) != QF_DYN_RTTW_SA) return FALSE;
+
+    /* try rttm measurement */
+    if (qfSeqCompare(ack, qd->rtt_next_san) >= 0) {
+        /* yep, got the ack we're looking for */
+        qd->rttm = ms - qd->rtt_next_lms;
+        if (qd->rttc && qd->rttm) {
+            sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+        }
+        
+        /* set next expected seq */
+        qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_SA) | QF_DYN_RTTW_AS;
+        qd->rtt_next_lms = ms;
+        qd->rtt_next_san = ack + qfDynRttWalkEpbdp(qd);
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
-void qfDynConfig(uint32_t bincap, uint32_t binscale, uint32_t ringcap) {
+void qfDynConfig(uint32_t bincap, uint32_t binscale) {
     qf_dyn_bincap = bincap;
     qf_dyn_binscale = binscale;
-    qf_dyn_ringcap = ringcap;
 }
 
 void qfDynFree(qfDyn_t      *qd)
 {
-    qfSeqRingFree(&qd->sr);
     qfSeqBitsFree(&qd->sb);
 }
 
@@ -307,10 +326,6 @@ void qfDynSyn(qfDyn_t     *qd,
     
     /* allocate structures 
        FIXME figure out how to delay this until we have enough packets */
-    if (qf_dyn_ringcap) {
-        qfSeqRingInit(&qd->sr, qf_dyn_ringcap);
-    }
-    
     if (qf_dyn_bincap) {
         qfSeqBitsInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
     }
@@ -369,29 +384,20 @@ void qfDynSeq(qfDyn_t     *qd,
             sstMeanAdd(&qd->ack_inflight, qd->nsn - qd->fan);
         }
         
-        /* do RTT stuff if enabled */
-        if (qfDynHasSeqring(qd)) {
-            /* detect iat flight break */
-            sstMeanAdd(&qd->seg_iat, iat);
-            if (seqstat == QF_SEQ_INORDER) qfDynBreakFlight(qd, iat);
-            
-            /* count octets in this flight */
-            qd->cur_iatflight += oct;
-            
-            /* take time sample, if necessary */
-            if (qfDynSeqSampleP(qd, ms)) {
-                qfSeqRingAddSample(&(qd->sr), qd->nsn, ms);
-            }
-            
-            /* update and minimize RTT correction factor if necessary */
-            qfDynCorrRTT(qd, seq, oct, ms);
-        }
+        /* detect iat flight break */
+        sstMeanAdd(&qd->seg_iat, iat);
+        if (seqstat == QF_SEQ_INORDER) qfDynBreakFlight(qd, iat);
+        /* count octets in this flight */
+        qd->cur_iatflight += oct;
+
+        /* Do seq-side RTT calculation */
+        qfDynRttWalkSeq(qd, seq, oct, ms);
         
         /* output situation after processing of segment to TMI if necessary */
 #if QOF_DYN_TMI_ENABLE
         qfDynTmiDynamics(seq - qd->isn, qd->fan - qd->isn,
-                         qd->rtt_corr_seq - qd->isn,
-                         iat, qd->rtt.last, qd->rtt_corr,
+                         qd->rtt_next_san - qd->isn,
+                         iat, qd->rttm, qd->rttc,
                          qd->rtx_ct, qd->reorder_ct);
 #endif
         
@@ -411,19 +417,12 @@ void qfDynAck(qfDyn_t     *qd,
     if (!(qd->dynflags & QF_DYN_ACKINIT)) {
         qd->dynflags |= QF_DYN_ACKINIT;        
         qd->fan = ack;
-        qd->rtt_corr = UINT32_MAX;
     } else if (qfSeqCompare(ack, qd->fan) > 0) {
         /* advance ack number */
         qd->fan = ack;
         
-        /* do RTT stuff if enabled */
-        if (qfDynHasSeqring(qd)) {
-            /* sample RTT */
-            qfDynMeasureRTT(qd, ack, ms);
-            
-            /* start the next correction */
-            qfDynStartRTTCorr(qd, ack, ms);
-        }
+        /* Do ack-side RTT calculation */
+        qfDynRttWalkAck(qd, ack, ms);
     }
 }
 
@@ -433,9 +432,7 @@ void qfDynClose(qfDyn_t *qd) {
         qfSeqBitsFinalizeLoss(&qd->sb);
     }
     // add last flight
-    if (qfDynHasSeqring(qd)) {
-        sstLinSmoothAdd(&qd->iatflight, qd->cur_iatflight);
-    }
+    sstLinSmoothAdd(&qd->iatflight, qd->cur_iatflight);
 }
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {

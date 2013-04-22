@@ -31,8 +31,10 @@ int qfSeqCompare(uint32_t a, uint32_t b);
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Sequence number - timestamp sampling structure 
+ * REMOVING in rttwalk branch
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#if 0
 struct qfSeqTime_st;
 typedef struct qfSeqTime_st qfSeqTime_t;
 
@@ -56,6 +58,7 @@ void qfSeqRingAddSample(qfSeqRing_t         *sr,
 uint32_t qfSeqRingRTT(qfSeqRing_t           *sr,
                       uint32_t              ack,
                       uint32_t              ms);
+#endif
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Sequence number bitmap structure
@@ -87,18 +90,14 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
 
 #define QF_DYN_SEQINIT      0x00000001 /* first sequence number seen */
 #define QF_DYN_ACKINIT      0x00000002 /* first ack seen */
-#define QF_DYN_SEQADV       0x00000004 /* SEQ advanced on last operation */
-#define QF_DYN_RTTCORR      0x00000010 /* ACK advanced, update rtt_corr */
-#define QF_DYN_RTTVALID     0x00000020 /* we think rtt is usable */
+#define QF_DYN_RTTW_SA      0x00000010 /* rttwalk looking for seq-ack */
+#define QF_DYN_RTTW_AS      0x00000020 /* rttwalk looking for ack-seq */
+#define QF_DYN_RTTW_STATE   0x00000030 /* rttwalk state mask */
 
 typedef struct qfDyn_st {
     /** Bitmap for storing seen sequence numbers */
     qfSeqBits_t     sb;
-    /** Ring for storing sequence number / timestamp samples */
-    qfSeqRing_t     sr;
-    uint16_t        sr_skip;
-    uint16_t        sr_period;
-    /* SEQ/ACK inflight tracking */
+    /* SEQ/ACK inflight tracking -- WARNING this is OP dependent */
     sstMean_t       ack_inflight;
     /* Non-empty segment interarrival time tracking */
     sstMean_t       seg_iat;
@@ -108,12 +107,14 @@ typedef struct qfDyn_st {
     uint32_t        cur_iatflight;
     /* Mean/min/max RTT */
     sstMean_t       rtt;
-    /* RTT correction factor (minimum observed "backside RTT") */
-    uint32_t        rtt_corr;
-    /* Sequence number on which to calculate next backside RTT  */
-    uint32_t        rtt_corr_seq;
-    /* Time at which ACK for next backside RTT calculation was seen  */
-    uint32_t        rtt_corr_lms;
+    /* Next sequence/ack number espected (see dynflags & QF_DYN_RTTW_STATE) */
+    uint32_t        rtt_next_san;
+    /* Time at which rwwt next determination was made ( + rttx = ctime) */
+    uint32_t        rtt_next_lms;
+    /* observed forward RTT (rtt measured) */
+    uint32_t        rttm;
+    /* observed reverse RTT (rtt correction term) */
+    uint32_t        rttc;
     /* Initial sequence number */
     uint32_t        isn;
     /* Next sequence number expected */
@@ -156,8 +157,7 @@ void qfDynAck(qfDyn_t     *qd,
               uint32_t    ms);
 
 void qfDynConfig(uint32_t bincap,
-                 uint32_t binscale,
-                 uint32_t ringcap);
+                 uint32_t binscale);
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags);
 
