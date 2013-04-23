@@ -806,7 +806,7 @@ gboolean yfWriteStatsRec(
     GError **err)
 {
     yfIpfixStats_t      rec;
-    yfContext_t         *ctx = (yfContext_t *)yfContext;
+    qfContext_t         *ctx = (qfContext_t *)yfContext;
     fBuf_t              *fbuf = ctx->fbuf;
     uint32_t            mask = 0x000000FF;
     char                buf[200];
@@ -881,7 +881,7 @@ gboolean yfWriteStatsRec(
  
 
 static void yfTemplateRefresh(
-    yfContext_t         *ctx,
+    qfContext_t         *ctx,
     yfFlow_t            *flow)
 {
     GError              *err = NULL;
@@ -924,7 +924,7 @@ gboolean yfWriteFlow(
     uint16_t            wtid;
     uint16_t            etid = 0; /* extra templates */
 
-    yfContext_t         *ctx = (yfContext_t *)yfContext;
+    qfContext_t         *ctx = (qfContext_t *)yfContext;
     fBuf_t              *fbuf = ctx->fbuf;
 
     /* Refresh UDP templates if we should */

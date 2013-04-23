@@ -63,11 +63,11 @@
 #include "qofconfig.h"
 
 gboolean yfProcessPBufRing(
-    yfContext_t        *ctx,
+    qfContext_t        *ctx,
     GError             **err);
 
 gboolean yfTimeOutFlush(
-    yfContext_t        *ctx,
+    qfContext_t        *ctx,
     uint32_t           pcap_drop,
     uint32_t           *total_stats,
     GTimer             *timer,
@@ -75,7 +75,7 @@ gboolean yfTimeOutFlush(
     GError             **err);
 
 gboolean yfFinalFlush(
-    yfContext_t         *ctx,
+    qfContext_t         *ctx,
     gboolean            ok,
     uint32_t            pcap_drop,
     GTimer              *timer,

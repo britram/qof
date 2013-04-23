@@ -67,10 +67,10 @@
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
 
-#include "yafcap.h"
 #include "qofltrace.h"
 #include "yafstat.h"
 
+#include "qofconfig.h"
 #include "qofdyntmi.h"
 
 /* FIXME determine if we want to be more dynamic about this */
@@ -110,10 +110,10 @@ int                 yaf_quit = 0;
 /* Local derived configutation */
 
 AirOptionEntry yaf_optent_core[] = {
-    AF_OPTION( "in", 'i', 0, AF_OPT_TYPE_STRING, &yaf_config.inspec,
+    AF_OPTION( "in", 'i', 0, AF_OPT_TYPE_STRING, &(qfctx.ictx.inuri)
                THE_LAME_80COL_FORMATTER_STRING"Input (file, - for stdin; "
                "interface)", "inspec"),
-    AF_OPTION( "out", 'o', 0, AF_OPT_TYPE_STRING, &yaf_config.outspec,
+    AF_OPTION( "out", 'o', 0, AF_OPT_TYPE_STRING, &(qfctx.octx.outspec),
                THE_LAME_80COL_FORMATTER_STRING"Output (file, - for stdout; "
                "file prefix,"THE_LAME_80COL_FORMATTER_STRING"address)",
                "outspec"),

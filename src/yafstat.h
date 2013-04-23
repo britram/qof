@@ -63,7 +63,7 @@
 #include "qofconfig.h"
 
 void yfStatInit(
-    yfContext_t             *ctx);
+    qfContext_t             *ctx);
 
 void yfStatDumpLoop(void);
 

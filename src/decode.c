@@ -63,9 +63,6 @@
 #include <yaf/decode.h>
 #include <airframe/airutil.h>
 
-/* HACK. Replace me with a runtime configuration parameter */
-static const int kEnableTCPOptionDecode = 1;
-
 /* Definitions of the various headers the decoder understands */
 
 typedef struct yfHdrEn10Mb_st {
@@ -416,9 +413,9 @@ typedef struct yfHdrSre_st {
 struct yfDecodeCtx_st {
     /* State (none) */
     /* Configuration */
-    int             datalink;
     uint16_t        reqtype;
     gboolean        gremode;
+    gboolean        tomode;
     /* Statistics */
     struct stats_tag {
         uint32_t        fail_l2hdr;
@@ -436,39 +433,6 @@ struct yfDecodeCtx_st {
         uint32_t        fail_grevers;
     } stats;
 };
-
-/**
- * yfDecodeSetLinktype
- */
-
-#if YAF_ENABLE_LIBTRACE
-void yfDecodeSetLinktype(
-    yfDecodeCtx_t           *ctx,
-    libtrace_linktype_t     linktype)
-{
-    switch (linktype) {
-#ifdef DLT_EN10MB
-        case TRACE_TYPE_ETH:
-            ctx->datalink = DLT_EN10MB;
-            break;
-#endif
-#ifdef DLT_LINUX_SLL
-        case TRACE_TYPE_LINUX_SLL:
-            ctx->datalink = DLT_LINUX_SLL;
-            break;
-#endif
-#ifdef DLT_RAW
-        case TRACE_TYPE_NONE:
-            ctx->datalink = DLT_RAW;
-            break;
-#endif
-        default:
-            g_warning("unknown libtrace linktype %u", linktype);
-            ctx->datalink = DLT_USER15;
-            break;
-    }
-}
-#endif
 
 /**
  * yfDecodeL2Loop
@@ -632,61 +596,40 @@ static const uint8_t *yfDecodeL2Shim(
  *
  */
 static const uint8_t *yfDecodeL2(
-    yfDecodeCtx_t   *ctx,
-    size_t          *caplen,
-    const uint8_t   *pkt,
-    uint16_t        *type,
-    yfL2Info_t      *l2info)
+    yfDecodeCtx_t           *ctx,
+    libtrace_linktype_t     linktype,
+    size_t                  *caplen,
+    const uint8_t           *pkt,
+    uint16_t                *type,
+    yfL2Info_t              *l2info)
 {
-    uint32_t        pf;
-
     if (l2info) {
         memset(l2info, 0, sizeof(*l2info));
     }
 
-    switch (ctx->datalink) {
-#ifdef DLT_EN10MB
-      case DLT_EN10MB:
-#endif
-#ifdef DLT_PPP_ETHER
-      case DLT_PPP_ETHER:
-#endif
-#if defined(DLT_EN10MB) || defined(DLT_PPP_ETHER)
+    switch (linktype) {
+      case TRACE_TYPE_ETH:
         /* Check for full ethernet header */
         if (*caplen < 14) {
-            ++ctx->stats.fail_l2hdr;
-            return NULL;
+          ++ctx->stats.fail_l2hdr;
+          return NULL;
         }
         /* Copy out ethertype */
         *type = g_ntohs(((yfHdrEn10Mb_t *)pkt)->type);
         /* Copy out MAC addresses if we care */
         if (l2info) {
-            memcpy(l2info->smac, ((yfHdrEn10Mb_t *)pkt)->smac, 6);
-            memcpy(l2info->dmac, ((yfHdrEn10Mb_t *)pkt)->dmac, 6);
+          memcpy(l2info->smac, ((yfHdrEn10Mb_t *)pkt)->smac, 6);
+          memcpy(l2info->dmac, ((yfHdrEn10Mb_t *)pkt)->dmac, 6);
         }
         /* Advance packet pointer */
         pkt += 14;
         *caplen -= 14;
         /* Decode shim headers */
         return yfDecodeL2Shim(ctx, caplen, pkt, type, l2info);
-#endif
-#ifdef DLT_C_HDLC
-      case DLT_C_HDLC:
-        /* Check for full C-HDLC header */
-        if (*caplen < 4) {
-            ++ctx->stats.fail_l2hdr;
-            return NULL;
-        }
-        /* Copy out ethertype */
-        *type = g_ntohs(((yfHdrChdlc_t *)pkt)->type);
-        /* Advance packet pointer */
-        pkt += 4;
-        *caplen -= 4;
-        /* Decode shim headers */
-        return yfDecodeL2Shim(ctx, caplen, pkt, type, l2info);
-#endif
-#ifdef DLT_LINUX_SLL
-      case DLT_LINUX_SLL:
+      case TRACE_TYPE_NONE:
+        YF_IP_VERSION_TO_TYPE(pkt, *caplen, *type);
+        return pkt;
+      case TRACE_TYPE_LINUX_SLL:
         /* Check for full Linux SLL pseudoheader */
         if (*caplen < 16) {
             ++ctx->stats.fail_l2hdr;
@@ -699,9 +642,7 @@ static const uint8_t *yfDecodeL2(
         *caplen -= 16;
         /* Decode shim headers */
         return yfDecodeL2Shim(ctx, caplen, pkt, type, l2info);
-#endif
-#ifdef DLT_PPP
-      case DLT_PPP:
+      case TRACE_TYPE_PPP:
         /* Check for HDLC framing */
         if (*caplen < 2) {
             ++ctx->stats.fail_l2hdr;
@@ -714,50 +655,35 @@ static const uint8_t *yfDecodeL2(
         }
         pkt = yfDecodeL2PPP(ctx, caplen, pkt, type);
         return pkt ? yfDecodeL2Shim(ctx, caplen, pkt, type, l2info) : NULL;
-#endif
-#ifdef DLT_RAW
-      case DLT_RAW:
-        YF_IP_VERSION_TO_TYPE(pkt, *caplen, *type);
-        return pkt;
-#endif
-#ifdef DLT_NULL
-      case DLT_NULL:
-        /* Check for full NULL header */
-        if (*caplen < 4) {
-            ++ctx->stats.fail_l2hdr;
-            return NULL;
-        }
-        /* Grab packet family */
-        pf = *(uint32_t *)pkt;
-        /* Advance packet pointer */
-        pkt += 4;
-        *caplen -= 4;
-        /* Decode loopback from packet family */
-        return yfDecodeL2Loop(ctx, pf, pkt, type);
-#endif
-#ifdef DLT_LOOP
-      case DLT_LOOP:
-        /* Check for full LOOP header */
-        if (*caplen < 4) {
-            ++ctx->stats.fail_l2hdr;
-            return NULL;
-        }
-        /* Grab packet family */
-        pf = g_ntohl((*(uint32_t *)pkt));
-        /* Advance packet pointer */
-        pkt += 4;
-        *caplen -= 4;
-        /* Decode loopback from packet family */
-        return yfDecodeL2Loop(ctx, pf, pkt, type);
-#endif
-#if YAF_ENABLE_LIBTRACE
-      /* uninitialized libtrace */
-      case DLT_USER15:
-        g_warning("unknown or unset libtrace linktype");
+      case TRACE_TYPE_HDLC_POS:
+          /* FIXME: verify HDLC_POS and C-HDLC are the same thing */
+          /* Check for full C-HDLC header */
+          if (*caplen < 4) {
+              ++ctx->stats.fail_l2hdr;
+              return NULL;
+          }
+          /* Copy out ethertype */
+          *type = g_ntohs(((yfHdrChdlc_t *)pkt)->type);
+          /* Advance packet pointer */
+          pkt += 4;
+          *caplen -= 4;
+          /* Decode shim headers */
+          return yfDecodeL2Shim(ctx, caplen, pkt, type, l2info);
+      case TRACE_TYPE_METADATA:
+        /* silently skip wdcap metadata */
         return NULL;
-#endif
+      case TRACE_TYPE_ATM:
+      case TRACE_TYPE_80211:
+      case TRACE_TYPE_PFLOG:
+      case TRACE_TYPE_POS:
+      case TRACE_TYPE_80211_PRISM:
+      case TRACE_TYPE_AAL5:
+      case TRACE_TYPE_DUCK:
+      case TRACE_TYPE_80211_RADIO:
+      case TRACE_TYPE_LLCSNAP:
+      case TRACE_TYPE_NONDATA:
       default:
-        g_warning("unknown datalink %u", ctx->datalink);
+        g_warning("unsupported linktype %d", (int)linktype);
         return NULL;
     }
 }
@@ -1028,7 +954,7 @@ static const uint8_t *yfDecodeTCP(
     /* Set caplen post-options (use tcp_hlen from here for pkt bounds) */
     *caplen -= tcph_len;
 
-    if (!kEnableTCPOptionDecode) return pkt + tcph_len;
+    if (!ctx->tomode) return pkt + tcph_len;
     
     /* Skip to start of options */
     tcph_len -= YF_TCP_HLEN;
@@ -1433,6 +1359,7 @@ static const uint8_t *yfDecodeIP(
  */
 gboolean yfDecodeToPBuf(
     yfDecodeCtx_t           *ctx,
+    libtrace_linktype_t     linktype,
     uint64_t                ptime,
     size_t                  caplen,
     const uint8_t           *pkt,
@@ -1455,7 +1382,7 @@ gboolean yfDecodeToPBuf(
     ipTcpHeaderStart = pkt;
 
     /* Unwrap layer 2 headers */
-    if (!(pkt = yfDecodeL2(ctx, &caplen, pkt, &type, l2info))) {
+    if (!(pkt = yfDecodeL2(ctx, linktype, &caplen, pkt, &type, l2info))) {
         return FALSE;
     }
 
@@ -1490,8 +1417,8 @@ gboolean yfDecodeToPBuf(
  *
  */
 yfDecodeCtx_t *yfDecodeCtxAlloc(
-    int             datalink,
     uint16_t        reqtype,
+    gboolean        tomode,
     gboolean        gremode)
 {
     yfDecodeCtx_t   *ctx = NULL;
@@ -1500,8 +1427,8 @@ yfDecodeCtx_t *yfDecodeCtxAlloc(
     ctx = yg_slice_new0(yfDecodeCtx_t);
 
     /* Fill in the configuration */
-    ctx->datalink = datalink;
     ctx->reqtype = reqtype;
+    ctx->tomode = tomode;
     ctx->gremode = gremode;
 
     /* Done */

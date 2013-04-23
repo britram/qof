@@ -8,7 +8,6 @@
 #include <yaf/ring.h>
 
 #include "qofifmap.h"
-#include "qofltrace.h"
 
 #include <airframe/airlock.h>
 

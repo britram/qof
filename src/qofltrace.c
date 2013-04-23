@@ -106,7 +106,7 @@ void qfTraceClose(qfTraceSource_t *lts) {
 }
 
 static void qfTraceHandle(qfTraceSource_t             *lts,
-                          yfContext_t                 *ctx)
+                          qfContext_t                 *ctx)
 {
     yfPBuf_t                    *pbuf;
     yfIPFragInfo_t              fraginfo_buf,
@@ -148,7 +148,7 @@ static void qfTraceUpdateStats(qfTraceSource_t *lts) {
     if (yaf_trace_drop == (uint32_t)-1) yaf_trace_drop = 0;
 }
 
-gboolean qfTraceMain(yfContext_t             *ctx)
+gboolean qfTraceMain(qfContext_t             *ctx)
 {
     gboolean                ok = TRUE;
     qfTraceSource_t         *lts = (qfTraceSource_t *)ctx->pktsrc;

@@ -245,6 +245,8 @@ typedef struct yfDecodeCtx_st yfDecodeCtx_t;
  * @param reqtype  Required IP packet ethertype. Pass YF_TYPE_IPv4 to decode
  *                 only IPv4 packets, YF_TYPE_IPv6 to decode only IPv6 packets,
  *                 or YP_TYPE_IPANY to decode both IPv4 and IPv6 packets.
+ * @param tomode   TRUE to enable TCP option parsing; otherwise, TCP options
+ *                 will be skipped.
  * @param gremode  TRUE to enable GREv1 decoding; otherwise, GRE packets
  *                 will be left encapsulated.
  * @return a new decode context
@@ -252,6 +254,7 @@ typedef struct yfDecodeCtx_st yfDecodeCtx_t;
 
 yfDecodeCtx_t *yfDecodeCtxAlloc(
     uint16_t        reqtype,
+    gboolean        tomode,
     gboolean        gremode);
 
 /** Free a decode context.
@@ -262,16 +265,6 @@ yfDecodeCtx_t *yfDecodeCtxAlloc(
 void yfDecodeCtxFree(
     yfDecodeCtx_t           *ctx);
 
-/** 
- * Set the datalink for subsequent packets decoded with this context.
- */
-
-#if YAF_ENABLE_LIBTRACE
-void yfDecodeSetLinktype(
-    yfDecodeCtx_t           *ctx,
-    libtrace_linktype_t     linktype);
-#endif
-
 /**
  * Decode a packet into a durable packet buffer. It is assumed the packet
  * is encapsulated within a link layer frame described by the datalink
@@ -279,6 +272,7 @@ void yfDecodeSetLinktype(
  *
  * @param ctx      Decode context obtained from yfDecodeCtxAlloc()
  *                 containing decoder configuration and internal state.
+ * @param linktype libtrace linktype of the packet.
  * @param ptime    Packet observation time in epoch milliseconds. Use
  *                 yfDecodeTimeval() or yfDecodeTimeNTP() to get epoch
  *                 milliseconds from a struct timeval or a 64-bit NTP
@@ -300,12 +294,13 @@ void yfDecodeSetLinktype(
  */
 
 gboolean yfDecodeToPBuf(
-    yfDecodeCtx_t           *ctx,
-    uint64_t                ptime,
-    size_t                  caplen,
-    const uint8_t           *pkt,
-    yfIPFragInfo_t          *fraginfo,
-    yfPBuf_t                *pbuf);
+     yfDecodeCtx_t           *ctx,
+     libtrace_linktype_t     linktype,
+     uint64_t                ptime,
+     size_t                  caplen,
+     const uint8_t           *pkt,
+     yfIPFragInfo_t          *fraginfo,
+     yfPBuf_t                *pbuf);
 
 /**
  * Utility call to convert a struct timeval (as returned from pcap) into a

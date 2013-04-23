@@ -696,8 +696,6 @@ void qfContextSetup(qfContext_t *ctx) {
         }
     }
     
-
-    
     /* set up everything in the middle */
     /* allocate ring buffer */
     ctx->pbufring = rgaAlloc(sizeof(yfPBuf_t), 128);
@@ -710,7 +708,9 @@ void qfContextSetup(qfContext_t *ctx) {
     }
     
     /* Allocate decoder */
-    ctx->dectx = yfDecodeCtxAlloc(reqtype, ctx->cfg.enable_gre);
+    ctx->dectx = yfDecodeCtxAlloc(reqtype,
+                                  ctx->cfg.enable_tcpopt,
+                                  ctx->cfg.enable_gre);
 
     /* Allocate flow table */
     ctx->flowtab = yfFlowTabAlloc(ctx->cfg.ito_ms * 1000,

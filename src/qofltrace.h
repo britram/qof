@@ -33,6 +33,6 @@ void qfTraceClose(qfTraceSource_t *lts);
 
 void qfTraceDumpStats();
 
-gboolean qfTraceMain(yfContext_t             *ctx);
+gboolean qfTraceMain(qfContext_t *ctx);
 
 #endif

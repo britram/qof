@@ -64,7 +64,7 @@
 
 static uint32_t yaf_do_stat = 0;
 static GTimer *yaf_fft = NULL;
-static yfContext_t *statctx = NULL;
+static qfContext_t *statctx = NULL;
 
 static void yfSigUsr1()
 {
@@ -72,7 +72,7 @@ static void yfSigUsr1()
 }
 
 void yfStatInit(
-    yfContext_t         *ctx)
+    qfContext_t         *ctx)
 {
     struct sigaction sa, osa;
 

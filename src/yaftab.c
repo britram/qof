@@ -1050,7 +1050,7 @@ gboolean yfFlowTabFlush(
     gboolean        wok = TRUE;
     yfFlowNode_t    *fn = NULL;
     yfFlow_t        uf;
-    yfContext_t     *ctx = (yfContext_t *)yfContext;
+    qfContext_t     *ctx = (qfContext_t *)yfContext;
     yfFlowTab_t     *flowtab = ctx->flowtab;
 
     if (!close && flowtab->flushtime &&

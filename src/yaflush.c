@@ -63,7 +63,7 @@
 #include <yaf/yafcore.h>
 
 gboolean yfProcessPBufRing(
-    yfContext_t        *ctx,
+    qfContext_t        *ctx,
     GError             **err)
 {
     AirLock             *lock = NULL;
@@ -128,7 +128,7 @@ end:
 }
 
 gboolean yfTimeOutFlush(
-    yfContext_t        *ctx,
+    qfContext_t        *ctx,
     uint32_t           pcap_drop,
     uint32_t           *total_stats,
     GTimer             *timer, /* yaf process timer */
@@ -195,7 +195,7 @@ gboolean yfTimeOutFlush(
 
 
 gboolean yfFinalFlush(
-    yfContext_t         *ctx,
+    qfContext_t         *ctx,
     gboolean            ok,
     uint32_t            pcap_drop,
     GTimer              *timer,
