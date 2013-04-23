@@ -77,8 +77,8 @@ gboolean yfProcessPBufRing(
     }
 
     /* Open output if we need to */
-    if (!ctx->fbuf) {
-        if (!(ctx->fbuf = yfOutputOpen(ctx->cfg, lock, err))) {
+    if (!ctx->octx.fbuf) {
+        if (!(ctx->octx.fbuf = yfOutputOpen(ctx->cfg, lock, err))) {
             ok = FALSE;
             goto end;
         }

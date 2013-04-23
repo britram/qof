@@ -15,12 +15,15 @@
 #define _YAF_SOURCE_
 #include <yaf/autoinc.h>
 #include <airframe/airopt.h>
+#include <airframe/privconfig.h>
 
 #include "qofconfig.h"
 
 #include <arpa/inet.h>
 
 #include <yaml.h>
+
+static unsigned int kQfSnaplen = 96;
 
 #define VALBUF_SIZE     80
 #define ADDRBUF_SIZE    42
@@ -51,7 +54,6 @@ static qfConfigKeyAction_t cfg_key_actions[] = {
     {"active-timeout-rtts",    CFG_OFF(ato_rtts), QF_CONFIG_U32},
     {"rtx-span",               CFG_OFF(rtx_span), QF_CONFIG_U32},
     {"rtx-scale",              CFG_OFF(rtx_scale), QF_CONFIG_U32},
-    {"rtt-samples",            CFG_OFF(rtt_samples), QF_CONFIG_U32},
     {"gre-decap",              CFG_OFF(enable_gre), QF_CONFIG_BOOL},
     {"silk-compatible",        CFG_OFF(enable_silk), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
@@ -433,6 +435,9 @@ static gboolean qfYamlInterfaceMap(qfConfig_t       *cfg,
     /* check for error on last entry parse */
     if (*err) return FALSE;
     
+    /* enable interface map on export */
+    yfWriterUseInterfaceMap(TRUE);
+    
     /* done */
     return TRUE;
 }
@@ -521,7 +526,7 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
     return TRUE;
 }
 
-gboolean qfConfigParseYaml(qfConfig_t           *cfg,
+static gboolean qfConfigParseYaml(qfConfig_t           *cfg,
                            const char           *filename,
                            GError               **err)
 {
@@ -557,18 +562,53 @@ gboolean qfConfigParseYaml(qfConfig_t           *cfg,
     return rv;
 }
 
-void qfContextSetupOutput(qfOutputContext_t *octx)
+gboolean qfConfigDotfile(qfConfig_t           *cfg,
+                         const char           *filename,
+                         GError               **err)
 {
-    /* transport means use IPFIX via the network */
+    /* parse file if we were given one */
+    if (filename) return qfConfigParseYaml(cfg, filename, err);
+    
+    /* FIXME try a dotfile in the current directory */
+    
+    /* FIXME try a dotfile in /etc */
+    
+    /* no YAML file. we'll stick with defaults then. */
+    return TRUE;
+}
+
+void qfConfigDefaults(qfConfig_t           *cfg)
+{
+    cfg->ato_ms = 300000;   /* active timeout 5 min */
+    cfg->ito_ms = 30000;    /* idle timeout 30 sec */
+    cfg->max_flowtab = 1024 * 1024;     /* 1 mebiflow */
+    cfg->max_fragtab = 256 * 1024;      /* 256 kfrags */
+    cfg->max_flow_pkt = 0;              /* no max packet */
+    cfg->max_flow_oct = 0;              /* no max octet count */
+    cfg->ato_rtts = 0;                  /* no RTT-based ATO */
+    cfg->rtx_span = 4 * 1024 * 1024;    /* 4 mebioct inflight */
+    cfg->rtx_scale = 128;               /* 128 octet sequence scale */
+}
+
+static void qfContextSetupOutput(qfConfig_t        *cfg,
+                                 qfOutputContext_t *octx)
+{
+    /* Map IPv6 if necessary */
+    if (cfg->enable_ipv6 && !cfg->enable_ipv4) {
+        yfWriterExportMappedV6(TRUE);
+    }
+    
+    /* Configure IPFIX connspec for transport */
     if (octx->transport) {
-        
         /* set default port */
         if (!octx->connspec.svc) {
             octx->connspec.svc = octx->enable_tls ? "4740" : "4739";
         }
         
         /* Require a hostname for IPFIX output */
-        air_opterr("--ipfix requires hostname in --out");
+        if (!octx->outspec) {
+            air_opterr("--ipfix requires hostname in --out");
+        }
                 
         /* set hostname */
         octx->connspec.host = octx->outspec;
@@ -609,6 +649,7 @@ void qfContextSetupOutput(qfOutputContext_t *octx)
         }
         
     } else {
+        /* we're writing to files; set up stdout default if necessary. */
         if (!octx->outspec || !strlen(octx->outspec)) {
             if (octx->rotate_period) {
                 /* Require a path prefix for IPFIX output */
@@ -627,5 +668,83 @@ void qfContextSetupOutput(qfOutputContext_t *octx)
             air_opterr("Refusing to write to terminal on stdout");
         }
     }
+    
+    /* Done. Output open is handled on-demand by yfOutputOpen() in yafout.c */
 }
 
+void qfContextSetup(qfContext_t *ctx) {
+    int reqtype;
+    
+    /* set up output */
+    qfContextSetupOutput(&ctx->cfg, &ctx->octx);
+    
+    /* set up input */
+    ctx->ictx.pktsrc = qfTraceOpen(ctx->ictx.inuri, ctx->ictx.bpf_expr,
+                                   kQfSnaplen, &ctx->err);
+
+    if (!ctx->ictx.pktsrc) qfContextTerminate(ctx);
+
+    /* drop privilege if necessary */
+    if (!privc_become(&ctx->err)) {
+        if (g_error_matches(ctx->err, PRIVC_ERROR_DOMAIN, PRIVC_ERROR_NODROP)) {
+            g_warning("running as root in --live mode, "
+                      "but not dropping privilege");
+            g_clear_error(&ctx->err);
+        } else {
+            qfTraceClose(ctx->ictx.pktsrc);
+            qfContextTerminate(ctx);
+        }
+    }
+    
+
+    
+    /* set up everything in the middle */
+    /* allocate ring buffer */
+    ctx->pbufring = rgaAlloc(sizeof(yfPBuf_t), 128);
+    
+    /* Determine packet type to decode */
+    if (!ctx->cfg.enable_ipv6) {
+        reqtype = YF_TYPE_IPv4;
+    } else {
+       reqtype = YF_TYPE_IPANY;
+    }
+    
+    /* Allocate decoder */
+    ctx->dectx = yfDecodeCtxAlloc(reqtype, ctx->cfg.enable_gre);
+
+    /* Allocate flow table */
+    ctx->flowtab = yfFlowTabAlloc(ctx->cfg.ito_ms * 1000,
+                                  ctx->cfg.ato_ms * 1000,
+                                  ctx->cfg.max_flowtab,
+                                  !ctx->cfg.enable_biflow,
+                                  ctx->cfg.enable_silk,
+                                  ctx->cfg.enable_mac,
+                                  ctx->ictx.bulletproof);
+    
+    /* Allocate fragment table */
+    if (ctx->cfg.max_fragtab) {
+        ctx->fragtab = yfFragTabAlloc(30000, ctx->cfg.max_fragtab);
+    }
+
+}
+
+void qfContextTeardown(qfContext_t *ctx) {
+    if (ctx->fragtab) {
+        yfFragTabFree(ctx->fragtab);
+    }
+    if (ctx->flowtab) {
+        yfFlowTabFree(ctx->flowtab);
+    }
+    if (ctx->dectx) {
+        yfDecodeCtxFree(ctx->dectx);
+    }
+    if (ctx->pbufring) {
+        rgaFree(ctx->pbufring);
+    }
+
+}
+
+void qfContextTerminate(qfContext_t *ctx) {
+    g_warning("qof terminating on error: %s", ctx->err->message);
+    exit(1);
+}

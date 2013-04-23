@@ -1,9 +1,10 @@
 /**
- ** yaf.c
- ** Yet Another Flow generator
+ ** qof.c
+ ** QoF flow meter; based on Yet Another Flowmeter (YAF) by CERT/NetSA
  * **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2006-2011 Carnegie Mellon University. All Rights Reserved.
+ ** Copyright (C) 2013.     Brian Trammell.             All Rights Reserved.
  ** ------------------------------------------------------------------------
  ** Authors: Brian Trammell
  ** ------------------------------------------------------------------------
@@ -72,15 +73,16 @@
 
 #include "qofdyntmi.h"
 
-
 /* FIXME determine if we want to be more dynamic about this */
 #define YAF_SNAPLEN 96
 
 /* Configuration configuration */
 static char         *qof_cfgfile = NULL;
 
+/* QoF context */
+static qfContext_t  qfctx;
+
 /* I/O configuration */
-static yfConfig_t    yaf_config = YF_CONFIG_INIT;
 static int           yaf_opt_rotate = 0;
 static uint64_t      yaf_rotate_ms = 0;
 static gboolean      yaf_opt_caplist_mode = FALSE;
@@ -88,9 +90,6 @@ static char          *yaf_opt_ipfix_transport = NULL;
 static gboolean      yaf_opt_ipfix_tls = FALSE;
 
 /* GOption managed flow table options */
-static int          yaf_opt_idle = 300;
-static int          yaf_opt_active = 1800;
-static int          yaf_opt_max_flows = 0;
 static gboolean     yaf_opt_force_read_all = FALSE;
 static gboolean     yaf_opt_uniflow_mode = FALSE;
 static gboolean     yaf_opt_silk_mode = FALSE;
@@ -100,29 +99,9 @@ static gboolean     yaf_opt_extra_stats_mode = FALSE;
 static int          yaf_opt_max_frags = 0;
 static gboolean     yaf_opt_nofrag = FALSE;
 
-/* GOption managed decoder options and derived decoder config */
-static gboolean     yaf_opt_ip4_mode = FALSE;
-static gboolean     yaf_opt_ip6_mode = FALSE;
-static uint16_t     yaf_reqtype;
-static gboolean     yaf_opt_gre_mode = FALSE;
-static gboolean     yaf_opt_mac_mode = FALSE;
-
-/* GOption managed core export options */
-static gboolean     yaf_opt_ip6map_mode = FALSE;
 
 /* global quit flag */
 int                 yaf_quit = 0;
-
-/* Runtime functions */
-
-typedef void *(*yfLiveOpen_fn)(const char *, int, int *, GError **);
-static yfLiveOpen_fn yaf_liveopen_fn = NULL;
-
-typedef gboolean (*yfLoop_fn)(yfContext_t *);
-static yfLoop_fn yaf_loop_fn = NULL;
-
-typedef void (*yfClose_fn)(void *);
-static yfClose_fn yaf_close_fn = NULL;
 
 #define THE_LAME_80COL_FORMATTER_STRING "\n\t\t\t\t"
 
@@ -429,14 +408,6 @@ static void yfParseOptions(
         yaf_opt_ip6_mode = FALSE;
     }
 
-    if (yaf_opt_ip4_mode) {
-        yaf_reqtype = YF_TYPE_IPv4;
-    } else if (yaf_opt_ip6_mode) {
-        yaf_reqtype = YF_TYPE_IPv6;
-    } else {
-        yaf_reqtype = YF_TYPE_IPANY;
-    }
-
     /* process core library options */
     if (yaf_opt_ip6map_mode) {
         yfWriterExportMappedV6(TRUE);
@@ -648,161 +619,62 @@ int main (
     char            *argv[])
 {
     GError          *err = NULL;
-    yfContext_t     ctx = YF_CTX_INIT;
     int             datalink;
     gboolean        loop_ok = TRUE;
 
     /* check structure alignment */
     yfAlignmentCheck();
 
+    /* zero out context */
+    memset(&qfctx, 0, sizeof(qfContext_t));
+    
+    /* fill in configuration defaults */
+    qfConfigDefaults(&qfctx.cfg);
+    
     /* parse options */
     yfParseOptions(&argc, &argv);
-    ctx.cfg = &yaf_config;
     
-    /* read YAML configuration file */
-    /* FIXME, options parsing needs to be refactored in order to properly
-       integrate YAML configuration; as long as this is only for interface
-       maps, we're good, though. */
-    if (!qfParseYamlConfig(&ctx, qof_cfgfile, &err)) {
-        g_warning("terminating on YAML parse error: %s", err->message);
-        exit(1);
+    /* parse configuration file */
+    if (!qfConfigDotfile(&qfctx.cfg, qof_yaml_config, &qfctx.err)) {
+        qfContextTerminate(&qfctx);
     }
-    
+
     /* Set up quit handler */
     yfQuitInit();
-
-    /* open interface if we're doing live capture */
-    if (yaf_liveopen_fn) {
-        /* open interface */
-        if (!(ctx.pktsrc = yaf_liveopen_fn(yaf_config.inspec,
-                                           YAF_SNAPLEN,
-                                           &datalink, &err)))
-        {
-            g_warning("Cannot open interface %s: %s", yaf_config.inspec,
-                      err->message);
-            exit(1);
-        }
-
-        /* drop privilege */
-        if (!privc_become(&err)) {
-            if (g_error_matches(err, PRIVC_ERROR_DOMAIN, PRIVC_ERROR_NODROP)) {
-                g_warning("running as root in --live mode, "
-                          "but not dropping privilege");
-                g_clear_error(&err);
-            } else {
-                yaf_close_fn(ctx.pktsrc);
-                g_warning("Cannot drop privilege: %s", err->message);
-                exit(1);
-            }
-        }
-    } else {
-        if (yaf_opt_caplist_mode) {
-            /* open input file list */
-            if (!(ctx.pktsrc = yfCapOpenFileList(yaf_config.inspec, &datalink,
-                                                 &err)))
-            {
-                g_warning("Cannot open packet file list file %s: %s",
-                         yaf_config.inspec, err->message);
-                exit(1);
-            }
-        } else {
-            /* open input file */
-            if (!(ctx.pktsrc = yfCapOpenFile(yaf_config.inspec, &datalink,
-                                             &err)))
-            {
-                g_warning("Cannot open packet file %s: %s",
-                          yaf_config.inspec, err->message);
-                exit(1);
-            }
-        }
-    }
-
-    if (yaf_opt_mac_mode) {
-        yaf_config.macmode = TRUE;
-    }
-
-    if (yaf_opt_extra_stats_mode) {
-        yaf_config.statsmode = TRUE;
-    }
-
-    if (yaf_opt_silk_mode) {
-        yaf_config.silkmode = TRUE;
-    }
-
-    /* Allocate a packet ring. */
-    ctx.pbufring = rgaAlloc(sizeof(yfPBuf_t), 128);
-
-    /* Set up decode context */
-    ctx.dectx = yfDecodeCtxAlloc(datalink, yaf_reqtype, yaf_opt_gre_mode);
-
-    /* Set up flow table */
-    ctx.flowtab = yfFlowTabAlloc(yaf_opt_idle * 1000,
-                                 yaf_opt_active * 1000,
-                                 yaf_opt_max_flows,
-                                 yaf_opt_uniflow_mode,
-                                 yaf_opt_silk_mode,
-                                 yaf_opt_mac_mode,
-                                 yaf_opt_force_read_all,
-                                 yaf_opt_extra_stats_mode);
-
-    /* Set up fragment table - ONLY IF USER SAYS */
-    if (!yaf_opt_nofrag) {
-        ctx.fragtab = yfFragTabAlloc(30000, yaf_opt_max_frags);
-    }
 
     /* Set up dynamics TMI output (compile-time switch) */
 #if QOF_DYN_TMI_ENABLE
     qfDynTmiOpen("qof_dyn_tmi.txt");
 #endif
-    
-    /* We have a packet source, an output stream,
-       and all the tables we need. Run with it. */
 
+    /* Set up context */
+    qfContextSetup(&qfctx);
+
+    /* Start statistics collection */
     yfStatInit(&ctx);
-    loop_ok = yaf_loop_fn(&ctx);
+    
+    /* runloop */
+    loop_ok = qfTraceMain(&qfctx);
+    
+    /* Finish statistics collection */
     yfStatComplete();
-    yfCapDumpStats();
-#if YAF_ENABLE_LIBTRACE
     qfTraceDumpStats();
-#endif
-#if YAF_ENABLE_DAG
-    if (yaf_liveopen_fn) {
-        yfDagDumpStats();
-    }
-#endif
-#if YAF_ENABLE_NAPATECH
-    if (yaf_liveopen_fn) {
-        yfPcapxDumpStats();
-    }
-#endif
 
     /* Close packet source */
-    yaf_close_fn(ctx.pktsrc);
+    qfTraceClose(qfctx.ictx.pktsrc);
 
     /* Clean up! */
-    if (ctx.flowtab) {
-        yfFlowTabFree(ctx.flowtab);
-    }
-    if (ctx.fragtab) {
-        yfFragTabFree(ctx.fragtab);
-    }
-    if (ctx.dectx) {
-        yfDecodeCtxFree(ctx.dectx);
-    }
-    if (ctx.pbufring) {
-        rgaFree(ctx.pbufring);
-    }
+    qfContextTeardown(&ctx);
     
 #if QOF_DYN_TMI_ENABLE
     qfDynTmiClose();
 #endif
 
-
     /* Print exit message */
     if (loop_ok) {
         g_debug("qof terminating");
     } else {
-        g_warning("qof terminating on error: %s", ctx.err->message);
+        qfContextTerminate(&qfctx);
     }
 
     return loop_ok ? 0 : 1;

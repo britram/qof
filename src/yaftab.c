@@ -185,7 +185,6 @@ struct yfFlowTab_st {
     gboolean        silkmode;
     gboolean        macmode;
     gboolean        force_read_all;
-    gboolean        stats_mode;
     /* Statistics */
     struct yfFlowTabStats_st stats;
 };
@@ -582,8 +581,7 @@ yfFlowTab_t *yfFlowTabAlloc(
     gboolean        uniflow,
     gboolean        silkmode,
     gboolean        macmode,
-    gboolean        force_read_all,
-    gboolean        stats_mode)
+    gboolean        force_read_all)
 {
     yfFlowTab_t     *flowtab = NULL;
 
@@ -603,7 +601,6 @@ yfFlowTab_t *yfFlowTabAlloc(
     flowtab->silkmode = silkmode;
     flowtab->macmode = macmode;
     flowtab->force_read_all = force_read_all;
-    flowtab->stats_mode = stats_mode;
 
     /* Allocate key index table */
     flowtab->table = g_hash_table_new((GHashFunc)yfFlowKeyHash,

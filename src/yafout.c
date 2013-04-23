@@ -63,7 +63,7 @@
 #include <airframe/airutil.h>
 
 fBuf_t *yfOutputOpen(
-    yfConfig_t      *cfg,
+    qfConfig_t      *cfg,
     AirLock         *lock,
     GError          **err)
 {

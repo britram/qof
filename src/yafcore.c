@@ -339,7 +339,6 @@ typedef struct yfIpfixStats_st {
 
 /* Core library configuration variables */
 static gboolean yaf_core_map_ipv6 = FALSE;
-static gboolean yaf_core_export_total = FALSE;
 static gboolean yaf_core_use_ifmap = FALSE;
 
 /**
@@ -475,12 +474,6 @@ void yfWriterExportMappedV6(
     gboolean            map_mode)
 {
     yaf_core_map_ipv6 = map_mode;
-}
-
-void yfWriterExportTotals(
-    gboolean            total_mode)
-{
-    yaf_core_export_total = total_mode;
 }
 
 void yfWriterUseInterfaceMap(

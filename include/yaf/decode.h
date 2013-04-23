@@ -242,12 +242,6 @@ typedef struct yfDecodeCtx_st yfDecodeCtx_t;
  * Allocate a decode context. Decode contexts are used to store decoder
  * internal state, configuration, and statistics.
  *
- * @param datalink libpcap DLT_ constant describing the layer 2 headers on the
- *                 packet in pkt. Supported datalink types are DLT_EN10MB
- *                 (Ethernet), DLT_CHDLC (Cisco HDLC), DLT_LINUX_SLL (Linux
- *                 "cooked" capture interface), DLT_RAW (raw IP packet, no
- *                 layer 2), DLT_NULL (loopback), and DLT_LOOP (OpenBSD
- *                 loopback).
  * @param reqtype  Required IP packet ethertype. Pass YF_TYPE_IPv4 to decode
  *                 only IPv4 packets, YF_TYPE_IPv6 to decode only IPv6 packets,
  *                 or YP_TYPE_IPANY to decode both IPv4 and IPv6 packets.
@@ -257,7 +251,6 @@ typedef struct yfDecodeCtx_st yfDecodeCtx_t;
  */
 
 yfDecodeCtx_t *yfDecodeCtxAlloc(
-    int             datalink,
     uint16_t        reqtype,
     gboolean        gremode);
 

@@ -159,8 +159,6 @@ typedef struct yfFlowTab_st yfFlowTab_t;
  *                  Addresses.
  * @param force_read_all If TRUE, then yaf will process files that are out of
  *                       sequence.
- * @param stats_mode     If TRUE, then YAF will do some extra calculations
- *                       on flows.
  *
  * @return a new flow table.
  */
@@ -171,8 +169,7 @@ typedef struct yfFlowTab_st yfFlowTab_t;
      gboolean        uniflow,
      gboolean        silkmode,
      gboolean        macmode,
-     gboolean        force_read_all,
-     gboolean        stats_mode);
+     gboolean        force_read_all);
 
 /**
  * Free a previously allocated flow table. Discards any outstanding active

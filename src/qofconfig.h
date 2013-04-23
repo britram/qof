@@ -1,11 +1,15 @@
-// FIXME replace qofctx with this interface, integrate throughout.
+#ifndef _QOF_CONFIG_H_
+#define _QOF_CONFIG_H_
 
 #include <yaf/autoinc.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
 #include <yaf/decode.h>
 #include <yaf/ring.h>
+
 #include "qofifmap.h"
+#include "qofltrace.h"
+
 #include <airframe/airlock.h>
 
 typedef struct qfConfig_st {
@@ -31,7 +35,6 @@ typedef struct qfConfig_st {
     uint64_t    max_flow_oct;     // max octet count to force ATO  (silk mode)
     uint32_t    ato_rtts;         // multiple of RTT to force ATO
     /* TCP dynamics state configuration */
-    uint32_t    rtt_samples;
     uint32_t    rtx_span;
     uint32_t    rtx_scale;
     /* Interface map */
@@ -40,12 +43,12 @@ typedef struct qfConfig_st {
 
 typedef struct qfInputContext_st {
     /** Input specifier */
-    char            *inspec;
-    /** Packet input driver name */
-    char            *livetype;
+    char            *inuri;
     /** BPF expression for packet filtering (PCAP/libtrace only) */
     char            *bpf_expr;
-    /** Skip single input errors */
+    /** Packet source */
+    qfTraceSource_t *pktsrc;
+    /** Keep going no matter what */
     gboolean        bulletproof;
 } qfInputContext_t;
 
@@ -83,8 +86,6 @@ typedef struct qfContext_st {
     qfInputContext_t    ictx;
     /** Output configuration */
     qfOutputContext_t   octx;
-    /** Packet source */
-    void                *pktsrc;
     /** Packet ring buffer */
     rgaRing_t           *pbufring;
     /** Decoder */
@@ -97,8 +98,16 @@ typedef struct qfContext_st {
     GError              *err;
 } qfContext_t;
 
-gboolean qfConfigParseYaml(qfConfig_t           *cfg,
-                           const char           *filename,
-                           GError               **err);
+void qfConfigDefaults(qfConfig_t           *cfg);
 
-void qfContextSetupOutput(qfOutputContext_t *octx);
+gboolean qfConfigDotfile(qfConfig_t           *cfg,
+                         const char           *filename,
+                         GError               **err);
+
+void qfContextSetup(qfContext_t           *ctx);
+
+void qfContextTeardown(qfContext_t        *ctx);
+
+void qfContextTerminate(qfContext_t *ctx);
+
+#endif
