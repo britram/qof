@@ -60,7 +60,7 @@
  */
 
 #define _YAF_SOURCE_
-#include "qofctx.h"
+#include "qofconfig.h"
 #include <yaf/yafcore.h>
 #include <yaf/decode.h>
 #include <airframe/airutil.h>

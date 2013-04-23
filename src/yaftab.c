@@ -69,7 +69,7 @@
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
 
-#include "qofctx.h"
+#include "qofconfig.h"
 #include "decode.h"
 
 #include "qofdyntmi.h"

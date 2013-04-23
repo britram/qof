@@ -60,7 +60,7 @@
 #define _YAF_STAT_H_
 
 #include <yaf/autoinc.h>
-#include "qofctx.h"
+#include "qofconfig.h"
 
 void yfStatInit(
     yfContext_t             *ctx);

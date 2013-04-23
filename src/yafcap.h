@@ -60,7 +60,6 @@
 #define _YAF_CAP_H_
 
 #include <yaf/autoinc.h>
-#include "qofctx.h"
 
 struct yfCapSource_st;
 typedef struct yfCapSource_st yfCapSource_t;

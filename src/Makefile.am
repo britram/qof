@@ -57,10 +57,10 @@ libqof_la_LIBADD = @GLIB_LDADD@
 libqof_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@ -version-info @LIBCOMPAT@ -release ${VERSION}
 libqof_la_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
-qof_SOURCES = yaf.c yafstat.c yafcap.c qofltrace.c yafout.c yaflush.c qofctx.c
+qof_SOURCES = yaf.c yafstat.c yafcap.c qofltrace.c yafout.c yaflush.c qofconfig.c
 qof_LDADD   =  libqof.la @GLIB_LDADD@
 qof_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ -export-dynamic
 qof_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
-noinst_HEADERS = yafcap.h qofltrace.h yafstat.h yafout.h yaflush.h qofctx.h qofifmap.h
+noinst_HEADERS = yafcap.h qofltrace.h yafstat.h yafout.h yaflush.h qofconfig.h qofifmap.h
 

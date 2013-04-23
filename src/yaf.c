@@ -67,22 +67,11 @@
 #include <yaf/yafrag.h>
 
 #include "yafcap.h"
+#include "qofltrace.h"
 #include "yafstat.h"
-#include "qofctx.h"
 
 #include "qofdyntmi.h"
 
-#if YAF_ENABLE_LIBTRACE
-#include "qofltrace.h"
-#endif
-
-#if YAF_ENABLE_DAG
-#include "yafdag.h"
-#endif
-
-#if YAF_ENABLE_NAPATECH
-#include "yafpcapx.h"
-#endif
 
 /* FIXME determine if we want to be more dynamic about this */
 #define YAF_SNAPLEN 96

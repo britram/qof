@@ -19,14 +19,14 @@
 
 #include <yaf/autoinc.h>
 #include <libtrace.h>
-#include "qofctx.h"
+#include "qofconfig.h"
 
 struct qfTraceSource_st;
 typedef struct qfTraceSource_st qfTraceSource_t;
 
 qfTraceSource_t *qfTraceOpen(const char *uri,
+                             const char *bpf,
                              int snaplen,
-                             int *datalink,
                              GError **err);
 
 void qfTraceClose(qfTraceSource_t *lts);

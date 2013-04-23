@@ -46,8 +46,8 @@ struct qfTraceSource_st {
 };
 
 qfTraceSource_t *qfTraceOpen(const char *uri,
+                             const char *bpf,
                              int snaplen,
-                             int *datalink,
                              GError **err)
 {
     qfTraceSource_t *lts;
@@ -78,11 +78,19 @@ qfTraceSource_t *qfTraceOpen(const char *uri,
         goto err;
     }
     
-    /* THIS IS A SICK HACK but it's the price we pay for being pcap-centric.
-       DLT_USER15 is used to mark an unknown or unset libtrace linktype.
-       FIXME when we branch for a libtrace-only QoF. */
-    *datalink = DLT_USER15;
-    
+    if (bpf) {
+        if (!(lts->filter = trace_create_filter(bpf))) {
+            g_warning("Could not compile libtrace BPF %s", bpf);
+            return FALSE;
+        }
+        
+        if (trace_config(lts->trace, TRACE_OPTION_FILTER, lts->filter) == -1) {
+            terr = trace_get_err(lts->trace);
+            g_warning("Could not set libtrace filter: %s", terr.problem);
+            return FALSE;
+        }
+    }
+        
     return lts;
   
 err:
@@ -131,15 +139,8 @@ static void qfTraceHandle(qfTraceSource_t             *lts,
     
     /* Handle fragmentation if necessary */
     if (fraginfo && fraginfo->frag) {
-        if (!yfDefragPBuf(ctx->fragtab, fraginfo,
-                          pbuf, pkt, caplen))
-        {
-            /* No complete defragmented packet available. Skip. */
-            return;
-        }
+        yfDefragPBuf(ctx->fragtab, fraginfo, pbuf, pkt, caplen);
     }
-    
-    /* Further packet handling would go here but there isn't any... */
 }
 
 static void qfTraceUpdateStats(qfTraceSource_t *lts) {
@@ -162,20 +163,6 @@ gboolean qfTraceMain(yfContext_t             *ctx)
         stimer = g_timer_new();
     }    
 
-    /* compile BPF and apply to trace */
-    if (bpf) {
-        if (!(lts->filter = trace_create_filter(bpf))) {
-            g_warning("Could not compile libtrace BPF %s", bpf);
-            return FALSE;
-        }
-        
-        if (trace_config(lts->trace, TRACE_OPTION_FILTER, lts->filter) == -1) {
-            terr = trace_get_err(lts->trace);
-            g_warning("Could not set libtrace filter: %s", terr.problem);
-            return FALSE;
-        }
-    }
-    
     /* start processing */
     if (trace_start(lts->trace) == -1) {
         terr = trace_get_err(lts->trace);
@@ -239,6 +226,7 @@ gboolean qfTraceMain(yfContext_t             *ctx)
         /* free timer */
         g_timer_destroy(stimer);
     }
+    
     return yfFinalFlush(ctx, ok, yaf_trace_drop,
                         yfStatGetTimer(), &(ctx->err));
 }

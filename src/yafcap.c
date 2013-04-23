@@ -491,18 +491,12 @@ static void yfCapHandle(
 gboolean yfCapMain(
     yfContext_t             *ctx)
 {
-    AirLock                 lockbuf = AIR_LOCK_INIT, *lock = NULL;
     gboolean                ok = TRUE;
     gboolean                buf_excess = FALSE;
     yfCapSource_t           *cs = (yfCapSource_t *)ctx->pktsrc;
     int                     pcrv = 0;
     char                    *bp_filter= (char *)ctx->cfg->bpf_expr;
     GTimer                  *stimer = NULL;  /* to export stats */
-
-    /* set up output locking in lock mode */
-    if (ctx->cfg->lockmode) {
-        lock = &lockbuf;
-    }
 
     if (!ctx->cfg->nostats) {
         stimer = g_timer_new();
