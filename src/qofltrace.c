@@ -33,11 +33,8 @@
 /* Quit flag support */
 extern int yaf_quit;
 
-extern yfConfig_t yaf_config;
-
 /* Statistics */
 static uint32_t            yaf_trace_drop = 0;
-static uint32_t            yaf_stats_out = 0;
 
 struct qfTraceSource_st {
     libtrace_t          *trace;
@@ -125,10 +122,10 @@ static void qfTraceHandle(qfTraceSource_t             *lts,
     /* extract data from libtrace */
     tv = trace_get_timeval(lts->packet);
     pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
-    yfDecodeSetLinktype(ctx->dectx, linktype);
     
     /* Decode packet into packet buffer */
     if (!yfDecodeToPBuf(ctx->dectx,
+                        linktype,
                         yfDecodeTimeval(&tv),
                         trace_get_capture_length(lts->packet),
                         pkt, fraginfo, pbuf))
@@ -151,18 +148,11 @@ static void qfTraceUpdateStats(qfTraceSource_t *lts) {
 gboolean qfTraceMain(qfContext_t             *ctx)
 {
     gboolean                ok = TRUE;
-    qfTraceSource_t         *lts = (qfTraceSource_t *)ctx->pktsrc;
-    char                    *bpf = (char *)ctx->cfg->bpf_expr;
-    GTimer                  *stimer = NULL;  /* to export stats */
+    qfTraceSource_t         *lts = ctx->ictx.pktsrc;
     libtrace_err_t          terr;
     
     int i, trv;
     
-    /* start stats timer */
-    if (!ctx->cfg->nostats) {
-        stimer = g_timer_new();
-    }    
-
     /* start processing */
     if (trace_start(lts->trace) == -1) {
         terr = trace_get_err(lts->trace);
@@ -197,48 +187,11 @@ gboolean qfTraceMain(qfContext_t             *ctx)
             ok = FALSE;
             break;
         }
-
-        /* send stats record on a timer */
-        if (ok && !ctx->cfg->nostats) {
-            if (g_timer_elapsed(stimer, NULL) > ctx->cfg->stats) {
-                qfTraceUpdateStats(lts);
-                if (!yfWriteStatsRec(ctx,
-                                     yaf_trace_drop,
-                                     yfStatGetTimer(),
-                                     &(ctx->err)))
-                {
-                    ok = FALSE;
-                    break;
-                }
-                g_timer_start(stimer);
-                yaf_stats_out++;
-            }
-        }
     }
 
-    /* Handle final flush */
-    if (!ctx->cfg->nostats) {
-        /* add one for final flush */
-        if (ok) {
-            qfTraceUpdateStats(lts);
-            yaf_stats_out++;
-        }
-        /* free timer */
-        g_timer_destroy(stimer);
-    }
-    
     return yfFinalFlush(ctx, ok, yaf_trace_drop,
                         yfStatGetTimer(), &(ctx->err));
 }
 
-void qfTraceDumpStats() {
-    if (yaf_stats_out) {
-        g_debug("yaf exported %u stats records.", yaf_stats_out);
-    }
-    
-    if (yaf_trace_drop) {
-        g_warning("libtrace dropped %u packets.", yaf_trace_drop);
-    }
-}
 
 #endif

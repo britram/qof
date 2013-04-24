@@ -61,6 +61,8 @@
 
 #define _YAF_SOURCE_
 #include "qofconfig.h"
+#include "yafstat.h"
+
 #include <yaf/yafcore.h>
 #include <yaf/decode.h>
 #include <airframe/airutil.h>
@@ -239,8 +241,6 @@ static fbInfoElementSpec_t yaf_stats_option_spec[] = {
     { "flowTablePeakCount",                 0, 0 },
     { "exporterIPv4Address",                0, 0 },
     { "exportingProcessId",                 0, 0 },
-    { "meanFlowRate",                       0, 0 },
-    { "meanPacketRate",                     0, 0 },
     FB_IESPEC_NULL
 };
 /* IPv6-mapped IPv4 address prefix */
@@ -333,8 +333,6 @@ typedef struct yfIpfixStats_st {
     uint32_t    flowTablePeakCount;
     uint32_t    exporterIPv4Address;
     uint32_t    exportingProcessId;
-    uint32_t    meanFlowRate;
-    uint32_t    meanPacketRate;
 } yfIpfixStats_t;
 
 /* Core library configuration variables */
@@ -457,8 +455,6 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixStats_t, flowTablePeakCount,1);
     RUN_CHECKS(yfIpfixStats_t, exporterIPv4Address,1);
     RUN_CHECKS(yfIpfixStats_t, exportingProcessId, 1);
-    RUN_CHECKS(yfIpfixStats_t, meanFlowRate, 1);
-    RUN_CHECKS(yfIpfixStats_t, meanPacketRate, 1);
 
     prevOffset = 0;
     prevSize = 0;
@@ -800,14 +796,12 @@ static gboolean yfSetExportTemplate(
  *
  */
 gboolean yfWriteStatsRec(
-    void *yfContext,
-    uint32_t pcap_drop,
-    GTimer *timer,
-    GError **err)
+    void            *qfctx,
+    GError          **err)
 {
     yfIpfixStats_t      rec;
-    qfContext_t         *ctx = (qfContext_t *)yfContext;
-    fBuf_t              *fbuf = ctx->fbuf;
+    qfContext_t         *ctx = (qfContext_t *)qfctx;
+    fBuf_t              *fbuf = ctx->octx.fbuf;
     uint32_t            mask = 0x000000FF;
     char                buf[200];
     static struct hostent *host;
@@ -816,9 +810,11 @@ gboolean yfWriteStatsRec(
     yfGetFlowTabStats(ctx->flowtab, &(rec.packetTotalCount),
                       &(rec.exportedFlowTotalCount),
                       &(rec.notSentPacketTotalCount),
-                      &(rec.flowTablePeakCount), &(rec.flowTableFlushEvents));
+                      &(rec.flowTablePeakCount),
+                      &(rec.flowTableFlushEvents));
     if (ctx->fragtab) {
-        yfGetFragTabStats(ctx->fragtab, &(rec.expiredFragmentCount),
+        yfGetFragTabStats(ctx->fragtab,
+                          &(rec.expiredFragmentCount),
                           &(rec.assembledFragmentCount));
     } else {
         rec.expiredFragmentCount = 0;
@@ -827,7 +823,7 @@ gboolean yfWriteStatsRec(
 
     if (!fbuf) {
         g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_IO,
-                    "Error Writing Stats Message: No fbuf [output] Available");
+                    "no output available for stats record");
         return FALSE;
     }
 
@@ -844,19 +840,17 @@ gboolean yfWriteStatsRec(
     }
 
     /* Rejected/Ignored Packet Total Count from decode.c */
-    rec.ignoredPacketTotalCount = yfGetDecodeStats(ctx->dectx);
+    rec.ignoredPacketTotalCount = yfDecodeUndecodedCount(ctx->dectx);
 
     /* Dropped packets - from yafcap.c & libpcap */
-    rec.droppedPacketTotalCount = pcap_drop;
+    rec.droppedPacketTotalCount = yfStatGetDropped();
     rec.exporterIPv4Address = host_ip;
 
     /* Use Observation ID as exporting Process ID */
-    rec.exportingProcessId = ctx->cfg->odid;
-
-    rec.meanFlowRate = rec.exportedFlowTotalCount/g_timer_elapsed(timer, NULL);
-    rec.meanPacketRate = rec.packetTotalCount / g_timer_elapsed(timer, NULL);
+    rec.exportingProcessId = ctx->octx.odid;
 
     rec.systemInitTimeMilliseconds = yaf_start_time;
+    
     /* Set Internal Template for Buffer to Options TID */
     if (!fBufSetInternalTemplate(fbuf, YAF_OPTIONS_TID, err))
         return FALSE;
@@ -879,33 +873,35 @@ gboolean yfWriteStatsRec(
     return TRUE;
 }
  
-
-static void yfTemplateRefresh(
+/* FIXME move this into another file, 
+   split responsibilites again so we can have a ctx-less yafcore */
+static gboolean yfPeriodicExport(
     qfContext_t         *ctx,
-    yfFlow_t            *flow)
-{
-    GError              *err = NULL;
-    gboolean            ok = TRUE;
-
-    /* this only matters for UDP */
-    if ((ctx->cfg->connspec.transport == FB_UDP) ||
-        (ctx->cfg->connspec.transport == FB_DTLS_UDP)) 
+    uint64_t            ctime)
+{    
+    /* check stats timer */
+    if (ctx->octx.stats_period &&
+        ctime - ctx->octx.stats_last >= ctx->octx.stats_period)
     {
-        /* 3 is the factor from RFC 5101 as a recommendation of how often
-           between timeouts to resend FIXME follow 5101bis */
-        if ((flow->etime > ctx->lastUdpTempTime) &&
-            ((flow->etime - ctx->lastUdpTempTime) >
-             ((ctx->cfg->yaf_udp_template_timeout)/3)))
-        {
-            /* resend templates */
-            ok = fbSessionExportTemplates(fBufGetSession(ctx->fbuf), &err);
-            ctx->lastUdpTempTime = flow->etime;
-            if (!ok) {
-                g_warning("Failed to renew UDP Templates: %s",(err)->message);
-                g_clear_error(&err);
-            }
+        /* Stats timer, export */
+        if (!yfWriteStatsRec(ctx, &ctx->err)) {
+            return FALSE;
         }
+        ctx->octx.stats_last = ctime;
     }
+    
+    /* check template timer */
+    if (ctx->octx.template_rtx_period &&
+        ctime - ctx->octx.template_rtx_last >= ctx->octx.template_rtx_period)
+    {
+        /* Template timer, export */
+        if (!fbSessionExportTemplates(fBufGetSession(ctx->octx.fbuf), &ctx->err)) {
+            return FALSE;
+        }
+        ctx->octx.template_rtx_last = ctime;
+    }
+    
+    return TRUE;
 }
  
 
@@ -925,10 +921,10 @@ gboolean yfWriteFlow(
     uint16_t            etid = 0; /* extra templates */
 
     qfContext_t         *ctx = (qfContext_t *)yfContext;
-    fBuf_t              *fbuf = ctx->fbuf;
+    fBuf_t              *fbuf = ctx->octx.fbuf;
 
-    /* Refresh UDP templates if we should */
-    yfTemplateRefresh(ctx, flow);
+    /* Refresh UDP templates and export stats if we should */
+    yfPeriodicExport(ctx, flow->etime);
 
     /* copy time */
     rec.flowStartMilliseconds = flow->stime;
@@ -960,9 +956,10 @@ gboolean yfWriteFlow(
     /* Select optional features based on flow properties and export mode */
     
     /* Flow key selection */
+    /* FIXME require caller to pass in interface map */
     if (yaf_core_use_ifmap) {
         /* set ingress and egress interface from map if not already set */
-        qfIfMapAddresses(&ctx->ifmap, &flow->key,
+        qfIfMapAddresses(&ctx->cfg.ifmap, &flow->key,
                          &flow->val.netIf, &flow->rval.netIf);
     }
     
@@ -1043,7 +1040,7 @@ gboolean yfWriteFlow(
     /* MAC layer information */
     /* FIXME remove MAC mode; this is completely handled
        by the template stuff in qofctx. */
-    if (ctx->cfg->macmode) {
+    if (ctx->cfg.enable_mac) {
         wtid |= YTF_MAC;
         memcpy(rec.sourceMacAddress, flow->sourceMacAddr,
                ETHERNET_MAC_ADDR_LENGTH);

@@ -40,13 +40,15 @@ typedef struct qfConfig_st {
     qfIfMap_t   ifmap;
 } qfConfig_t;
 
+struct qfTraceSource_t;
+
 typedef struct qfInputContext_st {
     /** Input specifier */
     char            *inuri;
     /** BPF expression for packet filtering (PCAP/libtrace only) */
     char            *bpf_expr;
     /** Packet source */
-    qfTraceSource_t *pktsrc;
+    struct qfTraceSource_st *pktsrc;
     /** Keep going no matter what */
     gboolean        bulletproof;
 } qfInputContext_t;
@@ -66,10 +68,14 @@ typedef struct qfOutputContext_st {
     uint32_t        template_rtx_period;
     /** Last UDP template retransmission */
     uint64_t        template_rtx_last;
-    /** UDP template retransmission (in ms) */
+    /** File rotation period (in ms) */
     uint32_t        rotate_period;
-    /** Last UDP template retransmission */
+    /** Last file rotation */
     uint64_t        rotate_last;
+    /** Statistics export period (in ms) (0 = disable) */
+    uint32_t        stats_period;
+    /** Last statistics export time */
+    uint64_t        stats_last;
     /** Use output lock buffer */
     gboolean        enable_lock;
     /** Output lock buffer */

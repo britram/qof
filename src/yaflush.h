@@ -68,10 +68,6 @@ gboolean yfProcessPBufRing(
 
 gboolean yfTimeOutFlush(
     qfContext_t        *ctx,
-    uint32_t           pcap_drop,
-    uint32_t           *total_stats,
-    GTimer             *timer,
-    GTimer             *stats_timer,
     GError             **err);
 
 gboolean yfFinalFlush(

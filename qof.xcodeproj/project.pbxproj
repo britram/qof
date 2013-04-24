@@ -21,7 +21,6 @@
 		F519223B1672388F00514165 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = F519221A1672388F00514165 /* decode.c */; };
 		F519223E1672388F00514165 /* picq.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922201672388F00514165 /* picq.c */; };
 		F51922401672388F00514165 /* ring.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922221672388F00514165 /* ring.c */; };
-		F51922421672388F00514165 /* yafcap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922261672388F00514165 /* yafcap.c */; };
 		F51922441672388F00514165 /* yafcore.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922291672388F00514165 /* yafcore.c */; };
 		F51922471672388F00514165 /* yaflush.c in Sources */ = {isa = PBXBuildFile; fileRef = F519222E1672388F00514165 /* yaflush.c */; };
 		F51922481672388F00514165 /* yafout.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922301672388F00514165 /* yafout.c */; };
@@ -528,7 +527,6 @@
 				F519223B1672388F00514165 /* decode.c in Sources */,
 				F519223E1672388F00514165 /* picq.c in Sources */,
 				F51922401672388F00514165 /* ring.c in Sources */,
-				F51922421672388F00514165 /* yafcap.c in Sources */,
 				F51922441672388F00514165 /* yafcore.c in Sources */,
 				F51922471672388F00514165 /* yaflush.c in Sources */,
 				F51922481672388F00514165 /* yafout.c in Sources */,

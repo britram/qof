@@ -65,7 +65,7 @@
 #include "qofconfig.h"
 
 fBuf_t *yfOutputOpen(
-    yfConfig_t              *cfg,
+    qfOutputContext_t       *octx,
     AirLock                 *lock,
     GError                  **err);
 

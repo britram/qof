@@ -63,9 +63,9 @@
 #include <airframe/airutil.h>
 
 fBuf_t *yfOutputOpen(
-    qfConfig_t      *cfg,
-    AirLock         *lock,
-    GError          **err)
+    qfOutputContext_t   *octx,
+    AirLock             *lock,
+    GError              **err)
 {
     GString         *namebuf = NULL;
     fBuf_t          *fbuf = NULL;
@@ -73,29 +73,29 @@ fBuf_t *yfOutputOpen(
 
     /* Short-circuit IPFIX output over the wire.
        Get a writer for the given connection specifier. */
-    if (cfg->ipfixNetTrans) {
-         return yfWriterForSpec(&(cfg->connspec), cfg->odid, err);
+    if (octx->transport) {
+         return yfWriterForSpec(&(octx->connspec), octx->odid, err);
     }
 
     /* create a buffer for the output filename */
     namebuf = g_string_new("");
 
-    if (cfg->rotate_ms) {
+    if (octx->rotate_period) {
         /* Output file rotation.
            Generate a filename by adding a timestamp and serial number
            to the end of the output specifier. */
-        g_string_append_printf(namebuf, "%s-", cfg->outspec);
+        g_string_append_printf(namebuf, "%s-", octx->outspec);
         air_time_g_string_append(namebuf, time(NULL), AIR_TIME_SQUISHED);
-        g_string_append_printf(namebuf, "-%05u.yaf", serial++);
+        g_string_append_printf(namebuf, "-%05u.ipfix", serial++);
     } else {
         /* No output file rotation. Write to the file named by the output
            specifier. */
-        g_string_append_printf(namebuf, "%s", cfg->outspec);
+        g_string_append_printf(namebuf, "%s", octx->outspec);
     }
 
     /* lock, but not stdout */
     if (lock) {
-        if (!(((strlen(cfg->outspec) == 1) && cfg->outspec[0] != '-'))) {
+        if (!(((strlen(octx->outspec) == 1) && octx->outspec[0] != '-'))) {
             if (!air_lock_acquire(lock, namebuf->str, err)) {
                 goto err;
             }
@@ -103,7 +103,7 @@ fBuf_t *yfOutputOpen(
     }
     /* start a writer on the file */
 
-    if (!(fbuf = yfWriterForFile(namebuf->str, cfg->odid, err))) {
+    if (!(fbuf = yfWriterForFile(namebuf->str, octx->odid, err))) {
         goto err;
     }
 

@@ -383,20 +383,15 @@ fBuf_t *yfWriterForSpec(
  * template, builds the record, and sends it - then sets the internal
  * template back to the full flow record.
  *
- * @param yfContext Context pointer for the yaf state, used to get the
- *                  fbuf pointer.
- * @param pcap_drop Number of packets dropped reported by libpcap
- * @param timer     Pointer to yafstats GTimer
+ * @param qfctx     Context pointer for the yaf state, used to get the
+ *                  fbuf pointer and statistics.
+ * @param elapsed   time elapsed since yaf started, used for rates.
  * @param err       an error description; required.
  * @return          TRUE on success, FALSE otherwise.
  *
  */
-gboolean yfWriteStatsRec(
-    void *yfContext,
-    uint32_t pcap_drop,
-    GTimer *timer,
-    GError **err);
-
+gboolean yfWriteStatsRec(void *qfctx,
+                         GError **err);
 /**
  * Write a single flow to an IPFIX message buffer. The buffer must have been
  * returned by yfWriterForFP() or yfWriterForSpec().

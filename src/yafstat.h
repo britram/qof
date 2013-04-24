@@ -69,6 +69,11 @@ void yfStatDumpLoop(void);
 
 void yfStatComplete(void);
 
-GTimer *yfStatGetTimer(void);
+double yfStatElapsedTime(void);
+
+void yfStatReportDropped(uint64_t dropped);
+
+uint64_t yfStatGetDropped(void);
+
 
 #endif

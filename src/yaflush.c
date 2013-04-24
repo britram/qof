@@ -72,13 +72,13 @@ gboolean yfProcessPBufRing(
     uint64_t            cur_time;
 
     /* point to lock buffer if we need it */
-    if (ctx->cfg->lockmode) {
-        lock = &ctx->lockbuf;
+    if (ctx->octx.enable_lock) {
+        lock = &ctx->octx.lockbuf;
     }
 
     /* Open output if we need to */
     if (!ctx->octx.fbuf) {
-        if (!(ctx->octx.fbuf = yfOutputOpen(ctx->cfg, lock, err))) {
+        if (!(ctx->octx.fbuf = yfOutputOpen(&ctx->octx, lock, err))) {
             ok = FALSE;
             goto end;
         }
@@ -106,20 +106,20 @@ gboolean yfProcessPBufRing(
     }
 
     /* Close output file for rotation if necessary */
-    if (ctx->cfg->rotate_ms) {
+    if (ctx->octx.rotate_period) {
         cur_time = yfFlowTabCurrentTime(ctx->flowtab);
-        if (ctx->last_rotate_ms) {
-            if (cur_time - ctx->last_rotate_ms > ctx->cfg->rotate_ms) {
-                yfOutputClose(ctx->fbuf, lock, TRUE);
-                ctx->fbuf = NULL;
-                ctx->last_rotate_ms = cur_time;
-                if (!(ctx->fbuf = yfOutputOpen(ctx->cfg, lock, err))) {
+        if (ctx->octx.rotate_last) {
+            if (cur_time - ctx->octx.rotate_last > ctx->octx.rotate_period) {
+                yfOutputClose(ctx->octx.fbuf, lock, TRUE);
+                ctx->octx.fbuf = NULL;
+                ctx->octx.rotate_last = cur_time;
+                if (!(ctx->octx.fbuf = yfOutputOpen(&ctx->octx, lock, err))) {
                     ok = FALSE;
                     goto end;
                 }
             }
         } else {
-            ctx->last_rotate_ms = cur_time;
+            ctx->octx.rotate_last = cur_time;
         }
     }
 
@@ -129,23 +129,19 @@ end:
 
 gboolean yfTimeOutFlush(
     qfContext_t        *ctx,
-    uint32_t           pcap_drop,
-    uint32_t           *total_stats,
-    GTimer             *timer, /* yaf process timer */
-    GTimer             *stats_timer, /* yaf stats output timer */
     GError             **err)
 {
     AirLock             *lock = NULL;
-    uint64_t            cur_time;
+    uint64_t            ctime;
 
     /* point to lock buffer if we need it */
-    if (ctx->cfg->lockmode) {
-        lock = &ctx->lockbuf;
+    if (ctx->octx.enable_lock) {
+        lock = &ctx->octx.lockbuf;
     }
 
     /* Open output if we need to */
-    if (!ctx->fbuf) {
-        if (!(ctx->fbuf = yfOutputOpen(ctx->cfg, lock, err))) {
+    if (!ctx->octx.fbuf) {
+        if (!(ctx->octx.fbuf = yfOutputOpen(&ctx->octx, lock, err))) {
             return FALSE;
         }
     }
@@ -157,35 +153,22 @@ gboolean yfTimeOutFlush(
     if (!yfFlowTabFlush(ctx, FALSE, err)) {
         return FALSE;
     }
-
-    if (!ctx->cfg->nostats) {
-        if (!stats_timer) {
-            stats_timer = g_timer_new();
-        }
-        if (g_timer_elapsed(stats_timer, NULL) > ctx->cfg->stats) {
-            if (!yfWriteStatsRec(ctx, pcap_drop, timer, err)) {
-                return FALSE;
-            }
-            g_timer_start(stats_timer);
-            *total_stats += 1;
-        }
-    }
-
-    if (!fBufEmit(ctx->fbuf, err)) {
+    
+    if (!fBufEmit(ctx->octx.fbuf, err)) {
         return FALSE;
     }
 
     /* Close output file for rotation if necessary */
-    if (ctx->cfg->rotate_ms) {
-        cur_time = yfFlowTabCurrentTime(ctx->flowtab);
-        if (ctx->last_rotate_ms) {
-            if (cur_time - ctx->last_rotate_ms > ctx->cfg->rotate_ms) {
-                yfOutputClose(ctx->fbuf, lock, TRUE);
-                ctx->fbuf = NULL;
-                ctx->last_rotate_ms = cur_time;
+    if (ctx->octx.rotate_period) {
+        ctime = yfFlowTabCurrentTime(ctx->flowtab);
+        if (ctx->octx.rotate_last) {
+            if (ctime - ctx->octx.rotate_last > ctx->octx.rotate_period) {
+                yfOutputClose(ctx->octx.fbuf, lock, TRUE);
+                ctx->octx.fbuf = NULL;
+                ctx->octx.rotate_last = ctime;
             }
         } else {
-            ctx->last_rotate_ms = cur_time;
+            ctx->octx.rotate_last = ctime;
         }
     }
 
@@ -206,25 +189,25 @@ gboolean yfFinalFlush(
     gboolean            srv = TRUE;
 
     /* point to lock buffer if we need it */
-     if (ctx->cfg->lockmode) {
-         lock = &ctx->lockbuf;
+     if (ctx->octx.enable_lock) {
+         lock = &ctx->octx.lockbuf;
      }
 
     /* handle final flush and close */
-    if (ctx->fbuf) {
+    if (ctx->octx.fbuf) {
         if (ok) {
             /* Flush flow buffer and close output file on successful exit */
             frv = yfFlowTabFlush(ctx, TRUE, err);
-            if (!ctx->cfg->nostats) {
-                srv = yfWriteStatsRec(ctx, pcap_drop, timer, err);
+            if (ctx->octx.stats_period) {
+                srv = yfWriteStatsRec(ctx, err);
             }
-            yfOutputClose(ctx->fbuf, lock, TRUE);
+            yfOutputClose(ctx->octx.fbuf, lock, TRUE);
             if (!frv || !srv) {
                 ok = FALSE;
             }
         } else {
             /* Just close output file on error */
-            yfOutputClose(ctx->fbuf, lock, FALSE);
+            yfOutputClose(ctx->octx.fbuf, lock, FALSE);
         }
     }
 

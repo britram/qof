@@ -65,6 +65,7 @@
 static uint32_t yaf_do_stat = 0;
 static GTimer *yaf_fft = NULL;
 static qfContext_t *statctx = NULL;
+static uint64_t yaf_dropped = 0;
 
 static void yfSigUsr1()
 {
@@ -92,6 +93,10 @@ void yfStatInit(
     g_timer_start(yaf_fft);
 }
 
+
+static void qfTraceDumpStats() {
+}
+
 static void yfStatDump()
 {
     uint64_t numPackets;
@@ -99,6 +104,10 @@ static void yfStatDump()
     yfFragDumpStats(statctx->fragtab, numPackets);
     yfDecodeDumpStats(statctx->dectx, numPackets);
     qfDynDumpStats();
+
+    if (yaf_dropped) {
+        g_warning("Capture dropped %u packets.", yaf_dropped);
+    }
 }
 
 void yfStatDumpLoop()
@@ -115,7 +124,15 @@ void yfStatComplete()
     yfStatDump();
 }
 
-GTimer *yfStatGetTimer()
+double yfStatElapsedTime()
 {
-    return yaf_fft;
+    return g_timer_elapsed(yaf_fft, NULL);
+}
+
+void yfStatReportDropped(uint64_t dropped) {
+    yaf_dropped = dropped;
+}
+
+uint64_t yfStatGetDropped(void) {
+    return yaf_dropped;
 }

@@ -1480,10 +1480,10 @@ uint64_t yfDecodeTimeNTP(
 }
 
 /**
- * yfGetDecodeStats
+ * yfDecodeUndecodedCount
  *
  */
-uint32_t yfGetDecodeStats(
+uint32_t yfDecodeUndecodedCount(
     yfDecodeCtx_t *ctx)
 {
     uint32_t            fail_snaptotal;

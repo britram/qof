@@ -341,7 +341,7 @@ void yfDecodeDumpStats(
  * @param ctx decode context to print stats from
  * @return number of packets YAF failed to decode
  */
-uint32_t yfGetDecodeStats(
+uint32_t yfDecodeUndecodedCount(
     yfDecodeCtx_t *ctx);
 
 
