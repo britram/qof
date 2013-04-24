@@ -865,38 +865,6 @@ gboolean yfWriteStatsRec(
     return TRUE;
 }
  
-/* FIXME move this into another file, 
-   split responsibilites again so we can have a ctx-less yafcore */
-static gboolean yfPeriodicExport(
-    qfContext_t         *ctx,
-    uint64_t            ctime)
-{    
-    /* check stats timer */
-    if (ctx->octx.stats_period &&
-        ctime - ctx->octx.stats_last >= ctx->octx.stats_period)
-    {
-        /* Stats timer, export */
-        if (!yfWriteStatsRec(ctx, &ctx->err)) {
-            return FALSE;
-        }
-        ctx->octx.stats_last = ctime;
-    }
-    
-    /* check template timer */
-    if (ctx->octx.template_rtx_period &&
-        ctime - ctx->octx.template_rtx_last >= ctx->octx.template_rtx_period)
-    {
-        /* Template timer, export */
-        if (!fbSessionExportTemplates(fBufGetSession(ctx->octx.fbuf), &ctx->err)) {
-            return FALSE;
-        }
-        ctx->octx.template_rtx_last = ctime;
-    }
-    
-    return TRUE;
-}
- 
-
 /**
  *yfWriteFlow
  *
