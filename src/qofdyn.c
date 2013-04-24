@@ -24,6 +24,9 @@ static const uint64_t k2e32 = 0x100000000ULL;
 static const float        kFlightBreakIATDev = 2.0;
 static const uint32_t     kFlightMinSegments = 10;
 
+static gboolean qf_dyn_enable = FALSE;
+static gboolean qf_dyn_enable_rtt = FALSE;
+static gboolean qf_dyn_enable_rtx = FALSE;
 static uint32_t qf_dyn_bincap = 0;
 static uint32_t qf_dyn_binscale = 1;
 
@@ -192,9 +195,17 @@ static gboolean qfDynRttWalkAck  (qfDyn_t     *qd,
     return FALSE;
 }
 
-void qfDynConfig(uint32_t bincap, uint32_t binscale) {
-    qf_dyn_bincap = bincap;
-    qf_dyn_binscale = binscale;
+void qfDynConfig(gboolean enable,
+                 gboolean enable_rtt,
+                 gboolean enable_rtx,
+                 uint32_t span,
+                 uint32_t scale)
+{
+    qf_dyn_enable = enable || enable_rtt || enable_rtx;
+    qf_dyn_enable_rtt = enable_rtt;
+    qf_dyn_enable_rtx = enable_rtx;
+    qf_dyn_bincap = span;
+    qf_dyn_binscale = scale;
 }
 
 void qfDynFree(qfDyn_t      *qd)
@@ -206,6 +217,9 @@ void qfDynSyn(qfDyn_t     *qd,
               uint32_t    seq,
               uint32_t    ms)
 {
+    /* short circuit if turned off */
+    if (!qf_dyn_enable) return;
+    
     /* check for duplicate SYN */
     if (qd->dynflags & QF_DYN_SEQINIT) {
         // FIXME what to do here?
@@ -214,7 +228,7 @@ void qfDynSyn(qfDyn_t     *qd,
     
     /* allocate structures 
        FIXME figure out how to delay this until we have enough packets */
-    if (qf_dyn_bincap) {
+    if (qf_dyn_enable_rtx && qf_dyn_bincap) {
         qfSeqBitsInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
     }
     
@@ -236,11 +250,15 @@ void qfDynSeq(qfDyn_t     *qd,
     uint32_t              iat;
     qfSeqStat_t           seqstat;
     
+    /* short circuit if turned off */
+    if (!qf_dyn_enable) return;
+
     /* short circuit on no octets */
     if (!oct) {
         return;
     }
     
+    /* short circuit if we didn't see a syn (FIXME?) */
     if (!(qd->dynflags & QF_DYN_SEQINIT)) {
         return;
     }
@@ -269,14 +287,16 @@ void qfDynSeq(qfDyn_t     *qd,
         iat = ms - qd->advlms;        // calculate last IAT
         qd->advlms = ms;              // update time of advance
 
-        /* detect iat flight break */
-        sstMeanAdd(&qd->seg_iat, iat);
-        if (seqstat == QF_SEQ_INORDER) qfDynBreakFlight(qd, iat);
-        /* count octets in this flight */
-        qd->cur_iatflight += oct;
+        if (qf_dyn_enable_rtt) {
+            /* detect iat flight break */
+            sstMeanAdd(&qd->seg_iat, iat);
+            if (seqstat == QF_SEQ_INORDER) qfDynBreakFlight(qd, iat);
+            /* count octets in this flight */
+            qd->cur_iatflight += oct;
 
-        /* Do seq-side RTT calculation */
-        qfDynRttWalkSeq(qd, seq, oct, tsecr, ms);
+            /* Do seq-side RTT calculation */
+            qfDynRttWalkSeq(qd, seq, oct, tsecr, ms);
+        }
         
         /* output situation after processing of segment to TMI if necessary */
 #if QOF_DYN_TMI_ENABLE
@@ -300,6 +320,9 @@ void qfDynAck(qfDyn_t     *qd,
               uint32_t    tsecr,
               uint32_t    ms)
 {
+    /* short circuit if turned off */
+    if (!qf_dyn_enable) return;
+  
     /* initialize if necessary */
     if (!(qd->dynflags & QF_DYN_ACKINIT)) {
         qd->dynflags |= QF_DYN_ACKINIT;        
@@ -309,7 +332,7 @@ void qfDynAck(qfDyn_t     *qd,
         qd->fan = ack;
         
         /* Do ack-side RTT calculation */
-        qfDynRttWalkAck(qd, ack, tsval, ms);
+        if (qf_dyn_enable_rtt) qfDynRttWalkAck(qd, ack, tsval, ms);
     }
 }
 

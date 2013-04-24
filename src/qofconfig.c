@@ -70,12 +70,14 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"vlanId",                  CFG_OFF(enable_mac), QF_CONFIG_BOOL},
     {"tcpSequenceCount",        CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
     {"maxTcpReorderSize",       CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
+    {"maxTcpFlightSize",        CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
     {"tcpSequenceLossCount",    CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
     {"tcpRetransmitCount",      CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
     {"tcpOutOfOrderCount",      CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
     {"meanTcpRttMilliseconds",  CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
-    {"maxTcpFlightSize",        CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
+    {"minTcpRttMilliseconds",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"meanTcpRttMilliseconds",  CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
 };
 
@@ -755,6 +757,12 @@ void qfContextSetup(qfContext_t *ctx) {
         ctx->fragtab = yfFragTabAlloc(30000, ctx->cfg.max_fragtab);
     }
 
+    /* Configure dynamics */
+    qfDynConfig(ctx->cfg.enable_dyn,
+                ctx->cfg.enable_dyn_rtt,
+                ctx->cfg.enable_dyn_rtx,
+                ctx->cfg.rtx_scale,
+                ctx->cfg.rtx_span);
 }
 
 void qfContextTeardown(qfContext_t *ctx) {
