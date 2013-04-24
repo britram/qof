@@ -98,21 +98,16 @@
 #define YTF_BIF         0x0001  /* Biflow */
 #define YTF_TCP         0x0002  /* TCP and extended TCP */
 #define YTF_RTT         0x0004  /* valid RTT information available */
-#define YTF_MAC         0x0008  /* MAC layer information */
-#define YTF_PHY         0x0010  /* PHY layer information */
+#define YTF_PHY         0x0008  /* PHY layer information */
 
 /* Special dimensions -- one of each group must be present */
-#define YTF_IP4         0x0020  /* IPv4 addresses */
-#define YTF_IP6         0x0040  /* IPv6 addresses */
-#define YTF_FLE         0x0080  /* full-length encoding */
-#define YTF_RLE         0x0100  /* reduced-length encoding */
+#define YTF_IP4         0x0010  /* IPv4 addresses */
+#define YTF_IP6         0x0020  /* IPv6 addresses */
+#define YTF_FLE         0x0040  /* full-length encoding */
+#define YTF_RLE         0x0080  /* reduced-length encoding */
 
-#define YTF_INTERNAL    0x0200 /* internal (padding) IEs */
-#define YTF_ALL         0x00FF /* this has to be everything _except_ RLE enabled */
-
-
-/* FIXME more 6313 to throw away... */
-/* #define YTF_REV         0xFF0F */
+#define YTF_INTERNAL    0x0100 /* internal (padding) IEs */
+#define YTF_ALL         0x007F /* this has to be everything _except_ RLE enabled */
 
 /** If any of the FLE/RLE values are larger than this constant
     then we have to use FLE, otherwise, we choose RLE to
@@ -207,10 +202,9 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "ingressInterface",                   1, YTF_PHY },
     { "egressInterface",                    1, YTF_PHY },
     /* Layer 2 information */
-    { "sourceMacAddress",                   6, YTF_MAC },
-    { "destinationMacAddress",              6, YTF_MAC },
-    { "vlanId",                             2, YTF_MAC },
-    { "reverseVlanId",                      2, YTF_MAC | YTF_BIF },
+    { "sourceMacAddress",                   6, 0 },
+    { "destinationMacAddress",              6, 0 },
+    { "vlanId",                             2, 0 },
     /* Layer 3 information */
     { "minimumTTL",                         1, 0},
     { "maximumTTL",                         1, 0},
@@ -307,7 +301,6 @@ typedef struct yfIpfixFlow_st {
     uint8_t     sourceMacAddress[6];
     uint8_t     destinationMacAddress[6];
     uint16_t    vlanId;
-    uint16_t    reverseVlanId;
     /* Layer 3 Information */
     uint8_t     minimumTTL;
     uint8_t     maximumTTL;
@@ -337,7 +330,7 @@ typedef struct yfIpfixStats_st {
 
 /* Core library configuration variables */
 static gboolean yaf_core_map_ipv6 = FALSE;
-static gboolean yaf_core_use_ifmap = FALSE;
+static qfIfMap_t *yaf_core_ifmap = NULL;
 
 /**
  * yfAlignmentCheck
@@ -430,7 +423,6 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,sourceMacAddress,0); // 6-byte arrays do not need to be aligned.
     RUN_CHECKS(yfIpfixFlow_t,destinationMacAddress,0); // 6-byte arrays do not need to be aligned.
     RUN_CHECKS(yfIpfixFlow_t,vlanId,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseVlanId,1);
     RUN_CHECKS(yfIpfixFlow_t,minimumTTL, 1);
     RUN_CHECKS(yfIpfixFlow_t,maximumTTL, 1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMinimumTTL, 1);
@@ -473,9 +465,9 @@ void yfWriterExportMappedV6(
 }
 
 void yfWriterUseInterfaceMap(
-    gboolean            ifmap_mode)
+   qfIfMap_t            *ifmap)
 {
-    yaf_core_use_ifmap = ifmap_mode;
+    yaf_core_ifmap = ifmap;
 }
 
 void yfWriterExportReset() {
@@ -912,19 +904,13 @@ static gboolean yfPeriodicExport(
  *
  */
 gboolean yfWriteFlow(
-    void                *yfContext,
+    fBuf_t              *fbuf,
     yfFlow_t            *flow,
     GError              **err)
 {
     yfIpfixFlow_t       rec;
     uint16_t            wtid;
     uint16_t            etid = 0; /* extra templates */
-
-    qfContext_t         *ctx = (qfContext_t *)yfContext;
-    fBuf_t              *fbuf = ctx->octx.fbuf;
-
-    /* Refresh UDP templates and export stats if we should */
-    yfPeriodicExport(ctx, flow->etime);
 
     /* copy time */
     rec.flowStartMilliseconds = flow->stime;
@@ -950,16 +936,9 @@ gboolean yfWriteFlow(
     rec.initiatorPackets = flow->val.apppkt;
     rec.responderPackets = flow->rval.apppkt;
     
-    /* FIXME write maximum IP length as well once we figure out
-             what the IE for it is */
-
-    /* Select optional features based on flow properties and export mode */
-    
-    /* Flow key selection */
-    /* FIXME require caller to pass in interface map */
-    if (yaf_core_use_ifmap) {
-        /* set ingress and egress interface from map if not already set */
-        qfIfMapAddresses(&ctx->cfg.ifmap, &flow->key,
+    /* set ingress and egress interface from map if not already set */
+    if (yaf_core_ifmap) {
+        qfIfMapAddresses(yaf_core_ifmap, &flow->key,
                          &flow->val.netIf, &flow->rval.netIf);
     }
     
@@ -1038,18 +1017,11 @@ gboolean yfWriteFlow(
     }
     
     /* MAC layer information */
-    /* FIXME remove MAC mode; this is completely handled
-       by the template stuff in qofctx. */
-    if (ctx->cfg.enable_mac) {
-        wtid |= YTF_MAC;
-        memcpy(rec.sourceMacAddress, flow->sourceMacAddr,
-               ETHERNET_MAC_ADDR_LENGTH);
-        memcpy(rec.destinationMacAddress, flow->destinationMacAddr,
-               ETHERNET_MAC_ADDR_LENGTH);
-        rec.vlanId = flow->key.vlanId;
-        /* always assign forward 802.1q -- FIXME why export this? */
-        rec.reverseVlanId = flow->key.vlanId; 
-    }
+    memcpy(rec.sourceMacAddress, flow->sourceMacAddr,
+           ETHERNET_MAC_ADDR_LENGTH);
+    memcpy(rec.destinationMacAddress, flow->destinationMacAddr,
+           ETHERNET_MAC_ADDR_LENGTH);
+    rec.vlanId = flow->key.vlanId;
     
     /* Interfaces. FIXME normalize DAG and BIVIO behavior, now that
        we're mapping interface numbers from addresses, too. */

@@ -17,6 +17,7 @@
 #define _QOF_IFMAP_H_
 
 #include <yaf/autoinc.h>
+#include <yaf/yafcore.h>
 #include <yaf/yaftab.h>
 
 struct qfIfMapEntry4_st;
@@ -25,7 +26,7 @@ typedef struct qfIfMapEntry4_st qfIfMapEntry4_t;
 struct qfIfMapEntry6_st;
 typedef struct qfIfMapEntry6_st qfIfMapEntry6_t;
 
-typedef struct qfIfMap_st {
+struct qfIfMap_st {
     /* IPv4 sources */
     qfIfMapEntry4_t     *src4map;
     size_t              src4map_sz;
@@ -38,7 +39,7 @@ typedef struct qfIfMap_st {
     /* IPv6 destinations */
     qfIfMapEntry6_t     *dst6map;
     size_t              dst6map_sz;
-} qfIfMap_t;
+};
 
 #define QF_IFMAP_INIT {NULL, 0, NULL, 0, NULL, 0, NULL, 0}
 
@@ -47,21 +48,21 @@ void qfIfMapInit(qfIfMap_t *map);
 void qfIfMapFree(qfIfMap_t *map);
 
 void qfIfMapAddIPv4Mapping(qfIfMap_t      *map,
-                         uint32_t       addr,
-                         uint8_t        pfx,
-                         uint8_t        ingress,
-                         uint8_t        egress);
+                           uint32_t       addr,
+                           uint8_t        pfx,
+                           uint8_t        ingress,
+                           uint8_t        egress);
 
 void qfIfMapAddIPv6Mapping(qfIfMap_t      *map,
-                         uint8_t        *addr,
-                         uint8_t        pfx,
-                         uint8_t        ingress,
-                         uint8_t        egress);
+                           uint8_t        *addr,
+                           uint8_t        pfx,
+                           uint8_t        ingress,
+                           uint8_t        egress);
 
 void qfIfMapAddresses(qfIfMap_t           *map,
-                    yfFlowKey_t         *key,
-                    uint8_t             *ingress,
-                    uint8_t             *egress);
+                      yfFlowKey_t         *key,
+                      uint8_t             *ingress,
+                      uint8_t             *egress);
 
 void qfIfMapDump(FILE*                      out,
                  qfIfMap_t                  *map);

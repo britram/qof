@@ -1097,19 +1097,19 @@ gboolean yfFlowTabFlush(
         if (flowtab->uniflow) {
             /* Uniflow mode. Split flow in two and write. */
             yfUniflow(&(fn->f), &uf);
-            wok = yfWriteFlow(ctx, &uf, err);
+            wok = yfWriteFlow(ctx->octx.fbuf, &uf, err);
             if (wok) {
                 ++(flowtab->stats.stat_flows);
             }
             if (wok && yfUniflowReverse(&(fn->f), &uf)) {
-                wok = yfWriteFlow(ctx, &uf, err);
+                wok = yfWriteFlow(ctx->octx.fbuf, &uf, err);
                 if (wok) {
                     ++(flowtab->stats.stat_flows);
                 }
             }
         } else {
             /* Biflow mode. Write flow whole. */
-            wok = yfWriteFlow(ctx, &(fn->f), err);
+            wok = yfWriteFlow(ctx->octx.fbuf, &(fn->f), err);
             if (wok) {
                 ++(flowtab->stats.stat_flows);
             }

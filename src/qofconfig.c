@@ -72,7 +72,7 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"maxTcpReorderSize",       CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
     {"tcpSequenceLossCount",    CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
     {"tcpRetransmitCount",      CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
-    {"tcpOutOfOrderCount",         CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
+    {"tcpOutOfOrderCount",      CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
     {"meanTcpRttMilliseconds",  CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
     {"maxTcpFlightSize",        CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
@@ -437,7 +437,7 @@ static gboolean qfYamlInterfaceMap(qfConfig_t       *cfg,
     if (*err) return FALSE;
     
     /* enable interface map on export */
-    yfWriterUseInterfaceMap(TRUE);
+    yfWriterUseInterfaceMap(&cfg->ifmap);
     
     /* done */
     return TRUE;
@@ -475,7 +475,9 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
         }
         
         /* check interface map */
-        if (strncmp("interface-map", keybuf, sizeof(keybuf)) == 0) {
+        if (!keyfound &&
+            (strncmp("interface-map", keybuf, sizeof(keybuf)) == 0))
+        {
             if (!qfYamlInterfaceMap(cfg, parser, err)) return NULL;
             keyfound = 1;
         }
@@ -510,7 +512,9 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
         }
         
         /* end of for loop, unknown key */
-        return qfYamlError(err, parser, "unknown configuration parameter");
+        if (!keyfound) {
+            return qfYamlError(err, parser, "unknown configuration parameter");
+        }
     }
     
     /* check for error on last key parse */
@@ -703,9 +707,6 @@ static void qfContextSetupInput(qfContext_t *ctx) {
 void qfContextSetup(qfContext_t *ctx) {
     int reqtype;
     
-    /* set up output */
-    qfContextSetupOutput(ctx);
-    
     /* set up input */
     qfContextSetupInput(ctx);
 
@@ -721,6 +722,9 @@ void qfContextSetup(qfContext_t *ctx) {
         }
     }
     
+    /* set up output */
+    qfContextSetupOutput(ctx);
+    
     /* set up everything in the middle */
     /* allocate ring buffer */
     ctx->pbufring = rgaAlloc(sizeof(yfPBuf_t), 128);
@@ -729,7 +733,7 @@ void qfContextSetup(qfContext_t *ctx) {
     if (!ctx->cfg.enable_ipv6) {
         reqtype = YF_TYPE_IPv4;
     } else {
-       reqtype = YF_TYPE_IPANY;
+        reqtype = YF_TYPE_IPANY;
     }
     
     /* Allocate decoder */

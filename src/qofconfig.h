@@ -7,7 +7,7 @@
 #include <yaf/decode.h>
 #include <yaf/ring.h>
 
-#include "qofifmap.h"
+#include <yaf/qofifmap.h>
 
 #include <airframe/airlock.h>
 

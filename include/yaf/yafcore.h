@@ -405,7 +405,7 @@ gboolean yfWriteStatsRec(void *qfctx,
  */
 
 gboolean yfWriteFlow(
-    void                *yfContext,
+    fBuf_t              *fbuf,
     yfFlow_t            *flow,
     GError              **err);
 
@@ -436,13 +436,10 @@ void yfWriterExportMappedV6(gboolean map_mode);
  * FIXME doc
  */
 
-void yfWriterExportTotals(gboolean total_mode);
+struct qfIfMap_st;
+typedef struct qfIfMap_st qfIfMap_t;
 
-/**
- * FIXME doc
- */
-
-void yfWriterUseInterfaceMap(gboolean ifmap_mode);
+void yfWriterUseInterfaceMap(qfIfMap_t *ifmap);
 
 /**
  * FIXME doc

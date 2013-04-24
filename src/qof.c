@@ -129,24 +129,12 @@ AirOptionEntry yaf_optent_core[] = {
     AF_OPTION_END
 };
 
-AirOptionEntry yaf_optent_dec[] = {
-    AF_OPTION( "gre-decode", (char)0, 0, AF_OPT_TYPE_NONE,
-               &qfctx.cfg.enable_gre,
-               THE_LAME_80COL_FORMATTER_STRING"Decode GRE encapsulated "
-               "packets", NULL ),
-    AF_OPTION_END
-};
 
 AirOptionEntry yaf_optent_exp[] = {
     AF_OPTION( "template-refresh", (char)0, 0, AF_OPT_TYPE_INT,
               &yaf_opt_template_rtx_period,
               THE_LAME_80COL_FORMATTER_STRING"UDP template refresh period "
               "[600 sec, 10 m]", "sec"),
-    AF_OPTION( "silk", (char)0, 0, AF_OPT_TYPE_NONE,
-               &qfctx.cfg.enable_silk,
-               THE_LAME_80COL_FORMATTER_STRING"Clamp octets to 32 bits, "
-               "note continued in"THE_LAME_80COL_FORMATTER_STRING
-               "flowEndReason.", NULL ),
     AF_OPTION( "observation-domain", (char)0, 0, AF_OPT_TYPE_INT,
                &qfctx.octx.odid,
                THE_LAME_80COL_FORMATTER_STRING"Set observationDomainID on exported"
@@ -282,9 +270,6 @@ static void yfParseOptions(
 
     aoctx = air_option_context_new("", argc, argv, yaf_optent_core);
 
-    air_option_context_add_group(aoctx, "decode", "Decoder Options:",
-                                 THE_LAME_80COL_FORMATTER_STRING"Show help "
-                                 "for packet decoder options", yaf_optent_dec);
     air_option_context_add_group(aoctx, "export", "Export Options:",
                                  THE_LAME_80COL_FORMATTER_STRING"Show help "
                                  "for export format options", yaf_optent_exp);

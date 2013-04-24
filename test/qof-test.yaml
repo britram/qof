@@ -42,6 +42,5 @@ template:
     - reverseMinimumTTL
     - maximumTTL
     - reverseMaximumTTL
-tcp-state:
-    sn-capacity: 1048576
-    sn-scale: 256
+rtx-span: 1048576
+rtx-scale: 256
