@@ -18,6 +18,7 @@
 #include <airframe/privconfig.h>
 
 #include "qofconfig.h"
+#include "qofltrace.h"
 
 #include <arpa/inet.h>
 
@@ -577,7 +578,9 @@ gboolean qfConfigDotfile(qfConfig_t           *cfg,
     return TRUE;
 }
 
-void qfConfigDefaults(qfConfig_t           *cfg)
+void qfConfigDefaults(qfConfig_t           *cfg,
+                      qfInputContext_t     *ictx,
+                      qfOutputContext_t    *octx)
 {
     cfg->ato_ms = 300000;   /* active timeout 5 min */
     cfg->ito_ms = 30000;    /* idle timeout 30 sec */
@@ -588,82 +591,84 @@ void qfConfigDefaults(qfConfig_t           *cfg)
     cfg->ato_rtts = 0;                  /* no RTT-based ATO */
     cfg->rtx_span = 4 * 1024 * 1024;    /* 4 mebioct inflight */
     cfg->rtx_scale = 128;               /* 128 octet sequence scale */
+    octx->rotate_period = 0;            /* no output rotation by default */
+    octx->template_rtx_period = 60000;  /* 1 min template 
+                                           retransmit period on UDP */
+    octx->stats_period = 60000;         /* 1 min stats transmit period */
 }
 
-static void qfContextSetupOutput(qfConfig_t        *cfg,
-                                 qfOutputContext_t *octx)
+static void qfContextSetupOutput(qfContext_t *ctx)
 {
     /* Map IPv6 if necessary */
-    if (cfg->enable_ipv6 && !cfg->enable_ipv4) {
+    if (ctx->cfg.enable_ipv6 && !ctx->cfg.enable_ipv4) {
         yfWriterExportMappedV6(TRUE);
     }
     
     /* Configure IPFIX connspec for transport */
-    if (octx->transport) {
+    if (ctx->octx.transport) {
         /* set default port */
-        if (!octx->connspec.svc) {
-            octx->connspec.svc = octx->enable_tls ? "4740" : "4739";
+        if (!ctx->octx.connspec.svc) {
+            ctx->octx.connspec.svc = ctx->octx.enable_tls ? "4740" : "4739";
         }
         
         /* Require a hostname for IPFIX output */
-        if (!octx->outspec) {
+        if (!ctx->octx.outspec) {
             air_opterr("--ipfix requires hostname in --out");
         }
                 
         /* set hostname */
-        octx->connspec.host = octx->outspec;
+        ctx->octx.connspec.host = ctx->octx.outspec;
         
-        if ((*octx->transport == (char)0) ||
-            (strcmp(octx->transport, "sctp") == 0))
+        if ((*ctx->octx.transport == (char)0) ||
+            (strcmp(ctx->octx.transport, "sctp") == 0))
         {
-            if (octx->enable_tls) {
-                octx->connspec.transport = FB_DTLS_SCTP;
+            if (ctx->octx.enable_tls) {
+                ctx->octx.connspec.transport = FB_DTLS_SCTP;
             } else {
-                octx->connspec.transport = FB_SCTP;
+                ctx->octx.connspec.transport = FB_SCTP;
             }
-        } else if (strcmp(octx->transport, "tcp") == 0) {
-            if (octx->enable_tls) {
-                octx->connspec.transport = FB_TLS_TCP;
+        } else if (strcmp(ctx->octx.transport, "tcp") == 0) {
+            if (ctx->octx.enable_tls) {
+                ctx->octx.connspec.transport = FB_TLS_TCP;
             } else {
-                octx->connspec.transport = FB_TCP;
+                ctx->octx.connspec.transport = FB_TCP;
             }
-        } else if (strcmp(octx->transport, "udp") == 0) {
-            if (octx->enable_tls) {
-                octx->connspec.transport = FB_DTLS_UDP;
+        } else if (strcmp(ctx->octx.transport, "udp") == 0) {
+            if (ctx->octx.enable_tls) {
+                ctx->octx.connspec.transport = FB_DTLS_UDP;
             } else {
-                octx->connspec.transport = FB_UDP;
+                ctx->octx.connspec.transport = FB_UDP;
             }
-            if (!octx->template_rtx_period) {
-                octx->template_rtx_period = 600000; // 10 minutes
+            if (!ctx->octx.template_rtx_period) {
+                ctx->octx.template_rtx_period = 600000; // 10 minutes
             } else {
-                octx->template_rtx_period *= 1000; // convert to milliseconds
+                ctx->octx.template_rtx_period *= 1000; // convert to milliseconds
             }
         } else {
             air_opterr("Unsupported IPFIX transport protocol %s",
-                       octx->transport);
+                       ctx->octx.transport);
         }
         
         /* grab TLS password from environment */
-        if (octx->enable_tls) {
-            octx->connspec.ssl_key_pass = getenv("YAF_TLS_PASS");
+        if (ctx->octx.enable_tls) {
+            ctx->octx.connspec.ssl_key_pass = getenv("YAF_TLS_PASS");
         }
         
     } else {
         /* we're writing to files; set up stdout default if necessary. */
-        if (!octx->outspec || !strlen(octx->outspec)) {
-            if (octx->rotate_period) {
+        if (!ctx->octx.outspec || !strlen(ctx->octx.outspec)) {
+            if (ctx->octx.rotate_period) {
                 /* Require a path prefix for IPFIX output */
                 air_opterr("--rotate requires prefix in --out");
             } else {
                 /* Default to stdout for no output without rotation */
-                octx->outspec = "-";
+                ctx->octx.outspec = "-";
             }
         }
     }
         
-    /* Check for terminal stdout */
-    if ((strlen(octx->outspec) == 1) && octx->outspec[0] == '-') {
-        /* Don't open stdout if it's a terminal */
+    /* Don't open stdout if it's a terminal */
+    if ((strlen(ctx->octx.outspec) == 1) && ctx->octx.outspec[0] == '-') {
         if (isatty(fileno(stdout))) {
             air_opterr("Refusing to write to terminal on stdout");
         }
@@ -672,17 +677,37 @@ static void qfContextSetupOutput(qfConfig_t        *cfg,
     /* Done. Output open is handled on-demand by yfOutputOpen() in yafout.c */
 }
 
+static void qfContextSetupInput(qfContext_t *ctx) {
+    
+    /* Default to pcap file on stdin for no input */
+    if (!ctx->ictx.inuri || !strlen(ctx->ictx.inuri)) {
+        ctx->ictx.inuri = "pcapfile:-";
+    }
+
+    /* Don't open stdin if it's a terminal */
+    if (strlen(ctx->ictx.inuri) &&
+        ctx->ictx.inuri[strlen(ctx->ictx.inuri)-1] == '-')
+    {
+        if (isatty(fileno(stdin))) {
+            air_opterr("Refusing to read from terminal on stdin");
+        }
+    }
+
+    /* open packet source or die */
+    ctx->ictx.pktsrc = qfTraceOpen(ctx->ictx.inuri, ctx->ictx.bpf_expr,
+                                   kQfSnaplen, &ctx->err);
+    if (!ctx->ictx.pktsrc) qfContextTerminate(ctx);
+
+}
+
 void qfContextSetup(qfContext_t *ctx) {
     int reqtype;
     
     /* set up output */
-    qfContextSetupOutput(&ctx->cfg, &ctx->octx);
+    qfContextSetupOutput(ctx);
     
     /* set up input */
-    ctx->ictx.pktsrc = qfTraceOpen(ctx->ictx.inuri, ctx->ictx.bpf_expr,
-                                   kQfSnaplen, &ctx->err);
-
-    if (!ctx->ictx.pktsrc) qfContextTerminate(ctx);
+    qfContextSetupInput(ctx);
 
     /* drop privilege if necessary */
     if (!privc_become(&ctx->err)) {

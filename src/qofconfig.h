@@ -103,7 +103,9 @@ typedef struct qfContext_st {
     GError              *err;
 } qfContext_t;
 
-void qfConfigDefaults(qfConfig_t           *cfg);
+void qfConfigDefaults(qfConfig_t           *cfg,
+                      qfInputContext_t     *ictx,
+                      qfOutputContext_t    *octx);
 
 gboolean qfConfigDotfile(qfConfig_t           *cfg,
                          const char           *filename,

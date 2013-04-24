@@ -31,7 +31,6 @@ qfTraceSource_t *qfTraceOpen(const char *uri,
 
 void qfTraceClose(qfTraceSource_t *lts);
 
-void qfTraceDumpStats();
 
 gboolean qfTraceMain(qfContext_t *ctx);
 

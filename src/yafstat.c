@@ -93,10 +93,6 @@ void yfStatInit(
     g_timer_start(yaf_fft);
 }
 
-
-static void qfTraceDumpStats() {
-}
-
 static void yfStatDump()
 {
     uint64_t numPackets;

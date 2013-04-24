@@ -189,8 +189,7 @@ gboolean qfTraceMain(qfContext_t             *ctx)
         }
     }
 
-    return yfFinalFlush(ctx, ok, yaf_trace_drop,
-                        yfStatGetTimer(), &(ctx->err));
+    return yfFinalFlush(ctx, ok,  &(ctx->err));
 }
 
 

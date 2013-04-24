@@ -73,8 +73,6 @@ gboolean yfTimeOutFlush(
 gboolean yfFinalFlush(
     qfContext_t         *ctx,
     gboolean            ok,
-    uint32_t            pcap_drop,
-    GTimer              *timer,
     GError              **err);
 
 #endif
