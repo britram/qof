@@ -81,6 +81,48 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {NULL, NULL, QF_CONFIG_NOTYPE}
 };
 
+static char *cfg_default_ies[] = {
+    "flowStartMilliseconds",
+    "flowEndMilliseconds",
+    "octetDeltaCount",
+    "reverseOctetDeltaCount",
+    "packetDeltaCount",
+    "reversePacketDeltaCount",
+    "sourceIPv4Address",
+    "destinationIPv4Address",
+    "sourceIPv6Address",
+    "destinationIPv6Address",
+    "sourceTransportPort",
+    "destinationTransportPort",
+    "protocolIdentifier",
+    "flowEndReason",
+    NULL
+};
+
+static gboolean qfConfigIE (qfConfig_t *cfg, const char *ie, GError **err) {
+    void *cvp;
+    int i;
+    
+    /* Add IE to the export template */
+    if (!yfWriterExportIE(ie, err)) return FALSE;
+
+    /* Enable biflow export */
+    if (strncmp("reverse", ie, 7) == 0) {
+        cfg->enable_biflow = TRUE;
+    }
+
+    /* Search IE list for features to enable */
+    for (i = 0; cfg_ie_features[i].key; i++) {
+        if (strncmp(cfg_ie_features[i].key, ie, VALBUF_SIZE) == 0) {
+            /* get pointer into cfg and set */
+            cvp = ((void *)cfg) + cfg_ie_features[i].off;
+            *((gboolean *)cvp) = TRUE;
+        }
+    }
+    
+    return TRUE;
+}
+
 static gboolean qfYamlError(GError                  **err,
                             const yaml_parser_t     *parser,
                             const char              *errmsg)
@@ -316,8 +358,6 @@ static gboolean qfYamlTemplate(qfConfig_t       *cfg,
                                GError           **err)
 {
     char valbuf[VALBUF_SIZE];
-    void *cvp;
-    int i;
     
     /* consume sequence start for template list */
     if (!qfYamlRequireEvent(parser, YAML_SEQUENCE_START_EVENT, err)) {
@@ -328,22 +368,7 @@ static gboolean qfYamlTemplate(qfConfig_t       *cfg,
     yfWriterExportReset();
 
     while (qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) {
-        /* Add IE to the export template */
-        if (!yfWriterExportIE(valbuf, err)) return FALSE;
-        
-        /* Enable biflow export */
-        if (strncmp("reverse", valbuf, 7) == 0) {
-            cfg->enable_biflow = TRUE;
-        }
-        
-        /* Search IE list for features to enable */
-        for (i = 0; cfg_ie_features[i].key; i++) {
-            if (strncmp(cfg_ie_features[i].key, valbuf, sizeof(valbuf)) == 0) {
-                /* get pointer into cfg and set */
-                cvp = ((void *)cfg) + cfg_ie_features[i].off;
-                *((gboolean *)cvp) = TRUE;
-            }
-        }
+        if (!qfConfigIE(cfg, valbuf, err)) return FALSE;
     }
 
     /* check for error on last value parse */
@@ -601,6 +626,22 @@ void qfConfigDefaults(qfConfig_t           *cfg,
     octx->template_rtx_period = 60000;  /* 1 min template 
                                            retransmit period on UDP */
     octx->stats_period = 60000;         /* 1 min stats transmit period */
+}
+
+void qfConfigDefaultTemplate(qfConfig_t     *cfg)
+{
+    GError *err = NULL;
+    int i;
+    
+    /* set default template if we have none */
+    if (!yfWriterExportIECount()) {
+        for (i = 0; cfg_default_ies[i]; i++) {
+            if (!qfConfigIE(cfg, cfg_default_ies[i], &err)) {
+                g_warning("internal error with default template: %s", err->message);
+                exit(1);
+            }
+        }
+    }
 }
 
 static void qfContextSetupOutput(qfContext_t *ctx)

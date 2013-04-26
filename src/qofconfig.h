@@ -107,6 +107,8 @@ void qfConfigDefaults(qfConfig_t           *cfg,
                       qfInputContext_t     *ictx,
                       qfOutputContext_t    *octx);
 
+void qfConfigDefaultTemplate(qfConfig_t     *cfg);
+
 gboolean qfConfigDotfile(qfConfig_t           *cfg,
                          const char           *filename,
                          GError               **err);

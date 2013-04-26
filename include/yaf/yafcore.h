@@ -449,6 +449,8 @@ void yfWriterExportReset();
 
 gboolean yfWriterExportIE(const char *iename, GError **err);
 
+size_t yfWriterExportIECount();
+
 /**
  * Get an IPFIX message buffer for reading YAF flows from an open file pointer.
  * Reuses an existing buffer if supplied.

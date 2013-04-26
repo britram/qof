@@ -498,8 +498,8 @@ gboolean yfWriterExportIE(const char *iename, GError **err) {
             memcpy(&qof_export_spec[qof_export_spec_count],
                    &qof_internal_spec[i], sizeof(fbInfoElementSpec_t));
             qof_export_spec_count++;
+            rv = TRUE;
         }
-        rv = TRUE;
     }
     
     /* set error if we didn't find the requested IE */
@@ -509,6 +509,10 @@ gboolean yfWriterExportIE(const char *iename, GError **err) {
     }
     
     return rv;
+}
+
+size_t yfWriterExportIECount() {
+    return qof_export_spec_count;
 }
 
 /**

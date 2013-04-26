@@ -384,6 +384,9 @@ int main (
         qfContextTerminate(&qfctx);
     }
 
+    /* configure default template if necessary */
+    qfConfigDefaultTemplate(&qfctx.cfg);
+    
     /* Set up quit handler */
     yfQuitInit();
 
