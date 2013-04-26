@@ -661,7 +661,7 @@
 					"$(inherited)",
 					"HAVE_CONFIG_H=1",
 					"YAF_SOURCE=1",
-					"QOF_DYN_TMI_ENABLE=1",
+					"QOF_DYN_TMI_ENABLE=0",
 				);
 				HEADER_SEARCH_PATHS = (
 					./include,
