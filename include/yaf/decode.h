@@ -79,14 +79,12 @@
 #include <yaf/autoinc.h>
 #include <yaf/yafcore.h>
 
-#if YAF_ENABLE_LIBTRACE
 #include <libtrace.h>
 
 /* in case our pcap doesn't define user datalink macros
    this is used to mark uninitialized datalink when using libtrace */
 #ifndef DLT_USER15
 #define DLT_USER15 162
-#endif
 #endif
 
 /** Fragmentation information structure */

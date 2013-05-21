@@ -17,8 +17,6 @@
 #define _YAF_SOURCE_
 #include <yaf/autoinc.h>
 
-#if YAF_ENABLE_LIBTRACE
-
 #include <yaf/yafcore.h>
 #include <yaf/yaftab.h>
 #include <yaf/decode.h>
@@ -225,6 +223,3 @@ gboolean qfTraceMain(qfContext_t             *ctx)
 
     return yfFinalFlush(ctx, ok,  &(ctx->err));
 }
-
-
-#endif
