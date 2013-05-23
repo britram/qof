@@ -890,6 +890,19 @@ gboolean yfWriteFlow(
     uint16_t            wtid;
     uint16_t            etid = 0; /* extra templates */
 
+    yfFlowVal_t         *val, *rval;
+    
+    /* assign flow directions */
+    if (yaf_internal_netlist &&
+        qfFlowDirection(yaf_internal_netlist, &flow->key) == QF_DIR_OUT)
+    {
+        val = &flow->rval;
+        rval = &flow->val;
+    } else {
+        val = &flow->val;
+        rval = &flow->rval;
+    }
+    
     /* copy time */
     rec.flowStartMilliseconds = flow->stime;
     rec.flowEndMilliseconds = flow->etime;
@@ -901,23 +914,23 @@ gboolean yfWriteFlow(
     /* fill in fields that are always present */
     rec.flowId = flow->fid;
     rec.flowEndReason = flow->reason;
-    rec.minimumTTL = flow->val.minttl;
-    rec.reverseMinimumTTL = flow->rval.minttl;
-    rec.maximumTTL = flow->val.maxttl;
-    rec.reverseMaximumTTL = flow->rval.maxttl;
-    rec.octetCount = flow->val.oct;
-    rec.reverseOctetCount = flow->rval.oct;
-    rec.packetCount = flow->val.pkt;
-    rec.reversePacketCount = flow->rval.pkt;
-    rec.initiatorOctets = flow->val.appoct;
-    rec.responderOctets = flow->rval.appoct;
-    rec.initiatorPackets = flow->val.apppkt;
-    rec.responderPackets = flow->rval.apppkt;
+    rec.minimumTTL = val->minttl;
+    rec.reverseMinimumTTL = rval->minttl;
+    rec.maximumTTL = val->maxttl;
+    rec.reverseMaximumTTL = rval->maxttl;
+    rec.octetCount = val->oct;
+    rec.reverseOctetCount = rval->oct;
+    rec.packetCount = val->pkt;
+    rec.reversePacketCount = rval->pkt;
+    rec.initiatorOctets = val->appoct;
+    rec.responderOctets = rval->appoct;
+    rec.initiatorPackets = val->apppkt;
+    rec.responderPackets = rval->apppkt;
     
     /* set ingress and egress interface from map if not already set */
     if (yaf_core_ifmap) {
         qfIfMapAddresses(yaf_core_ifmap, &flow->key,
-                         &flow->val.netIf, &flow->rval.netIf);
+                         &val->netIf, &rval->netIf);
     }
     
     /* copy ports and protocol */
@@ -954,43 +967,43 @@ gboolean yfWriteFlow(
     /* TCP flow; copy TCP data and enable export */
     if (flow->key.proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
-        qfDynClose(&flow->val.tcp);
-        qfDynClose(&flow->rval.tcp);
-        rec.tcpSequenceCount = qfDynSequenceCount(&(flow->val.tcp),
-                                flow->val.iflags & flow->val.uflags);
-        rec.reverseTcpSequenceCount = qfDynSequenceCount(&(flow->rval.tcp),
-                                flow->rval.iflags & flow->rval.uflags);
-        rec.tcpSequenceLossCount = flow->val.tcp.sb.lostseq_ct;
-        rec.reverseTcpSequenceLossCount = flow->rval.tcp.sb.lostseq_ct;
-        rec.tcpRetransmitCount = flow->val.tcp.rtx_ct;
-        rec.reverseTcpRetransmitCount = flow->rval.tcp.rtx_ct;
-        rec.tcpOutOfOrderCount = flow->val.tcp.ooo_ct;
-        rec.reverseTcpOutOfOrderCount = flow->rval.tcp.ooo_ct;
-        rec.maxTcpReorderSize = flow->val.tcp.ooo_max;
-        rec.reverseMaxTcpReorderSize = flow->rval.tcp.ooo_max;
-        rec.tcpSequenceNumber = flow->val.tcp.isn;
-        rec.reverseTcpSequenceNumber = flow->rval.tcp.isn;
-        rec.initialTCPFlags = flow->val.iflags;
-        rec.reverseInitialTCPFlags = flow->rval.iflags;
-        rec.unionTCPFlags = flow->val.uflags;
-        rec.reverseUnionTCPFlags = flow->rval.uflags;
-        rec.observedTcpMss = flow->val.tcp.mss;
-        rec.reverseObservedTcpMss = flow->rval.tcp.mss;
-        rec.declaredTcpMss = flow->val.tcp.mss_opt;
-        rec.reverseDeclaredTcpMss = flow->rval.tcp.mss_opt;
-        rec.ectMarkCount = flow->val.ecn_capable;
-        rec.reverseEctMarkCount = flow->rval.ecn_capable;
-        rec.ceMarkCount = flow->val.ecn_ce;
-        rec.reverseCeMarkCount = flow->rval.ecn_ce;
+        qfDynClose(&val->tcp);
+        qfDynClose(&rval->tcp);
+        rec.tcpSequenceCount = qfDynSequenceCount(&(val->tcp),
+                                val->iflags & val->uflags);
+        rec.reverseTcpSequenceCount = qfDynSequenceCount(&(rval->tcp),
+                                rval->iflags & rval->uflags);
+        rec.tcpSequenceLossCount = val->tcp.sb.lostseq_ct;
+        rec.reverseTcpSequenceLossCount = rval->tcp.sb.lostseq_ct;
+        rec.tcpRetransmitCount = val->tcp.rtx_ct;
+        rec.reverseTcpRetransmitCount = rval->tcp.rtx_ct;
+        rec.tcpOutOfOrderCount = val->tcp.ooo_ct;
+        rec.reverseTcpOutOfOrderCount = rval->tcp.ooo_ct;
+        rec.maxTcpReorderSize = val->tcp.ooo_max;
+        rec.reverseMaxTcpReorderSize = rval->tcp.ooo_max;
+        rec.tcpSequenceNumber = val->tcp.isn;
+        rec.reverseTcpSequenceNumber = rval->tcp.isn;
+        rec.initialTCPFlags = val->iflags;
+        rec.reverseInitialTCPFlags = rval->iflags;
+        rec.unionTCPFlags = val->uflags;
+        rec.reverseUnionTCPFlags = rval->uflags;
+        rec.observedTcpMss = val->tcp.mss;
+        rec.reverseObservedTcpMss = rval->tcp.mss;
+        rec.declaredTcpMss = val->tcp.mss_opt;
+        rec.reverseDeclaredTcpMss = rval->tcp.mss_opt;
+        rec.ectMarkCount = val->ecn_capable;
+        rec.reverseEctMarkCount = rval->ecn_capable;
+        rec.ceMarkCount = val->ecn_ce;
+        rec.reverseCeMarkCount = rval->ecn_ce;
         /* Enable RTT export if we have enough samples */
-        if (flow->val.tcp.rtt.n + flow->rval.tcp.rtt.n >= QOF_MIN_RTT_COUNT) {
+        if (val->tcp.rtt.n + rval->tcp.rtt.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
-            rec.maxTcpFlightSize = flow->val.tcp.iatflight.max;
-            rec.reverseMaxTcpFlightSize = flow->rval.tcp.iatflight.max;
-            rec.meanTcpRttMilliseconds = (uint32_t)flow->val.tcp.rtt.mean;
-            rec.reverseMeanTcpRttMilliseconds = (uint32_t)flow->rval.tcp.rtt.mean;
-            rec.minTcpRttMilliseconds = flow->val.tcp.rtt.min;
-            rec.reverseMinTcpRttMilliseconds = flow->rval.tcp.rtt.min;
+            rec.maxTcpFlightSize = val->tcp.iatflight.max;
+            rec.reverseMaxTcpFlightSize = rval->tcp.iatflight.max;
+            rec.meanTcpRttMilliseconds = (uint32_t)val->tcp.rtt.mean;
+            rec.reverseMeanTcpRttMilliseconds = (uint32_t)rval->tcp.rtt.mean;
+            rec.minTcpRttMilliseconds = val->tcp.rtt.min;
+            rec.reverseMinTcpRttMilliseconds = rval->tcp.rtt.min;
         }
     }
     
@@ -1001,22 +1014,8 @@ gboolean yfWriteFlow(
            ETHERNET_MAC_ADDR_LENGTH);
     rec.vlanId = flow->key.vlanId;
     
-    /* Interfaces. FIXME normalize DAG and BIVIO behavior, now that
-       we're mapping interface numbers from addresses, too. */
-#if YAF_ENABLE_DAG_SEPARATE_INTERFACES || YAF_ENABLE_NAPATECH_SEPARATE_INTERFACES
-    rec.ingressInterface = flow->key.netIf;
-    rec.egressInterface  = flow->key.netIf | 0x100;
-#elif YAF_ENABLE_BIVIO
-    rec.ingressInterface = flow->val.netIf;
-    if (rec.reversePacketCount) {
-        rec.egressInterface = flow->rval.netIf;
-    } else {
-        rec.egressInterface = flow->val.netIf | 0x100;
-    }
-#else 
-    rec.ingressInterface = flow->val.netIf;
-    rec.egressInterface = flow->rval.netIf;
-#endif
+    rec.ingressInterface = val->netIf;
+    rec.egressInterface = rval->netIf;
 
     if (rec.ingressInterface || rec.egressInterface) {
         wtid |= YTF_PHY;    
