@@ -334,6 +334,54 @@ static gboolean qfYamlParsePrefixedV6(yaml_parser_t      *parser,
     return TRUE;
 }
 
+static gboolean qfYamlParsePrefixedV4Or6(yaml_parser_t      *parser,
+                                         uint32_t           *addr4,
+                                         uint8_t            *addr6,
+                                         uint8_t            *mask,
+                                         GError             **err)
+{
+    char valbuf[VALBUF_SIZE];
+    char addrbuf[ADDRBUF_SIZE];
+    int rv;
+    
+    *addr4 = 0;
+    memset(addr6, 0, 16);
+    
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+    
+    rv = sscanf(valbuf, "%15[0-9.]/%hhu", addrbuf, mask);
+    if (rv < 1) {
+
+        /* v4 scan failed, try v6 */
+        rv = sscanf(valbuf, "%39[0-9a-fA-F:.]/%hhu", addrbuf, mask);
+        if (rv < 1) {
+            return qfYamlError(err, parser, "expected IPv6 address");
+        } else if (rv == 1) {
+            *mask = 128; // implicit mask
+        }
+
+        rv = inet_pton(AF_INET6, addrbuf, addr6);
+        if (rv == 0) {
+            return qfYamlError(err, parser, "invalid IPv6 address");
+        } else if (rv == -1) {
+            return qfYamlError(err, parser, strerror(errno));
+        }
+        
+    } else if (rv == 1) {
+        *mask = 32; // implicit mask
+    }
+    
+    rv = inet_pton(AF_INET, addrbuf, addr4);
+    if (rv == 0) {
+        return qfYamlError(err, parser, "invalid IPv4 address");
+    } else if (rv == -1) {
+        return qfYamlError(err, parser, strerror(errno));
+    }
+    
+    return TRUE;
+}
+
+
 static gboolean qfYamlRequireEvent(yaml_parser_t        *parser,
                                    yaml_event_type_t    et,
                                    GError               **err)
@@ -470,6 +518,46 @@ static gboolean qfYamlInterfaceMap(qfConfig_t       *cfg,
     return TRUE;
 }
 
+static gboolean qfYamlInternalNets(qfConfig_t       *cfg,
+                                   yaml_parser_t    *parser,
+                                   GError           **err)
+{
+    uint32_t    v4addr = 0;
+    uint8_t     v6addr[16];
+    uint8_t     mask;
+    
+    /* consume sequence start for interface-map mapping list */
+    if (!qfYamlRequireEvent(parser, YAML_SEQUENCE_START_EVENT, err)) {
+        return FALSE;
+    }
+    
+    memset(v6addr, 0, sizeof(v6addr));
+    
+    /* consume map entries until we see a sequence end */
+    while (qfYamlParsePrefixedV4Or6(parser, &v4addr, v6addr, &mask, err))
+    {
+        
+        if (v4addr) {
+            qfIfMapAddIPv4Mapping(&cfg->intnets, v4addr, mask, 1, 1);
+            v4addr = 0;
+        }
+        
+        if (v6addr[0]) {
+            qfIfMapAddIPv6Mapping(&cfg->intnets, v6addr, mask, 1, 1);
+            memset(v6addr, 0, sizeof(v6addr));
+        }
+    }
+    
+    /* check for error on last entry parse */
+    if (*err) return FALSE;
+    
+    /* enable interface map on export */
+    yfWriterUseInternalNets(&cfg->intnets);
+    
+    /* done */
+    return TRUE;
+}
+
 
 static gboolean qfYamlDocument(qfConfig_t       *cfg,
                                yaml_parser_t    *parser,
@@ -506,6 +594,14 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
             (strncmp("interface-map", keybuf, sizeof(keybuf)) == 0))
         {
             if (!qfYamlInterfaceMap(cfg, parser, err)) return NULL;
+            keyfound = 1;
+        }
+        
+        /* check internal nets */
+        if (!keyfound &&
+            (strncmp("internal-nets", keybuf, sizeof(keybuf)) == 0))
+        {
+            if (!qfYamlInternalNets(cfg, parser, err)) return NULL;
             keyfound = 1;
         }
         

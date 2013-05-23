@@ -362,4 +362,45 @@ void qfIfMapDump(FILE*                      out,
     qfIfMap6Dump(out, map->dst6map, map->dst6map_sz);
 }
 
+void qfNetListAddIPv4(qfNetList_t       *list,
+                      uint32_t          addr,
+                      uint8_t           pfx)
+{
+    qfMapInsert4(&(list->ip4map), &(list->ip4map_sz), addr, pfx, 1);
+}
+
+void qfNetListAddIPv6(qfNetList_t       *list,
+                      uint8_t           *addr,
+                      uint8_t           pfx)
+{
+    qfMapInsert6(&(list->ip6map), &(list->ip6map_sz), addr, pfx, 1);
+}
+
+qfNetDirection_t qfFlowDirection(qfNetList_t       *intlist,
+                                 yfFlowKey_t       *key)
+{
+    int si, di;
+    
+    if (key->version == 4) {
+        si = qfMapSearch4(intlist->ip4map, intlist->ip4map_sz, key->addr.v4.sip);
+        di = qfMapSearch4(intlist->ip4map, intlist->ip4map_sz, key->addr.v4.dip);
+    } else if (key->version == 6) {
+        si = qfMapSearch6(intlist->ip6map, intlist->ip6map_sz, key->addr.v6.sip);
+        di = qfMapSearch6(intlist->ip6map, intlist->ip6map_sz, key->addr.v6.dip);
+    } else {
+        si = 0;
+        di = 0;
+    }
+    
+    if (si && di) {
+        return QF_DIR_INT;
+    } else if (si) {
+        return QF_DIR_OUT;
+    } else if (di) {
+        return QF_DIR_IN;
+    } else {
+        return QF_DIR_EXT;
+    }
+}
+
                       

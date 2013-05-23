@@ -445,6 +445,16 @@ void yfWriterUseInterfaceMap(qfIfMap_t *ifmap);
  * FIXME doc
  */
 
+struct qfNetList_st;
+typedef struct qfNetList_st qfNetList_t;
+
+void yfWriterUseInternalNets(qfNetList_t *intlist);
+
+
+/**
+ * FIXME doc
+ */
+
 void yfWriterExportReset();
 
 gboolean yfWriterExportIE(const char *iename, GError **err);

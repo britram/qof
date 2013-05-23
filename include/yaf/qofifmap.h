@@ -41,6 +41,21 @@ struct qfIfMap_st {
     size_t              dst6map_sz;
 };
 
+struct qfNetList_st {
+    /* IPv4 addresses */
+    qfIfMapEntry4_t     *ip4map;
+    size_t              ip4map_sz;
+    qfIfMapEntry6_t     *ip6map;
+    size_t              ip6map_sz;
+};
+
+typedef enum {
+    QF_DIR_IN,
+    QF_DIR_OUT,
+    QF_DIR_EXT,
+    QF_DIR_INT
+} qfNetDirection_t;
+
 #define QF_IFMAP_INIT {NULL, 0, NULL, 0, NULL, 0, NULL, 0}
 
 void qfIfMapInit(qfIfMap_t *map);
@@ -66,5 +81,16 @@ void qfIfMapAddresses(qfIfMap_t           *map,
 
 void qfIfMapDump(FILE*                      out,
                  qfIfMap_t                  *map);
+
+void qfNetListAddIPv4(qfNetList_t       *list,
+                      uint32_t          addr,
+                      uint8_t           pfx);
+
+void qfNetListAddIPv6(qfNetList_t       *list,
+                      uint8_t           *addr,
+                      uint8_t           pfx);
+
+qfNetDirection_t qfFlowDirection(qfNetList_t       *intlist,
+                                 yfFlowKey_t       *key);
 
 #endif

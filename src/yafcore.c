@@ -331,6 +331,7 @@ typedef struct yfIpfixStats_st {
 /* Core library configuration variables */
 static gboolean yaf_core_map_ipv6 = FALSE;
 static qfIfMap_t *yaf_core_ifmap = NULL;
+static qfNetList_t *yaf_internal_netlist = NULL;
 
 /**
  * yfAlignmentCheck
@@ -468,6 +469,11 @@ void yfWriterUseInterfaceMap(
    qfIfMap_t            *ifmap)
 {
     yaf_core_ifmap = ifmap;
+}
+
+void yfWriterUseInternalNets(qfNetList_t *intlist)
+{
+    yaf_internal_netlist = intlist;
 }
 
 void yfWriterExportReset() {

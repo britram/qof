@@ -37,7 +37,9 @@ typedef struct qfConfig_st {
     uint32_t    rtx_span;
     uint32_t    rtx_scale;
     /* Interface map */
-    qfIfMap_t   ifmap;
+    qfIfMap_t           ifmap;
+    /* Internal networks */
+    qfNetList_t    intnets;
 } qfConfig_t;
 
 struct qfTraceSource_t;
