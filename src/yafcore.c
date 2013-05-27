@@ -891,14 +891,18 @@ gboolean yfWriteFlow(
     uint16_t            etid = 0; /* extra templates */
 
     yfFlowVal_t         *val, *rval;
+    yfFlowKey_t         kbuf, *key;
     
     /* assign flow directions */
     if (yaf_internal_netlist &&
         qfFlowDirection(yaf_internal_netlist, &flow->key) == QF_DIR_OUT)
     {
+        yfFlowKeyReverse(&flow->key, &kbuf);
+        key = &kbuf;
         val = &flow->rval;
         rval = &flow->val;
     } else {
+        key = &flow->key;
         val = &flow->val;
         rval = &flow->rval;
     }
@@ -934,38 +938,38 @@ gboolean yfWriteFlow(
     }
     
     /* copy ports and protocol */
-    rec.sourceTransportPort = flow->key.sp;
-    rec.destinationTransportPort = flow->key.dp;
-    rec.protocolIdentifier = flow->key.proto;
+    rec.sourceTransportPort = key->sp;
+    rec.destinationTransportPort = key->dp;
+    rec.protocolIdentifier = key->proto;
         
     /* copy addresses */
-    if (yaf_core_map_ipv6 && (flow->key.version == 4)) {
+    if (yaf_core_map_ipv6 && (key->version == 4)) {
         memcpy(rec.sourceIPv6Address, yaf_ip6map_pfx,
                sizeof(yaf_ip6map_pfx));
         *(uint32_t *)(&(rec.sourceIPv6Address[sizeof(yaf_ip6map_pfx)])) =
-            g_htonl(flow->key.addr.v4.sip);
+            g_htonl(key->addr.v4.sip);
         memcpy(rec.destinationIPv6Address, yaf_ip6map_pfx,
                sizeof(yaf_ip6map_pfx));
         *(uint32_t *)(&(rec.destinationIPv6Address[sizeof(yaf_ip6map_pfx)])) =
-            g_htonl(flow->key.addr.v4.dip);
+            g_htonl(key->addr.v4.dip);
         wtid |= YTF_IP6;
-    } else if (flow->key.version == 4) {
-        rec.sourceIPv4Address = flow->key.addr.v4.sip;
-        rec.destinationIPv4Address = flow->key.addr.v4.dip;
+    } else if (key->version == 4) {
+        rec.sourceIPv4Address = key->addr.v4.sip;
+        rec.destinationIPv4Address = key->addr.v4.dip;
         wtid |= YTF_IP4;
-    } else if (flow->key.version == 6) {
-        memcpy(rec.sourceIPv6Address, flow->key.addr.v6.sip,
+    } else if (key->version == 6) {
+        memcpy(rec.sourceIPv6Address, key->addr.v6.sip,
                sizeof(rec.sourceIPv6Address));
-        memcpy(rec.destinationIPv6Address, flow->key.addr.v6.dip,
+        memcpy(rec.destinationIPv6Address, key->addr.v6.dip,
                sizeof(rec.destinationIPv6Address));
         wtid |= YTF_IP6;
     } else {
         g_set_error(err, YAF_ERROR_DOMAIN, YAF_ERROR_ARGUMENT,
-                    "Illegal IP version %u", flow->key.version);
+                    "Illegal IP version %u", key->version);
     }
     
     /* TCP flow; copy TCP data and enable export */
-    if (flow->key.proto == YF_PROTO_TCP) {
+    if (key->proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
         qfDynClose(&val->tcp);
         qfDynClose(&rval->tcp);
@@ -1012,7 +1016,7 @@ gboolean yfWriteFlow(
            ETHERNET_MAC_ADDR_LENGTH);
     memcpy(rec.destinationMacAddress, flow->destinationMacAddr,
            ETHERNET_MAC_ADDR_LENGTH);
-    rec.vlanId = flow->key.vlanId;
+    rec.vlanId = key->vlanId;
     
     rec.ingressInterface = val->netIf;
     rec.egressInterface = rval->netIf;

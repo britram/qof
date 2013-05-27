@@ -296,7 +296,7 @@ static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
         *mask = 32; // implicit mask
     }
     
-    rv = inet_pton(AF_INET, addrbuf, addr);
+    rv = ntohl(inet_pton(AF_INET, addrbuf, addr));
     if (rv == 0) {
        return qfYamlError(err, parser, "invalid IPv4 address");
     } else if (rv == -1) {
@@ -367,6 +367,8 @@ static gboolean qfYamlParsePrefixedV4Or6(yaml_parser_t      *parser,
             return qfYamlError(err, parser, strerror(errno));
         }
         
+        return TRUE;
+        
     } else if (rv == 1) {
         *mask = 32; // implicit mask
     }
@@ -377,6 +379,8 @@ static gboolean qfYamlParsePrefixedV4Or6(yaml_parser_t      *parser,
     } else if (rv == -1) {
         return qfYamlError(err, parser, strerror(errno));
     }
+    
+    *addr4 = ntohl(*addr4);
     
     return TRUE;
 }
@@ -538,12 +542,12 @@ static gboolean qfYamlInternalNets(qfConfig_t       *cfg,
     {
         
         if (v4addr) {
-            qfIfMapAddIPv4Mapping(&cfg->intnets, v4addr, mask, 1, 1);
+            qfNetListAddIPv4(&cfg->intnets, v4addr, mask);
             v4addr = 0;
         }
         
         if (v6addr[0]) {
-            qfIfMapAddIPv6Mapping(&cfg->intnets, v6addr, mask, 1, 1);
+            qfNetListAddIPv6(&cfg->intnets, v6addr, mask);
             memset(v6addr, 0, sizeof(v6addr));
         }
     }
