@@ -376,28 +376,34 @@ void qfNetListAddIPv6(qfNetList_t       *list,
     qfMapInsert6(&(list->ip6map), &(list->ip6map_sz), addr, pfx, 1);
 }
 
-qfNetDirection_t qfFlowDirection(qfNetList_t       *intlist,
+void qfMacListAdd(qfMacList_t           *list,
+                  uint8_t               *macaddr)
+{
+    //FIXME add
+}
+
+qfNetDirection_t qfFlowDirection(qfNetList_t       *srclist,
                                  yfFlowKey_t       *key)
 {
-    int si, di;
+    int ss, ds;
     
     if (key->version == 4) {
-        si = qfMapSearch4(intlist->ip4map, intlist->ip4map_sz, key->addr.v4.sip);
-        di = qfMapSearch4(intlist->ip4map, intlist->ip4map_sz, key->addr.v4.dip);
+        ss = qfMapSearch4(srclist->ip4map, srclist->ip4map_sz, key->addr.v4.sip);
+        ds = qfMapSearch4(srclist->ip4map, srclist->ip4map_sz, key->addr.v4.dip);
     } else if (key->version == 6) {
-        si = qfMapSearch6(intlist->ip6map, intlist->ip6map_sz, key->addr.v6.sip);
-        di = qfMapSearch6(intlist->ip6map, intlist->ip6map_sz, key->addr.v6.dip);
+        ss = qfMapSearch6(srclist->ip6map, srclist->ip6map_sz, key->addr.v6.sip);
+        ds = qfMapSearch6(srclist->ip6map, srclist->ip6map_sz, key->addr.v6.dip);
     } else {
-        si = 0;
-        di = 0;
+        ss = 0;
+        ds = 0;
     }
     
-    if (si && di) {
+    if (ss && ds) {
         return QF_DIR_INT;
-    } else if (si) {
-        return QF_DIR_OUT;
-    } else if (di) {
+    } else if (ss) {
         return QF_DIR_IN;
+    } else if (ds) {
+        return QF_DIR_OUT;
     } else {
         return QF_DIR_EXT;
     }

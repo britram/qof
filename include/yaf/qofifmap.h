@@ -49,6 +49,12 @@ struct qfNetList_st {
     size_t              ip6map_sz;
 };
 
+struct qfMacList_st {
+    /* IPv4 addresses */
+    uint8_t             *macaddrs;
+    size_t              macaddrs_sz;
+};
+
 typedef enum {
     QF_DIR_IN,
     QF_DIR_OUT,
@@ -90,7 +96,10 @@ void qfNetListAddIPv6(qfNetList_t       *list,
                       uint8_t           *addr,
                       uint8_t           pfx);
 
-qfNetDirection_t qfFlowDirection(qfNetList_t       *intlist,
+void qfMacListAdd(qfMacList_t           *list,
+                  uint8_t               *macaddr);
+
+qfNetDirection_t qfFlowDirection(qfNetList_t       *srclist,
                                  yfFlowKey_t       *key);
 
 #endif

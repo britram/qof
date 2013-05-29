@@ -42,7 +42,7 @@ template:
     - reverseMinimumTTL
     - maximumTTL
     - reverseMaximumTTL
-internal-nets:
+source-nets:
     - 130.216.0.0/16
 rtx-span: 1048576
 rtx-scale: 256

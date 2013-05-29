@@ -39,7 +39,7 @@ typedef struct qfConfig_st {
     /* Interface map */
     qfIfMap_t           ifmap;
     /* Internal networks */
-    qfNetList_t    intnets;
+    qfNetList_t    srcnets;
 } qfConfig_t;
 
 struct qfTraceSource_t;

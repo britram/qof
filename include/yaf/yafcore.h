@@ -448,8 +448,16 @@ void yfWriterUseInterfaceMap(qfIfMap_t *ifmap);
 struct qfNetList_st;
 typedef struct qfNetList_st qfNetList_t;
 
-void yfWriterUseInternalNets(qfNetList_t *intlist);
+void yfWriterUseSourceNets(qfNetList_t *srclist);
 
+/**
+ * FIXME doc
+ */
+
+struct qfMacList_st;
+typedef struct qfMacList_st qfMacList_t;
+
+void yfWriterUseSourceMacs(qfMacList_t *maclist);
 
 /**
  * FIXME doc
