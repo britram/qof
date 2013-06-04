@@ -345,33 +345,73 @@ AC_ARG_WITH(libpcap,
 dnl ----------------------------------------------------------------------
 dnl Check for libtrace
 dnl ----------------------------------------------------------------------
-
 AC_ARG_WITH(libtrace,
-AS_HELP_STRING([--with-libtrace=prefix],[include WAND libtrace support]),[
-if test "x$withval" != "xno"; then
-
-    if test -d ${withval}; then
-        LDFLAGS="-L${withval}/lib ${LDFLAGS}"
-        CFLAGS="-I${withval}/include ${CFLAGS}"
-        RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace=${withval}"
-        OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${withval}|"
+    AS_HELP_STRING([--with-libtrace=TRACE_DIR],[find libtrace.h in TRACE_DIR/include, libtrace in TRACE_DIR/lib]),[
+    if test "x$withval" != "xno"; then
+        if test -d ${withval}; then
+            if test -d ${withval}/lib; then
+                CFLAGS="-I${withval}/include $CFLAGS"
+                CPPFLAGS="-I${withval}/include $CPPFLAGS"
+                LIBS="-L${withval}/lib -ltrace $LIBS"
+                if test "x$target_os" = "xlinux" -o \
+                        "x$target_os" = "xlinux-gnu"; then
+                    LIBS="-Wl,--rpath -Wl,${withval}/lib $LIBS"
+                fi
+            else
+                LIBS="-L${withval} -ltrace $LIBS"
+                if test "x$target_os" = "xlinux" -o \
+                        "x$target_os" = "xlinux-gnu"; then
+                    LIBS="-Wl,--rpath -Wl,${withval} $LIBS"
+                fi
+            fi
+            OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace from ${withval}|"
+            RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace=${withval}"
+        fi
+        AC_CHECK_LIB(trace,trace_create, ,
+            [AC_MSG_ERROR([cannot locate required libtrace library])])
+        AC_CHECK_HEADERS(libtrace.h,[],
+                [AC_MSG_ERROR([cannot locate required libtrace.h header file])])
     fi
-
-    AC_CHECK_LIB(trace, trace_create,[
-        AC_DEFINE(YAF_ENABLE_LIBTRACE, 1, [Define to 1 to enable libtrace support])
-        AC_SUBST(YAF_HAS_LIBTRACE, [1])
-        LIBS="-ltrace ${LIBS}"
-        RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace"
-        OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${LIBS}|"
     ],[
-        AC_MSG_ERROR([--with-libtrace given but cannot find trace])
-    ])
+        AC_CHECK_LIB(trace, trace_create, ,
+            [AC_MSG_ERROR([cannot locate required libtrace library, try the --with-libtrace option])])
+    
+    AC_CHECK_HEADERS(libtrace.h,[],
+        [AC_MSG_ERROR([cannot locate the required libtrace.h header file])])
+    ]
+)
 
-    AC_CHECK_HEADER(libtrace.h,[],[
-        AC_MSG_ERROR([--with-libtrace given but cannot find libtrace.h])
-    ])
-fi
-])
+
+dnl ----------------------------------------------------------------------
+dnl Check for libtrace (old optional version)
+dnl ----------------------------------------------------------------------
+
+dnl AC_ARG_WITH(libtrace,
+dnl AS_HELP_STRING([--with-libtrace=prefix],[include WAND libtrace support]),[
+dnl if test "x$withval" != "xno"; then
+dnl
+dnl     if test -d ${withval}; then
+dnl         LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+dnl         CFLAGS="-I${withval}/include ${CFLAGS}"
+dnl         RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace=${withval}"
+dnl         OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${withval}|"
+dnl     fi
+
+dnl     AC_CHECK_LIB(trace, trace_create,[
+dnl         AC_DEFINE(YAF_ENABLE_LIBTRACE, 1, [Define to 1 to enable libtrace support])
+dnl         AC_SUBST(YAF_HAS_LIBTRACE, [1])
+dnl         LIBS="-ltrace ${LIBS}"
+dnl         RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace"
+dnl         OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${LIBS}|"
+dnl     ],[
+dnl         AC_MSG_ERROR([--with-libtrace given but cannot find trace])
+dnl     ])
+
+dnl     AC_CHECK_HEADER(libtrace.h,[],[
+dnl         AC_MSG_ERROR([--with-libtrace given but cannot find libtrace.h])
+dnl     ])
+dnl fi
+dnl ])
 
 dnl ----------------------------------------------------------------------
 dnl Check for libdag

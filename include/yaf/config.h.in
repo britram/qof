@@ -31,6 +31,12 @@
 /* Define to 1 if you have the `pcap' library (-lpcap). */
 #undef HAVE_LIBPCAP
 
+/* Define to 1 if you have the `trace' library (-ltrace). */
+#undef HAVE_LIBTRACE
+
+/* Define to 1 if you have the <libtrace.h> header file. */
+#undef HAVE_LIBTRACE_H
+
 /* Define to 1 if you have the `wpcap' library (-lwpcap). */
 #undef HAVE_LIBWPCAP
 
@@ -192,9 +198,6 @@
 
 /* Define to 1 to enable recording DAG interface numbers */
 #undef YAF_ENABLE_DAG_SEPARATE_INTERFACES
-
-/* Define to 1 to enable libtrace support */
-#undef YAF_ENABLE_LIBTRACE
 
 /* Define to 1 to enable Napatech support */
 #undef YAF_ENABLE_NAPATECH
