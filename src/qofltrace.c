@@ -76,16 +76,24 @@ qfTraceSource_t *qfTraceOpen(const char *uri,
     if (bpf) {
         if (!(lts->filter = trace_create_filter(bpf))) {
             g_warning("Could not compile libtrace BPF %s", bpf);
-            return FALSE;
+            goto err;
         }
         
         if (trace_config(lts->trace, TRACE_OPTION_FILTER, lts->filter) == -1) {
             terr = trace_get_err(lts->trace);
             g_warning("Could not set libtrace filter: %s", terr.problem);
-            return FALSE;
+            goto err;
         }
     }
-        
+    
+    /* start processing */
+    if (trace_start(lts->trace) == -1) {
+        terr = trace_get_err(lts->trace);
+        g_warning("libtrace trace_start() error: %s", terr.problem);
+        goto err;
+    }
+
+    
     return lts;
   
 err:
@@ -182,13 +190,6 @@ gboolean qfTraceMain(qfContext_t             *ctx)
     
     int i, trv;
     
-    /* start processing */
-    if (trace_start(lts->trace) == -1) {
-        terr = trace_get_err(lts->trace);
-        g_warning("libtrace trace_start() error: %s", terr.problem);
-        return FALSE;
-    }
-
     /* process input until we're done */
     while (!yaf_quit) {
         
