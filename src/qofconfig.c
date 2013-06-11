@@ -654,7 +654,7 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
         
         /* check internal nets */
         if (!keyfound &&
-            (strncmp("source-nets", keybuf, sizeof(keybuf)) == 0))
+            (strncmp("source-net", keybuf, sizeof(keybuf)) == 0))
         {
             if (!qfYamlSourceNets(cfg, parser, err)) return NULL;
             keyfound = 1;
@@ -664,7 +664,7 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
         if (!keyfound &&
             (strncmp("source-mac", keybuf, sizeof(keybuf)) == 0))
         {
-            if (!qfYamlSourceNets(cfg, parser, err)) return NULL;
+            if (!qfYamlSourceMacs(cfg, parser, err)) return NULL;
             keyfound = 1;
         }
 

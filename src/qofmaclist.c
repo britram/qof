@@ -56,6 +56,7 @@ void qfMacListAdd(qfMacList_t           *list,
         exit(1);
     }
     list->macaddrs = new_macaddrs;
+    list->macaddrs_sz++;
     
     // shift up
     if (i < list->macaddrs_sz - 1) {
@@ -65,7 +66,7 @@ void qfMacListAdd(qfMacList_t           *list,
     }
     
     // copy element in
-    memcpy(list->macaddrs[i * MAC_SZ], macaddr, MAC_SZ);
+    memcpy(&list->macaddrs[i * MAC_SZ], macaddr, MAC_SZ);
     
 }
 
