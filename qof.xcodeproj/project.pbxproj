@@ -45,6 +45,7 @@
 		F5192342167238A400514165 /* mio_source_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192301167238A400514165 /* mio_source_udp.c */; };
 		F5192343167238A400514165 /* mio_stdio.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192302167238A400514165 /* mio_stdio.c */; };
 		F5192344167238A400514165 /* privconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192303167238A400514165 /* privconfig.c */; };
+		F5CAEEA1176720A5003AD16F /* qofmaclist.c in Sources */ = {isa = PBXBuildFile; fileRef = F5CAEEA0176720A5003AD16F /* qofmaclist.c */; };
 		F5EF14DC16D4CF6A00A4358E /* libpcap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */; };
 		F5EF14DE16D4D26800A4358E /* libyaml-0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */; };
 		F5EF14E016D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */; };
@@ -199,6 +200,8 @@
 		F5192303167238A400514165 /* privconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = privconfig.c; sourceTree = "<group>"; };
 		F52331DA16BC130400A3FA81 /* qofctx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofctx.c; sourceTree = "<group>"; };
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5CAEEA0176720A5003AD16F /* qofmaclist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofmaclist.c; sourceTree = "<group>"; };
+		F5CAEEA2176732AD003AD16F /* qofmaclist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofmaclist.h; sourceTree = "<group>"; };
 		F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
 		F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libyaml-0.2.dylib"; path = "../../../../opt/local/lib/libyaml-0.2.dylib"; sourceTree = "<group>"; };
 		F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libfixbuf-1.2.0.8.dylib"; path = "../../opt/lib/libfixbuf-1.2.0.8.dylib"; sourceTree = "<group>"; };
@@ -274,6 +277,7 @@
 				D37733A0171E43A0004FF28F /* qofdyntmi.c */,
 				D3F2AA70171F5506009DC254 /* qofdyntmi.h */,
 				F51922211672388F00514165 /* qofifmap.c */,
+				F5CAEEA0176720A5003AD16F /* qofmaclist.c */,
 				D3EADBDE170BE2B5006FE1FE /* qofltrace.h */,
 				D3EADBDC170BDDEC006FE1FE /* qofltrace.c */,
 			);
@@ -293,6 +297,7 @@
 			isa = PBXGroup;
 			children = (
 				D3AF47E217279781000212C8 /* qofifmap.h */,
+				F5CAEEA2176732AD003AD16F /* qofmaclist.h */,
 				F51922541672389900514165 /* autoinc.h */,
 				F51922551672389900514165 /* CERT_IE.h */,
 				F51922561672389900514165 /* config.h */,
@@ -557,6 +562,7 @@
 				D3F2AA6F171F53BB009DC254 /* qofdyntmi.c in Sources */,
 				D3C4E99917263E9200DB5423 /* qofconfig.c in Sources */,
 				D3C4E99B17263FA100DB5423 /* qof.c in Sources */,
+				F5CAEEA1176720A5003AD16F /* qofmaclist.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

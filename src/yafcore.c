@@ -332,6 +332,7 @@ typedef struct yfIpfixStats_st {
 static gboolean yaf_core_map_ipv6 = FALSE;
 static qfIfMap_t *yaf_core_ifmap = NULL;
 static qfNetList_t *yaf_source_netlist = NULL;
+static qfMacList_t *yaf_source_maclist = NULL;
 
 /**
  * yfAlignmentCheck
@@ -474,6 +475,11 @@ void yfWriterUseInterfaceMap(
 void yfWriterUseSourceNets(qfNetList_t *srclist)
 {
     yaf_source_netlist = srclist;
+}
+
+void yfWriterUseSourceMacs(qfMacList_t *maclist)
+{
+    yaf_source_maclist = maclist;
 }
 
 void yfWriterExportReset() {
@@ -894,8 +900,10 @@ gboolean yfWriteFlow(
     yfFlowKey_t         kbuf, *key;
     
     /* assign flow directions */
-    if (yaf_source_netlist &&
-        qfFlowDirection(yaf_source_netlist, &flow->key) == QF_DIR_OUT)
+    if ((yaf_source_netlist &&
+        (qfFlowDirection(yaf_source_netlist, &flow->key) == QF_DIR_OUT)) ||
+        (yaf_source_maclist &&
+         qfMacListContains(yaf_source_maclist, flow->destinationMacAddr)))
     {
         yfFlowKeyReverse(&flow->key, &kbuf);
         key = &kbuf;

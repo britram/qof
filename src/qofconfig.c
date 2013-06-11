@@ -587,7 +587,6 @@ static gboolean qfYamlSourceMacs(qfConfig_t       *cfg,
                                  GError           **err)
 {
     uint8_t     macaddr[6];
-    uint8_t     mask;
     
     /* consume sequence start for interface-map mapping list */
     if (!qfYamlRequireEvent(parser, YAML_SEQUENCE_START_EVENT, err)) {
@@ -599,15 +598,15 @@ static gboolean qfYamlSourceMacs(qfConfig_t       *cfg,
     /* consume mac entries until we see a sequence end */
     while (qfYamlParseMac48(parser, macaddr, err))
     {
-
-        
+        qfMacListAdd(&cfg->srcmacs, macaddr);
     }
     
     /* check for error on last entry parse */
     if (*err) return FALSE;
     
-    /* enable interface map on export */
-    yfWriterUseSourceNets(&cfg->srcnets);
+    /* enable MAC map on export */
+    yfWriterUseSourceMacs(&cfg->srcmacs);
+    cfg->enable_mac = TRUE;
     
     /* done */
     return TRUE;

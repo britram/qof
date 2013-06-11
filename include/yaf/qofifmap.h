@@ -49,12 +49,6 @@ struct qfNetList_st {
     size_t              ip6map_sz;
 };
 
-struct qfMacList_st {
-    /* IPv4 addresses */
-    uint8_t             *macaddrs;
-    size_t              macaddrs_sz;
-};
-
 typedef enum {
     QF_DIR_IN,
     QF_DIR_OUT,
