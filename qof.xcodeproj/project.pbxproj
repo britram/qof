@@ -171,7 +171,6 @@
 		F519228B167238A400514165 /* libairframe.spec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = libairframe.spec; sourceTree = "<group>"; };
 		F519228C167238A400514165 /* libairframe.spec.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = libairframe.spec.in; sourceTree = "<group>"; };
 		F519228E167238A400514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		F519228F167238A400514165 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
 		F5192290167238A400514165 /* NEWS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NEWS; sourceTree = "<group>"; };
 		F5192291167238A400514165 /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
 		F51922C4167238A400514165 /* airdaemon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = airdaemon.c; sourceTree = "<group>"; };
@@ -329,7 +328,6 @@
 				F519228B167238A400514165 /* libairframe.spec */,
 				F519228C167238A400514165 /* libairframe.spec.in */,
 				F519228E167238A400514165 /* Makefile.am */,
-				F519228F167238A400514165 /* Makefile.in */,
 				F5192290167238A400514165 /* NEWS */,
 				F5192291167238A400514165 /* README */,
 				F5192292167238A400514165 /* src */,

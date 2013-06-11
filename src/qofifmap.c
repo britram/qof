@@ -18,6 +18,8 @@
 
 #include <arpa/inet.h>
 
+#define MAC_SZ 6
+
 struct qfIfMapEntry4_st {
     uint32_t        a;
     uint32_t        b;
@@ -32,6 +34,10 @@ struct qfIfMapEntry6_st {
 
 static int qfIp6Compare(uint8_t *a, uint8_t *b) {
     return memcmp(a, b, 16);
+}
+
+static int qfMacCompare(uint8_t *a, uint8_t *b) {
+    return memcmp(a, b, 6);
 }
 
 static void qfIp6Mask(uint8_t *ma, uint8_t *a, uint8_t *mask) {
@@ -379,7 +385,64 @@ void qfNetListAddIPv6(qfNetList_t       *list,
 void qfMacListAdd(qfMacList_t           *list,
                   uint8_t               *macaddr)
 {
-    //FIXME add
+    size_t i = 0;
+    uint8_t *new_macaddrs;
+    
+    // linear search to insertion point
+    if (list->macaddrs_sz == 0 || qfMacCompare(macaddr, &list->macaddrs[0])) {
+        i = 0;
+    } else if (qfMacCompare(macaddr,
+                   &list->macaddrs[(list->macaddrs_sz - 1) * MAC_SZ]) > 0)
+    {
+        i = list->macaddrs_sz;
+    } else for (i = 1; i < list->macaddrs_sz; i++) {
+        if ((qfMacCompare(&list->macaddrs[(i-1) * MAC_SZ], macaddr) > 0) &&
+            (qfMacCompare(macaddr, &list->macaddrs[i * MAC_SZ]) > 0 )) break;
+    }
+    
+    new_macaddrs = realloc(list->macaddrs, (list->macaddrs_sz + 1) * MAC_SZ);
+    if (!new_macaddrs) {
+        // FIXME integrate a horrible death into qof's normal error handling
+        exit(1);
+    }
+    list->macaddrs = new_macaddrs;
+    
+    // shift up
+    if (i < list->macaddrs_sz - 1) {
+        memcpy(list->macaddrs[(i + 1) * MAC_SZ],
+               list->macaddrs[i * MAC_SZ],
+               (list->macaddrs_sz - (i+1)) * MAC_SZ);
+    }
+    
+    // copy element in
+    memcpy(list->macaddrs[i * MAC_SZ], macaddr, MAC_SZ);
+
+}
+
+int qfMacListContains(qfMacList_t           *list,
+                       uint8_t               *macaddr)
+{
+    /* initialize bounds */
+    ssize_t x = 0;
+    ssize_t y = list->macaddrs_sz - 1;
+    
+    size_t i;
+    
+    /* and converge */
+    while (x <= y) {
+        i = (x+y)/2;
+        
+        if (qfMacCompare(macaddr, &list->macaddrs[i * MAC_SZ]) == 0) {
+            return 1;
+        } else if (qfMacCompare(&list->macaddrs[i * MAC_SZ], macaddr) < 0) {
+            x = i + 1;
+        } else {
+            y = i - 1;
+        }
+    }
+    
+    return 0;
+
 }
 
 qfNetDirection_t qfFlowDirection(qfNetList_t       *srclist,
