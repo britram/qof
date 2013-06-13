@@ -77,6 +77,8 @@
 		D31013E416A94BA80068059F /* test_ifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_ifmap.c; sourceTree = "<group>"; };
 		D3282A601708CF2100B2ABA4 /* bitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitmap.c; sourceTree = "<group>"; };
 		D3282A621708CF8400B2ABA4 /* bitmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = "<group>"; };
+		D364E00E176A281E0011F16A /* qof.iespec */ = {isa = PBXFileReference; lastKnownFileType = text; path = qof.iespec; sourceTree = "<group>"; };
+		D364E00F176A281E0011F16A /* qof.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = qof.py; sourceTree = "<group>"; };
 		D36F0F4916E3B6B80028EDAE /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		D36F0F4A16E3B6B80028EDAE /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		D36F0F4B16E3BA480028EDAE /* acinclude.m4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = acinclude.m4; sourceTree = "<group>"; };
@@ -238,6 +240,15 @@
 				D3773390171DF9E4004FF28F /* tracepull.c */,
 			);
 			path = test;
+			sourceTree = "<group>";
+		};
+		D364E00D176A281E0011F16A /* pytools */ = {
+			isa = PBXGroup;
+			children = (
+				D364E00E176A281E0011F16A /* qof.iespec */,
+				D364E00F176A281E0011F16A /* qof.py */,
+			);
+			path = pytools;
 			sourceTree = "<group>";
 		};
 		F51922041672388F00514165 /* src */ = {
@@ -432,6 +443,7 @@
 				F5192261167238A400514165 /* airframe */,
 				F519224F1672389900514165 /* include */,
 				F51922041672388F00514165 /* src */,
+				D364E00D176A281E0011F16A /* pytools */,
 				F52D56C116723812006D32A1 /* Products */,
 			);
 			sourceTree = "<group>";

@@ -160,8 +160,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "tcpOutOfOrderCount",                    8, YTF_TCP | YTF_FLE },
-    { "reverseTcpOutOfOrderCount",             8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "tcpRtxBurstCount",                   8, YTF_TCP | YTF_FLE },
+    { "reverseTcpRtxBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
+    { "tcpOutOfOrderCount",                 8, YTF_TCP | YTF_FLE },
+    { "reverseTcpOutOfOrderCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "ectMarkCount",                       8, YTF_TCP | YTF_FLE },
     { "reverseEctMarkCount",                8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "ceMarkCount",                        8, YTF_TCP | YTF_FLE },
@@ -172,6 +174,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpRtxBurstCount",                   4, YTF_TCP | YTF_RLE },
+    { "reverseTcpRtxBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpOutOfOrderCount",                    4, YTF_TCP | YTF_RLE },
     { "reverseTcpOutOfOrderCount",             4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "ectMarkCount",                       4, YTF_TCP | YTF_RLE },
@@ -268,6 +272,8 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSequenceLossCount;
     uint64_t    tcpRetransmitCount;
     uint64_t    reverseTcpRetransmitCount;
+    uint64_t    tcpRtxBurstCount;
+    uint64_t    reverseTcpRtxBurstCount;
     uint64_t    tcpOutOfOrderCount;
     uint64_t    reverseTcpOutOfOrderCount;
     uint64_t    ectMarkCount;
@@ -393,6 +399,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceLossCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpRetransmitCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpRetransmitCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,tcpRtxBurstCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTcpRtxBurstCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpOutOfOrderCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpOutOfOrderCount,1);
     RUN_CHECKS(yfIpfixFlow_t,ectMarkCount,1);
@@ -958,6 +966,8 @@ gboolean yfWriteFlow(
         rec.reverseTcpSequenceLossCount = flow->rval.tcp.sb.lostseq_ct;
         rec.tcpRetransmitCount = flow->val.tcp.rtx_ct;
         rec.reverseTcpRetransmitCount = flow->rval.tcp.rtx_ct;
+        rec.tcpRtxBurstCount = flow->val.tcp.rtx_burst_ct;
+        rec.reverseTcpRtxBurstCount = flow->rval.tcp.rtx_burst_ct;
         rec.tcpOutOfOrderCount = flow->val.tcp.ooo_ct;
         rec.reverseTcpOutOfOrderCount = flow->rval.tcp.ooo_ct;
         rec.maxTcpReorderSize = flow->val.tcp.ooo_max;

@@ -24,6 +24,8 @@ template:
     - reverseTcpSequenceLossCount
     - tcpRetransmitCount
     - reverseTcpRetransmitCount
+    - tcpRtxBurstCount
+    - reverseTcpRtxBurstCount
     - tcpOutOfOrderCount
     - reverseTcpOutOfOrderCount
     - meanTcpRttMilliseconds
@@ -43,4 +45,4 @@ template:
     - maximumTTL
     - reverseMaximumTTL
 rtx-span: 1048576
-rtx-scale: 256
+rtx-scale: 32

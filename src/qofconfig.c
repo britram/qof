@@ -802,8 +802,8 @@ void qfContextSetup(qfContext_t *ctx) {
     qfDynConfig(ctx->cfg.enable_dyn,
                 ctx->cfg.enable_dyn_rtt,
                 ctx->cfg.enable_dyn_rtx,
-                ctx->cfg.rtx_scale,
-                ctx->cfg.rtx_span);
+                ctx->cfg.rtx_span,
+                ctx->cfg.rtx_scale);
 }
 
 void qfContextTeardown(qfContext_t *ctx) {

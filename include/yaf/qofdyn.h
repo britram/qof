@@ -134,8 +134,8 @@ void qfDynAck(qfDyn_t     *qd,
 void qfDynConfig(gboolean enable,
                  gboolean enable_rtt,
                  gboolean enable_rtx,
-                 uint32_t scale,
-                 uint32_t span);
+                 uint32_t span,
+                 uint32_t scale);
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags);
 
