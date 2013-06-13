@@ -149,7 +149,7 @@ static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
                 /* found via TS, update and minimize rttc. */
                 nrttc = ms - qd->rtt_next_lms;
                 if (!qd->rttc || nrttc < qd->rttc) {
-                    qd->rttc = ms - qd->rtt_next_lms;
+                    qd->rttc = nrttc;
                 }
 //                if (qd->rttc && qd->rttm) {
 //                    sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
