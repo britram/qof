@@ -90,7 +90,6 @@
 		D3AF47E217279781000212C8 /* qofifmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofifmap.h; sourceTree = "<group>"; };
 		D3C4E99A17263FA100DB5423 /* qof.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qof.c; sourceTree = "<group>"; };
 		D3CCBE961716AF06006C25EB /* qofconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofconfig.c; sourceTree = "<group>"; };
-		D3D3887C16F8258B002B85A4 /* qof.iespec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = qof.iespec; sourceTree = "<group>"; };
 		D3D91D8016EE7F9E00748C63 /* qof-test.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "qof-test.yaml"; sourceTree = "<group>"; };
 		D3E1B1C316E4EBD200C5D50C /* riptcp.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = riptcp.rb; sourceTree = "<group>"; };
 		D3E1D8BE1712764700E94E6D /* streamstat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = streamstat.c; sourceTree = "<group>"; };
@@ -233,7 +232,6 @@
 		D31013E316A949350068059F /* test */ = {
 			isa = PBXGroup;
 			children = (
-				D3D3887C16F8258B002B85A4 /* qof.iespec */,
 				D3D91D8016EE7F9E00748C63 /* qof-test.yaml */,
 				D3E1B1C316E4EBD200C5D50C /* riptcp.rb */,
 				D31013E416A94BA80068059F /* test_ifmap.c */,

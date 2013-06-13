@@ -94,6 +94,10 @@ typedef struct qfDyn_st {
     uint32_t        wrap_ct;
     /* Detected retransmitted segment count */
     uint32_t        rtx_ct;
+    /* Detected retransmitted segment burst count */
+    uint32_t        rtx_burst_ct;
+    /* Last burst start time */
+    uint32_t        rtx_burst_lms;
     /* Detected reordered segment count */
     uint32_t        ooo_ct;
     /* Maxumum observed reordering (nsn - seq) */

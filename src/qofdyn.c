@@ -104,15 +104,21 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb)
 
 static void qfDynRexmit(qfDyn_t     *qd,
                         uint32_t    seq,
-                        uint64_t    ms)
+                        uint32_t    ms)
 {
     /* increment retransmit counter */
     qd->rtx_ct++;
+    
+    /* increment burst counter if new burst */
+    if (!qd->rtx_burst_lms || ms < (qd->rtx_burst_lms + qd->rtt.mean)) {
+        qd->rtx_burst_lms = ms;
+        qd->rtx_burst_ct++;
+    }
 }
 
 static void qfDynReorder(qfDyn_t     *qd,
                          uint32_t    seq,
-                         uint64_t    ms)
+                         uint32_t    ms)
 {
     /* increment reorder counter */
     qd->ooo_ct++;
