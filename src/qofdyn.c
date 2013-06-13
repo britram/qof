@@ -138,17 +138,22 @@ static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
                                 uint32_t    tsecr,
                                 uint32_t    ms)
 {
+    unsigned nrttc;
+    
     /* short-circuit if we're looking for an ack */
     if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_SA) return FALSE;
 
     /* try rttc measurement if we're looking for a seq */
     if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_AS) {
         if (tsecr && (qfSeqCompare(tsecr, qd->rtt_next_tsack) >= 0)) {
-                /* found via TS, update rttc. */
-                qd->rttc = ms - qd->rtt_next_lms;
-                if (qd->rttc && qd->rttm) {
-                    sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+                /* found via TS, update and minimize rttc. */
+                nrttc = ms - qd->rtt_next_lms;
+                if (!qd->rttc || nrttc < qd->rttc) {
+                    qd->rttc = ms - qd->rtt_next_lms;
                 }
+//                if (qd->rttc && qd->rttm) {
+//                    sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+//                }
         } else if (!qd->rtt_next_tsack) {
             /* no timestamps for this flow. RTTC remains 0, go to SA state. */
             qd->rttc = 0;
