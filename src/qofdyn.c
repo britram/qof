@@ -157,9 +157,9 @@ static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
         } else if (!qd->rtt_next_tsack) {
             /* no timestamps for this flow. RTTC remains 0, go to SA state. */
             qd->rttc = 0;
-            if (qd->rttm) {
-                sstMeanAdd(&qd->rtt, qd->rttm);
-            }
+//          if (qd->rttm) {
+//              sstMeanAdd(&qd->rtt, qd->rttm);
+//          }
         } else {
             /* not found. skip state switch. */
             return FALSE;
@@ -186,7 +186,7 @@ static gboolean qfDynRttWalkAck  (qfDyn_t     *qd,
     if (qfSeqCompare(ack, qd->rtt_next_tsack) >= 0) {
         /* yep, got the ack we're looking for */
         qd->rttm = ms - qd->rtt_next_lms;
-        if (qd->rttc && qd->rttm) {
+        if (qd->rttm) {
             sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
         }
         
