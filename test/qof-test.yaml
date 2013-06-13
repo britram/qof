@@ -45,4 +45,4 @@ template:
     - maximumTTL
     - reverseMaximumTTL
 rtx-span: 1048576
-rtx-scale: 32
+rtx-scale: 256

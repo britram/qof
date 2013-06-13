@@ -1,11 +1,22 @@
+###
+# generic IPFIX to pandas dataframe
+#
+
 import ipfix.ie
 import ipfix.reader
 
+import pandas as pd
+
 import collections
 
-RttPair = collections.namedtuple("RttPair", "sip", "dip", "rtt", "revrtt")
-
-rtt_pair_ies = ipfix.ie.spec_list("sourceIPv4Address",
-                                  "destinationIPv4Address",
-                                  "meanTcpRttMilliseconds",
-                                  "reverseMeanTcpRttMilliseconds")
+def dataframe_from_ipfix(filename, *ienames):
+    
+    ielist = ipfix.ie.spec_list(ienames)
+    
+    with open(filename, mode="rb") as f:
+        r = ipfix.reader.from_stream(f)
+        df = pd.DataFrame.from_records(
+            [rec for rec in r.records_as_tuple(ielist)],
+            columns = [ie.name or ie in ielist])
+        return df
+    
