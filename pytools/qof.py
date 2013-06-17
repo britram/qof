@@ -43,5 +43,5 @@ rev_count_ies = ("reverseOctetDeltaCount",
 rev_rtt_ies = ("reverseMeanTcpRttMilliseconds",
                "reverseMinTcpRttMilliseconds")
 
-rev_rtx_ies ("reverseTcpRetransmitCount",
-             "reverseTcpRtxBurstCount")
+rev_rtx_ies = ("reverseTcpRetransmitCount",
+               "reverseTcpRtxBurstCount")

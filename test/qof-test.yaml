@@ -3,12 +3,12 @@ template:
     - flowStartMilliseconds
     - flowEndMilliseconds
     - reverseFlowDeltaMilliseconds
-    - sourceIPv4Address
-    - destinationIPv4Address
-    - sourceIPv6Address
-    - destinationIPv6Address
-    - sourceTransportPort
-    - destinationTransportPort
+#    - sourceIPv4Address
+#    - destinationIPv4Address
+#    - sourceIPv6Address
+#    - destinationIPv6Address
+#    - sourceTransportPort
+#    - destinationTransportPort
     - protocolIdentifier
     - packetDeltaCount
     - reversePacketDeltaCount
