@@ -109,8 +109,11 @@ static void qfDynRexmit(qfDyn_t     *qd,
     /* increment retransmit counter */
     qd->rtx_ct++;
     
-    /* increment burst counter if new burst */
-    if (!qd->rtx_burst_lms || ms < (qd->rtx_burst_lms + qd->rtt.mean)) {
+    /* require three RTT samples to assume we can calucate burst */
+    if ((qd->rtt.n < 3) ||
+        !qd->rtx_burst_lms ||
+        (ms < (qd->rtx_burst_lms + qd->rtt.mean)))
+    {
         qd->rtx_burst_lms = ms;
         qd->rtx_burst_ct++;
     }
