@@ -259,4 +259,8 @@ uint64_t yfFlowDumpStats(
     yfFlowTab_t     *flowtab,
     GTimer          *timer);
 
+void yfFlowKeyReverse(
+    yfFlowKey_t       *fwd,
+    yfFlowKey_t       *rev);
+
 #endif

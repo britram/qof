@@ -356,7 +356,7 @@ static gboolean yfFlowKeyEqual(
  * @param dst pointer to the reversed destination record
  *
  */
-static void yfFlowKeyReverse(
+void yfFlowKeyReverse(
     yfFlowKey_t       *fwd,
     yfFlowKey_t       *rev)
 {

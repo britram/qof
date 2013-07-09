@@ -48,7 +48,7 @@ INCLUDES = $(LTDLINCL)
 LIBS += $(LIBLTDL)
 
 libqof_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c \
-                    bitmap.c streamstat.c qofdyn.c qofifmap.c
+                    bitmap.c streamstat.c qofdyn.c qofifmap.c qofmaclist.c
 
 if CYGWIN
 libqof_la_SOURCES += yafcygwin.c

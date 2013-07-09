@@ -18,6 +18,7 @@
 
 #include <arpa/inet.h>
 
+
 struct qfIfMapEntry4_st {
     uint32_t        a;
     uint32_t        b;
@@ -360,6 +361,49 @@ void qfIfMapDump(FILE*                      out,
     qfIfMap4Dump(out, map->dst4map, map->dst4map_sz);
     fprintf(out, "ip6 dest map:\n");
     qfIfMap6Dump(out, map->dst6map, map->dst6map_sz);
+}
+
+void qfNetListAddIPv4(qfNetList_t       *list,
+                      uint32_t          addr,
+                      uint8_t           pfx)
+{
+    qfMapInsert4(&(list->ip4map), &(list->ip4map_sz), addr, pfx, 1);
+}
+
+void qfNetListAddIPv6(qfNetList_t       *list,
+                      uint8_t           *addr,
+                      uint8_t           pfx)
+{
+    qfMapInsert6(&(list->ip6map), &(list->ip6map_sz), addr, pfx, 1);
+}
+
+
+
+qfNetDirection_t qfFlowDirection(qfNetList_t       *srclist,
+                                 yfFlowKey_t       *key)
+{
+    int ss, ds;
+    
+    if (key->version == 4) {
+        ss = qfMapSearch4(srclist->ip4map, srclist->ip4map_sz, key->addr.v4.sip);
+        ds = qfMapSearch4(srclist->ip4map, srclist->ip4map_sz, key->addr.v4.dip);
+    } else if (key->version == 6) {
+        ss = qfMapSearch6(srclist->ip6map, srclist->ip6map_sz, key->addr.v6.sip);
+        ds = qfMapSearch6(srclist->ip6map, srclist->ip6map_sz, key->addr.v6.dip);
+    } else {
+        ss = 0;
+        ds = 0;
+    }
+    
+    if (ss && ds) {
+        return QF_DIR_INT;
+    } else if (ss) {
+        return QF_DIR_IN;
+    } else if (ds) {
+        return QF_DIR_OUT;
+    } else {
+        return QF_DIR_EXT;
+    }
 }
 
                       

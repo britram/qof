@@ -296,7 +296,7 @@ static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
         *mask = 32; // implicit mask
     }
     
-    rv = inet_pton(AF_INET, addrbuf, addr);
+    rv = ntohl(inet_pton(AF_INET, addrbuf, addr));
     if (rv == 0) {
        return qfYamlError(err, parser, "invalid IPv4 address");
     } else if (rv == -1) {
@@ -332,6 +332,78 @@ static gboolean qfYamlParsePrefixedV6(yaml_parser_t      *parser,
     }
     
     return TRUE;
+}
+
+static gboolean qfYamlParsePrefixedV4Or6(yaml_parser_t      *parser,
+                                         uint32_t           *addr4,
+                                         uint8_t            *addr6,
+                                         uint8_t            *mask,
+                                         GError             **err)
+{
+    char valbuf[VALBUF_SIZE];
+    char addrbuf[ADDRBUF_SIZE];
+    int rv;
+    
+    *addr4 = 0;
+    memset(addr6, 0, 16);
+    
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+    
+    rv = sscanf(valbuf, "%15[0-9.]/%hhu", addrbuf, mask);
+    if (rv < 1) {
+
+        /* v4 scan failed, try v6 */
+        rv = sscanf(valbuf, "%39[0-9a-fA-F:.]/%hhu", addrbuf, mask);
+        if (rv < 1) {
+            return qfYamlError(err, parser, "expected IPv6 address");
+        } else if (rv == 1) {
+            *mask = 128; // implicit mask
+        }
+
+        rv = inet_pton(AF_INET6, addrbuf, addr6);
+        if (rv == 0) {
+            return qfYamlError(err, parser, "invalid IPv6 address");
+        } else if (rv == -1) {
+            return qfYamlError(err, parser, strerror(errno));
+        }
+        
+        return TRUE;
+        
+    } else if (rv == 1) {
+        *mask = 32; // implicit mask
+    }
+    
+    rv = inet_pton(AF_INET, addrbuf, addr4);
+    if (rv == 0) {
+        return qfYamlError(err, parser, "invalid IPv4 address");
+    } else if (rv == -1) {
+        return qfYamlError(err, parser, strerror(errno));
+    }
+    
+    *addr4 = ntohl(*addr4);
+    
+    return TRUE;
+}
+
+static gboolean qfYamlParseMac48(yaml_parser_t      *parser,
+                                 uint8_t            *macaddr,
+                                 GError             **err)
+{
+    char valbuf[VALBUF_SIZE];
+    int rv;
+    
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+    
+    rv = sscanf(valbuf, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+                &macaddr[0], &macaddr[1], &macaddr[2],
+                &macaddr[3], &macaddr[4], &macaddr[5]);
+    if (rv == 6) {
+        return TRUE;
+    } else if (rv == -1) {
+        return qfYamlError(err, parser, strerror(errno));
+    } else {
+        return qfYamlError(err, parser, "expected MAC address");
+    }
 }
 
 static gboolean qfYamlRequireEvent(yaml_parser_t        *parser,
@@ -470,6 +542,77 @@ static gboolean qfYamlInterfaceMap(qfConfig_t       *cfg,
     return TRUE;
 }
 
+static gboolean qfYamlSourceNets(qfConfig_t       *cfg,
+                                   yaml_parser_t    *parser,
+                                   GError           **err)
+{
+    uint32_t    v4addr = 0;
+    uint8_t     v6addr[16];
+    uint8_t     mask;
+    
+    /* consume sequence start for interface-map mapping list */
+    if (!qfYamlRequireEvent(parser, YAML_SEQUENCE_START_EVENT, err)) {
+        return FALSE;
+    }
+    
+    memset(v6addr, 0, sizeof(v6addr));
+    
+    /* consume map entries until we see a sequence end */
+    while (qfYamlParsePrefixedV4Or6(parser, &v4addr, v6addr, &mask, err))
+    {
+        
+        if (v4addr) {
+            qfNetListAddIPv4(&cfg->srcnets, v4addr, mask);
+            v4addr = 0;
+        }
+        
+        if (v6addr[0]) {
+            qfNetListAddIPv6(&cfg->srcnets, v6addr, mask);
+            memset(v6addr, 0, sizeof(v6addr));
+        }
+    }
+    
+    /* check for error on last entry parse */
+    if (*err) return FALSE;
+    
+    /* enable interface map on export */
+    yfWriterUseSourceNets(&cfg->srcnets);
+    
+    /* done */
+    return TRUE;
+}
+
+static gboolean qfYamlSourceMacs(qfConfig_t       *cfg,
+                                 yaml_parser_t    *parser,
+                                 GError           **err)
+{
+    uint8_t     macaddr[6];
+    
+    /* consume sequence start for interface-map mapping list */
+    if (!qfYamlRequireEvent(parser, YAML_SEQUENCE_START_EVENT, err)) {
+        return FALSE;
+    }
+    
+    memset(macaddr, 0, sizeof(macaddr));
+    
+    /* consume mac entries until we see a sequence end */
+    while (qfYamlParseMac48(parser, macaddr, err))
+    {
+        qfMacListAdd(&cfg->srcmacs, macaddr);
+    }
+    
+    /* check for error on last entry parse */
+    if (*err) return FALSE;
+    
+    /* enable MAC map on export */
+    yfWriterUseSourceMacs(&cfg->srcmacs);
+    cfg->enable_mac = TRUE;
+    
+    /* done */
+    return TRUE;
+}
+
+
 
 static gboolean qfYamlDocument(qfConfig_t       *cfg,
                                yaml_parser_t    *parser,
@@ -509,6 +652,22 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
             keyfound = 1;
         }
         
+        /* check internal nets */
+        if (!keyfound &&
+            (strncmp("source-net", keybuf, sizeof(keybuf)) == 0))
+        {
+            if (!qfYamlSourceNets(cfg, parser, err)) return NULL;
+            keyfound = 1;
+        }
+ 
+        /* check source-side MAC */
+        if (!keyfound &&
+            (strncmp("source-mac", keybuf, sizeof(keybuf)) == 0))
+        {
+            if (!qfYamlSourceMacs(cfg, parser, err)) return NULL;
+            keyfound = 1;
+        }
+
         /* nope; check action list */
         for (i = 0; (!keyfound) && cfg_key_actions[i].key; i++) {
             if (strncmp(cfg_key_actions[i].key, keybuf, sizeof(keybuf)) == 0) {
