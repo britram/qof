@@ -18,7 +18,10 @@ def dataframe_from_ipfix(filename, *ienames):
         df = pd.DataFrame.from_records(
             [rec for rec in r.records_as_tuple(ielist)],
             columns = [ie.name for ie in ielist])
-        return df
+        return df    
+
+time_ies = ("flowStartMilliseconds",
+            "flowEndMilliseconds")
 
 count_ies = ("octetDeltaCount", 
              "packetDeltaCount",
