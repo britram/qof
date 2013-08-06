@@ -48,7 +48,7 @@ def fixread(c)
         end
         
         # skip small flows
-        if (h[:initiatorPackets] + h[:responderPackets]) < 66
+        if (h[:transportPacketDeltaCount] + h[:reverseTransportPacketDeltaCount]) < 66
           next
         end
         
@@ -56,9 +56,9 @@ def fixread(c)
           puts [
             h[:flowId],
             h[:packetDeltaCount],
-            h[:initiatorPackets],
+            h[:transportPacketDeltaCount],
             h[:octetDeltaCount],
-            h[:initiatorOctets],
+            h[:transportOctetDeltaCount],
             h[:tcpSequenceCount],
             h[:tcpRetransmitCount],
             h[:tcpOutOfOrderCount],
@@ -73,9 +73,9 @@ def fixread(c)
           puts [ 
             h[:flowId],
             h[:reversePacketDeltaCount],
-            h[:responderPackets],
+            h[:reverseTransportPacketDeltaCount],
             h[:reverseOctetDeltaCount],
-            h[:responderOctets],
+            h[:reverseTransportOctetDeltaCount],
             h[:reverseTcpSequenceCount],
             h[:reverseTcpRetransmitCount],
             h[:reverseTcpOutOfOrderCount],
