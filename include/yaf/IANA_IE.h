@@ -17,8 +17,8 @@
 #define IANA_IE_H_
 
 static fbInfoElement_t yaf_iana_extra_info_elements[] = {
-    FB_IE_INIT("initiatorPackets", 0, 298, 8, FB_IE_F_ENDIAN ),
-    FB_IE_INIT("responderPackets", 0, 299, 8, FB_IE_F_ENDIAN ),
+    FB_IE_INIT("transportOctetDeltaCount", 0, 401, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+    FB_IE_INIT("transportPacketDeltaCount", 0, 402, 8, FB_IE_F_ENDIAN ),
     FB_IE_NULL
 };
 

@@ -80,8 +80,8 @@ address_ies = ("sourceIPv4Address")
 
 count_ies = ("octetDeltaCount", 
              "packetDeltaCount",
-             "initiatorOctets", 
-             "initiatorPackets",
+             "transportOctetDeltaCount", 
+             "transportPacketDeltaCount",
              "tcpSequenceCount",
              "tcpSequenceLossCount")
 
@@ -93,8 +93,8 @@ rtx_ies = ("tcpRetransmitCount",
 
 rev_count_ies = ("reverseOctetDeltaCount", 
                  "reversePacketDeltaCount",
-                 "responderOctets",
-                 "responderPackets",
+                 "reverseTransportOctetDeltaCount",
+                 "reverseTransportPacketDeltaCount",
                  "reverseTcpSequenceCount",
                  "reverseTcpSequenceLossCount")
 
