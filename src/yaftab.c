@@ -810,6 +810,7 @@ static void yfFlowPktTCP(
     qfDynEcn(&fn->f.val.tcp, ipinfo->ecn);
     if (tcpinfo->mss)  fn->f.val.tcp.mss_opt = tcpinfo->mss;
     if (tcpinfo->ws)   fn->f.val.tcp.dynflags |= QF_DYN_WS;
+    if (tcpinfo->sack) fn->f.val.tcp.dynflags |= QF_DYN_SACK;
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {

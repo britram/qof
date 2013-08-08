@@ -282,6 +282,9 @@ void qfDynSeq(qfDyn_t     *qd,
         qd->mss = oct;
     }
     
+    /* note timestamp presence */
+    if (tsval || tsecr) qd->dynflags |= QF_DYN_TS;
+    
     /* track sequence numbers in binmap to detect order/loss */
     if (qfDynHasSeqbits(qd)) {
         seqstat = qfSeqBitsSegment(&(qd->sb), seq, seq + oct);
