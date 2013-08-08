@@ -46,6 +46,10 @@ template:
     - reverseMaximumTTL
     - qofTcpCharacteristics
     - reverseQofTcpCharacteristics
+    - initialTCPFlags 
+    - reverseInitialTCPFlags
+    - unionTCPFlags
+    - reverseUnionTCPFlags
 rtx-span: 1048576
 rtx-scale: 256
 #source-net:

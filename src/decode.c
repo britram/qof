@@ -996,7 +996,7 @@ static const uint8_t *yfDecodeTCP(
                 /* SACK: reject less than minimum */
                 if (to_len < 10 || tcph_len < to_len) goto OPT_ERR;
                 /* we only care about the rightmost edge */
-                tcpinfo->sack = *((uint32_t*)(pkt + to_len - sizeof(uint32_t)));
+                tcpinfo->sack = g_ntohl(*((uint32_t*)(pkt + to_len - sizeof(uint32_t))));
                 break;
         }
         

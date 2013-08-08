@@ -57,12 +57,12 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
  * TCP dynamics structure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define QF_DYN_SEQINIT          0x01000000 /* first sequence number seen */
-#define QF_DYN_ACKINIT          0x02000000 /* first ack seen */
-#define QF_DYN_RTTW_SA          0x10000000 /* rttwalk looking for seq-ack */
-#define QF_DYN_RTTW_AS          0x20000000 /* rttwalk looking for ack-seq */
-#define QF_DYN_RTTW_STATE       0x30000000 /* rttwalk state mask */
-#define QF_DYN_EXPORT_FLAGS     0x00FFFFFF /* feature flags mask */
+#define QF_DYN_SEQINIT          0x10000000 /* first sequence number seen */
+#define QF_DYN_ACKINIT          0x20000000 /* first ack seen */
+#define QF_DYN_RTTW_SA          0x40000000 /* rttwalk looking for seq-ack */
+#define QF_DYN_RTTW_AS          0x80000000 /* rttwalk looking for ack-seq */
+#define QF_DYN_RTTW_STATE       0xC0000000 /* rttwalk state mask */
+#define QF_DYN_EXPORT_FLAGS     0x0FFFFFFF /* feature flags mask */
 #define QF_DYN_ECT0             0x00000001 /* observed an ECT(0) codepoint */
 #define QF_DYN_ECT1             0x00000002 /* observed an ECT(1) codepoint */
 #define QF_DYN_CE               0x00000004 /* observed a CE codepoint */
