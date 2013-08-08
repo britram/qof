@@ -743,6 +743,7 @@ static void yfFlowPktIP( yfFlowTab_t                 *flowtab,
         val->maxttl = ipinfo->ttl;
     }
     
+#if 0
     /* count ECN */
     if (ipinfo->ecn) {
         if (ipinfo->ecn == 0x03) {
@@ -751,6 +752,7 @@ static void yfFlowPktIP( yfFlowTab_t                 *flowtab,
             val->ecn_capable++;
         }        
     }
+#endif
 }
 
 /**
@@ -773,6 +775,7 @@ static void yfFlowPktTCP(
     yfFlowVal_t                 *val,
     yfFlowVal_t                 *rval,
     yfTCPInfo_t                 *tcpinfo,
+    yfIPInfo_t                  *ipinfo,
     size_t                      datalen)
 {
     uint32_t                    lms = (uint32_t)(UINT32_MAX & flowtab->ctime);
@@ -799,12 +802,14 @@ static void yfFlowPktTCP(
     }
     
     if (tcpinfo->flags & YF_TF_ACK) {
-        qfDynAck(&rval->tcp, tcpinfo->ack,
+        qfDynAck(&rval->tcp, tcpinfo->ack, tcpinfo->sack,
                  tcpinfo->tsval, tcpinfo->tsecr, lms);
     }
     
     /* Store information from options */
-    if (tcpinfo->mss) fn->f.val.tcp.mss_opt = tcpinfo->mss;
+    qfDynEcn(&fn->f.val.tcp, ipinfo->ecn);
+    if (tcpinfo->mss)  fn->f.val.tcp.mss_opt = tcpinfo->mss;
+    if (tcpinfo->ws)   fn->f.val.tcp.dynflags |= QF_DYN_WS;
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {
@@ -906,8 +911,7 @@ void yfFlowPBuf(
     
     /* Do TCP stuff */
     if (fn->f.key.proto == YF_PROTO_TCP) {
-        /* Handle TCP flows specially (flags, ISN, sequenced payload) */
-        yfFlowPktTCP(flowtab, fn, val, rval, tcpinfo, datalen);
+        yfFlowPktTCP(flowtab, fn, val, rval, tcpinfo, ipinfo, datalen);
     } 
 
     if (val->pkt == 0) {

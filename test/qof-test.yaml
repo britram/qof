@@ -44,6 +44,8 @@ template:
     - reverseMinimumTTL
     - maximumTTL
     - reverseMaximumTTL
+    - qofTcpCharacteristics
+    - reverseQofTcpCharacteristics
 rtx-span: 1048576
 rtx-scale: 256
 source-net:

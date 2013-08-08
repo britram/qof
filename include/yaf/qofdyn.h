@@ -57,11 +57,18 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
  * TCP dynamics structure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define QF_DYN_SEQINIT      0x00000001 /* first sequence number seen */
-#define QF_DYN_ACKINIT      0x00000002 /* first ack seen */
-#define QF_DYN_RTTW_SA      0x00000010 /* rttwalk looking for seq-ack */
-#define QF_DYN_RTTW_AS      0x00000020 /* rttwalk looking for ack-seq */
-#define QF_DYN_RTTW_STATE   0x00000030 /* rttwalk state mask */
+#define QF_DYN_SEQINIT          0x01000000 /* first sequence number seen */
+#define QF_DYN_ACKINIT          0x02000000 /* first ack seen */
+#define QF_DYN_RTTW_SA          0x10000000 /* rttwalk looking for seq-ack */
+#define QF_DYN_RTTW_AS          0x20000000 /* rttwalk looking for ack-seq */
+#define QF_DYN_RTTW_STATE       0x30000000 /* rttwalk state mask */
+#define QF_DYN_EXPORT_FLAGS     0x00FFFFFF /* feature flags mask */
+#define QF_DYN_ECT0             0x00000001 /* observed an ECT(0) codepoint */
+#define QF_DYN_ECT1             0x00000002 /* observed an ECT(1) codepoint */
+#define QF_DYN_CE               0x00000004 /* observed a CE codepoint */
+#define QF_DYN_TS               0x00000010 /* observed a TS option */
+#define QF_DYN_SACK             0x00000020 /* observed a SACK option */
+#define QF_DYN_WS               0x00000040 /* observed a window scale option */
 
 typedef struct qfDyn_st {
     /** Bitmap for storing seen sequence numbers */
@@ -106,7 +113,7 @@ typedef struct qfDyn_st {
     uint16_t        mss;
     /* Declared (via tcp option) maximum segment size */
     uint16_t        mss_opt;
-    /* Internal flags for controlling qfdyn */
+    /* Dynamics control and feature presence flags */
     uint32_t        dynflags;
 } qfDyn_t;
 
@@ -127,9 +134,19 @@ void qfDynSeq(qfDyn_t     *qd,
 
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
+              uint32_t    sack,
               uint32_t    tsval,
               uint32_t    tsecr,
               uint32_t    ms);
+
+void qfDynEcn(qfDyn_t *qd,
+              uint8_t tosbyte);
+
+void qfDynTcpOpts(qfDyn_t   *qd,
+                  gboolean  ts_present,
+                  gboolean  ws_present,
+                  gboolean  sack_present);
+
 
 void qfDynConfig(gboolean enable,
                  gboolean enable_rtt,

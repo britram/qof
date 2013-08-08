@@ -164,10 +164,12 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpRtxBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
     { "tcpOutOfOrderCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpOutOfOrderCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
+#if 0
     { "ectMarkCount",                       8, YTF_TCP | YTF_FLE },
     { "reverseEctMarkCount",                8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "ceMarkCount",                        8, YTF_TCP | YTF_FLE },
     { "reverseCeMarkCount",                 8, YTF_TCP | YTF_FLE | YTF_BIF },
+#endif
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceLossCount",               4, YTF_TCP | YTF_RLE },
@@ -178,16 +180,20 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpRtxBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpOutOfOrderCount",                    4, YTF_TCP | YTF_RLE },
     { "reverseTcpOutOfOrderCount",             4, YTF_TCP | YTF_RLE | YTF_BIF },
+#if 0
     { "ectMarkCount",                       4, YTF_TCP | YTF_RLE },
     { "reverseEctMarkCount",                4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "ceMarkCount",                        4, YTF_TCP | YTF_RLE },
     { "reverseCeMarkCount",                 4, YTF_TCP | YTF_RLE | YTF_BIF },
+#endif
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
     { "maxTcpFlightSize",                 4, YTF_RTT },
     { "reverseMaxTcpFlightSize",          4, YTF_RTT },
     { "maxTcpReorderSize",                  4, YTF_TCP },
     { "reverseMaxTcpReorderSize",           4, YTF_TCP },
+    { "qofTcpCharacteristics",                  4, YTF_TCP },
+    { "reverseQofTcpCharacteristics",           4, YTF_TCP },
     { "meanTcpRttMilliseconds",             2, YTF_RTT },
     { "reverseMeanTcpRttMilliseconds",      2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
@@ -276,16 +282,20 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpRtxBurstCount;
     uint64_t    tcpOutOfOrderCount;
     uint64_t    reverseTcpOutOfOrderCount;
+#if 0
     uint64_t    ectMarkCount;
     uint64_t    reverseEctMarkCount;
     uint64_t    ceMarkCount;
     uint64_t    reverseCeMarkCount;
+#endif
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
     uint32_t    maxTcpFlightSize;
     uint32_t    reverseMaxTcpFlightSize;
     uint32_t    maxTcpReorderSize;
     uint32_t    reverseMaxTcpReorderSize;
+    uint32_t    qofTcpCharacteristics;
+    uint32_t    reverseQofTcpCharacteristics;
     uint16_t    meanTcpRttMilliseconds;
     uint16_t    reverseMeanTcpRttMilliseconds;
     uint16_t    minTcpRttMilliseconds;
@@ -405,16 +415,20 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpRtxBurstCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpOutOfOrderCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpOutOfOrderCount,1);
+#if 0
     RUN_CHECKS(yfIpfixFlow_t,ectMarkCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseEctMarkCount,1);
     RUN_CHECKS(yfIpfixFlow_t,ceMarkCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseCeMarkCount,1);
+#endif
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);
     RUN_CHECKS(yfIpfixFlow_t,maxTcpReorderSize,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpReorderSize,1);
+    RUN_CHECKS(yfIpfixFlow_t,qofTcpCharacteristics,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseQofTcpCharacteristics,1);
     RUN_CHECKS(yfIpfixFlow_t,meanTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds,1);
     RUN_CHECKS(yfIpfixFlow_t,minTcpRttMilliseconds,1);
@@ -1003,6 +1017,10 @@ gboolean yfWriteFlow(
         rec.reverseTcpOutOfOrderCount = rval->tcp.ooo_ct;
         rec.maxTcpReorderSize = val->tcp.ooo_max;
         rec.reverseMaxTcpReorderSize = rval->tcp.ooo_max;
+        rec.qofTcpCharacteristics =
+            val->tcp.dynflags & QF_DYN_EXPORT_FLAGS;
+        rec.reverseQofTcpCharacteristics =
+            rval->tcp.dynflags & QF_DYN_EXPORT_FLAGS;
         rec.tcpSequenceNumber = val->tcp.isn;
         rec.reverseTcpSequenceNumber = rval->tcp.isn;
         rec.initialTCPFlags = val->iflags;
@@ -1013,10 +1031,12 @@ gboolean yfWriteFlow(
         rec.reverseObservedTcpMss = rval->tcp.mss;
         rec.declaredTcpMss = val->tcp.mss_opt;
         rec.reverseDeclaredTcpMss = rval->tcp.mss_opt;
+#if 0
         rec.ectMarkCount = val->ecn_capable;
         rec.reverseEctMarkCount = rval->ecn_capable;
         rec.ceMarkCount = val->ecn_ce;
         rec.reverseCeMarkCount = rval->ecn_ce;
+#endif
         /* Enable RTT export if we have enough samples */
         if (val->tcp.rtt.n + rval->tcp.rtt.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;

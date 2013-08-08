@@ -148,6 +148,8 @@ typedef struct yfTCPInfo_st {
     uint32_t        tsval;
     /** Timestamp echo */
     uint32_t        tsecr;
+    /** Maximum segment selectively acknowledged */
+    uint32_t        sack;
     /** Receiver window (unscaled) */
     uint16_t        rwin;
     /** Maximum segment size option (SYN only) */

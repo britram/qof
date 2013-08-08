@@ -330,6 +330,7 @@ void qfDynSeq(qfDyn_t     *qd,
 
 void qfDynAck(qfDyn_t     *qd,
               uint32_t    ack,
+              uint32_t    sack,
               uint32_t    tsval,
               uint32_t    tsecr,
               uint32_t    ms)
@@ -350,6 +351,14 @@ void qfDynAck(qfDyn_t     *qd,
     }
 }
 
+void qfDynEcn(qfDyn_t *qd,
+              uint8_t ecnbits)
+{
+    if (ecnbits & 0x01) qd->dynflags |= QF_DYN_ECT0;
+    if (ecnbits & 0x02) qd->dynflags |= QF_DYN_ECT1;
+    if (ecnbits & 0x03) qd->dynflags |= QF_DYN_CE;
+}
+
 void qfDynClose(qfDyn_t *qd) {
     // count loss
     if (qfDynHasSeqbits(qd)) {
@@ -366,6 +375,7 @@ uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
     if (sc & (flags & YF_TF_FIN) && sc) sc -= 1; // remove one for the fin
     return sc;
 }
+
 
 void qfDynDumpStats() {
     /* no more ring overruns, nothing to print */
