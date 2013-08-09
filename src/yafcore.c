@@ -164,12 +164,6 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpRtxBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
     { "tcpOutOfOrderCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpOutOfOrderCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
-#if 0
-    { "ectMarkCount",                       8, YTF_TCP | YTF_FLE },
-    { "reverseEctMarkCount",                8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "ceMarkCount",                        8, YTF_TCP | YTF_FLE },
-    { "reverseCeMarkCount",                 8, YTF_TCP | YTF_FLE | YTF_BIF },
-#endif
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceLossCount",               4, YTF_TCP | YTF_RLE },
@@ -180,20 +174,14 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpRtxBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpOutOfOrderCount",                    4, YTF_TCP | YTF_RLE },
     { "reverseTcpOutOfOrderCount",             4, YTF_TCP | YTF_RLE | YTF_BIF },
-#if 0
-    { "ectMarkCount",                       4, YTF_TCP | YTF_RLE },
-    { "reverseEctMarkCount",                4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "ceMarkCount",                        4, YTF_TCP | YTF_RLE },
-    { "reverseCeMarkCount",                 4, YTF_TCP | YTF_RLE | YTF_BIF },
-#endif
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
-    { "maxTcpFlightSize",                 4, YTF_RTT },
-    { "reverseMaxTcpFlightSize",          4, YTF_RTT },
+    { "maxTcpFlightSize",                   4, YTF_RTT },
+    { "reverseMaxTcpFlightSize",            4, YTF_RTT },
     { "maxTcpReorderSize",                  4, YTF_TCP },
-    { "reverseMaxTcpReorderSize",           4, YTF_TCP },
-    { "qofTcpCharacteristics",                  4, YTF_TCP },
-    { "reverseQofTcpCharacteristics",           4, YTF_TCP },
+    { "reverseMaxTcpReorderSize",           4, YTF_TCP | YTF_BIF},
+    { "qofTcpCharacteristics",              4, YTF_TCP },
+    { "reverseQofTcpCharacteristics",       4, YTF_TCP | YTF_BIF},
     { "meanTcpRttMilliseconds",             2, YTF_RTT },
     { "reverseMeanTcpRttMilliseconds",      2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
@@ -225,10 +213,12 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseInitialTCPFlags",             1, YTF_TCP | YTF_BIF },
     { "unionTCPFlags",                      1, YTF_TCP },
     { "reverseUnionTCPFlags",               1, YTF_TCP | YTF_BIF },
+    { "tcpControlBits",                     1, YTF_TCP },
+    { "reverseTcpControlBits",              1, YTF_TCP | YTF_BIF },
 FB_IESPEC_NULL
 };
 
-#define QOF_EXPORT_SPEC_SZ 74
+#define QOF_EXPORT_SPEC_SZ 80
 static fbInfoElementSpec_t qof_export_spec[QOF_EXPORT_SPEC_SZ];
 static size_t qof_export_spec_count = 0;
 
@@ -282,12 +272,6 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpRtxBurstCount;
     uint64_t    tcpOutOfOrderCount;
     uint64_t    reverseTcpOutOfOrderCount;
-#if 0
-    uint64_t    ectMarkCount;
-    uint64_t    reverseEctMarkCount;
-    uint64_t    ceMarkCount;
-    uint64_t    reverseCeMarkCount;
-#endif
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
     uint32_t    maxTcpFlightSize;
@@ -327,6 +311,8 @@ typedef struct yfIpfixFlow_st {
     uint8_t     reverseInitialTCPFlags;
     uint8_t     unionTCPFlags;
     uint8_t     reverseUnionTCPFlags;
+    uint8_t     tcpControlBits;
+    uint8_t     reverseTcpControlBits;
 } yfIpfixFlow_t;
 
 typedef struct yfIpfixStats_st {
@@ -356,9 +342,13 @@ static qfMacList_t *yaf_source_maclist = NULL;
  * this checks the alignment of the template and corresponding record
  * ideally, all this magic would happen at compile time, but it
  * doesn't currently, (can't really do it in C,) so we do it at
- * run time
+ * run time.
+ *
+ * replaced by qfInternalTemplateCheck, which more directly looks for the error
+ * we care about. scheduled for demolition.
  *
  */
+#if 0
 void yfAlignmentCheck()
 {
     size_t prevOffset = 0;
@@ -415,12 +405,6 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpRtxBurstCount,1);
     RUN_CHECKS(yfIpfixFlow_t,tcpOutOfOrderCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpOutOfOrderCount,1);
-#if 0
-    RUN_CHECKS(yfIpfixFlow_t,ectMarkCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseEctMarkCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,ceMarkCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseCeMarkCount,1);
-#endif
     RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceNumber,1);
     RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
@@ -455,6 +439,8 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseInitialTCPFlags,1);
     RUN_CHECKS(yfIpfixFlow_t,unionTCPFlags,1);
     RUN_CHECKS(yfIpfixFlow_t,reverseUnionTCPFlags,1);
+    RUN_CHECKS(yfIpfixFlow_t,tcpControlBits,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTcpControlBits,1);
 
     prevOffset = 0;
     prevSize = 0;
@@ -480,6 +466,107 @@ void yfAlignmentCheck()
 #undef EG_STRING
 #undef RUN_CHECKS
 
+}
+#endif
+
+/**
+ * qfInternalTemplateCheck
+ *
+ * this checks the alignment of the template and corresponding record
+ * ideally, all this magic would happen at compile time, but it
+ * doesn't currently, (can't really do it in C,) so we do it at
+ * run time.
+ *
+ * Causes QoF to crash if alignment is incorrect
+ *
+ */
+
+
+void qfInternalTemplateCheck() {
+#define EO_STRING(S_,F_) "template offset mismatch in " #S_ " for element " #F_ \
+                         "(tmpl %" SIZE_T_FORMAT " struct %" SIZE_T_FORMAT ")"
+#define CHECK_OFFSET(S_,F_) \
+    if (offsetof(S_,F_) != internal_offsets[k++]) \
+        g_error(EO_STRING(S_,F_), (SIZE_T_CAST)internal_offsets[k-1], \
+                                  (SIZE_T_CAST)offsetof(S_,F_));
+    
+    size_t internal_offsets[QOF_EXPORT_SPEC_SZ];
+    size_t next_offset = 0;
+    int i = 0, j = 0, k = 0;
+    
+    /* build offsets array for main template*/
+    for (i = 0; qof_internal_spec[i].name; ++i) {
+        if (!(qof_internal_spec[i].flags & YTF_RLE)) {
+            internal_offsets[j++] = next_offset;
+            next_offset += qof_internal_spec[i].len_override;
+        }
+    }
+    
+    /* check template offset match in order */
+    CHECK_OFFSET(yfIpfixFlow_t,flowId);
+    CHECK_OFFSET(yfIpfixFlow_t,flowStartMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,flowEndMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,octetCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseOctetCount);
+    CHECK_OFFSET(yfIpfixFlow_t,packetCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reversePacketCount);
+    CHECK_OFFSET(yfIpfixFlow_t,transportOctetDeltaCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTransportOctetDeltaCount);
+    CHECK_OFFSET(yfIpfixFlow_t,transportPacketDeltaCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTransportPacketDeltaCount);
+    CHECK_OFFSET(yfIpfixFlow_t,sourceIPv4Address);
+    CHECK_OFFSET(yfIpfixFlow_t,destinationIPv4Address);
+    CHECK_OFFSET(yfIpfixFlow_t,sourceIPv6Address);
+    CHECK_OFFSET(yfIpfixFlow_t,destinationIPv6Address);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceLossCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceLossCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpRetransmitCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRetransmitCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpRtxBurstCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRtxBurstCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpOutOfOrderCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpOutOfOrderCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceNumber);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceNumber);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpFlightSize);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpFlightSize);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpReorderSize);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpReorderSize);
+    CHECK_OFFSET(yfIpfixFlow_t,qofTcpCharacteristics);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseQofTcpCharacteristics);
+    CHECK_OFFSET(yfIpfixFlow_t,meanTcpRttMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,minTcpRttMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMinTcpRttMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,declaredTcpMss);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseDeclaredTcpMss);
+    CHECK_OFFSET(yfIpfixFlow_t,observedTcpMss);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseObservedTcpMss);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseFlowDeltaMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,sourceTransportPort);
+    CHECK_OFFSET(yfIpfixFlow_t,destinationTransportPort);
+    CHECK_OFFSET(yfIpfixFlow_t,protocolIdentifier);
+    CHECK_OFFSET(yfIpfixFlow_t,flowEndReason);
+    CHECK_OFFSET(yfIpfixFlow_t,ingressInterface);
+    CHECK_OFFSET(yfIpfixFlow_t,egressInterface);
+    CHECK_OFFSET(yfIpfixFlow_t,sourceMacAddress);
+    CHECK_OFFSET(yfIpfixFlow_t,destinationMacAddress);
+    CHECK_OFFSET(yfIpfixFlow_t,vlanId);
+    CHECK_OFFSET(yfIpfixFlow_t,minimumTTL);
+    CHECK_OFFSET(yfIpfixFlow_t,maximumTTL);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMinimumTTL);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaximumTTL);
+    CHECK_OFFSET(yfIpfixFlow_t,initialTCPFlags);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseInitialTCPFlags);
+    CHECK_OFFSET(yfIpfixFlow_t,unionTCPFlags);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseUnionTCPFlags);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpControlBits);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpControlBits);
+
+#undef EO_STRING
+#undef CHECK_OFFSET
 }
 
 void yfWriterExportMappedV6(
@@ -1004,9 +1091,9 @@ gboolean yfWriteFlow(
         qfDynClose(&val->tcp);
         qfDynClose(&rval->tcp);
         rec.tcpSequenceCount = qfDynSequenceCount(&(val->tcp),
-                                val->iflags & val->uflags);
+                                val->iflags | val->uflags);
         rec.reverseTcpSequenceCount = qfDynSequenceCount(&(rval->tcp),
-                                rval->iflags & rval->uflags);
+                                rval->iflags | rval->uflags);
         rec.tcpSequenceLossCount = val->tcp.sb.lostseq_ct;
         rec.reverseTcpSequenceLossCount = rval->tcp.sb.lostseq_ct;
         rec.tcpRetransmitCount = val->tcp.rtx_ct;
@@ -1027,6 +1114,8 @@ gboolean yfWriteFlow(
         rec.reverseInitialTCPFlags = rval->iflags;
         rec.unionTCPFlags = val->uflags;
         rec.reverseUnionTCPFlags = rval->uflags;
+        rec.tcpControlBits = val->iflags | val->uflags;
+        rec.reverseTcpControlBits = rval->iflags | rval->uflags;
         rec.observedTcpMss = val->tcp.mss;
         rec.reverseObservedTcpMss = rval->tcp.mss;
         rec.declaredTcpMss = val->tcp.mss_opt;

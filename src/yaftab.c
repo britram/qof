@@ -781,7 +781,7 @@ static void yfFlowPktTCP(
     uint32_t                    lms = (uint32_t)(UINT32_MAX & flowtab->ctime);
     
     /* handle flags */
-    if (!val->pkt) {
+    if (val->pkt) {
         /* Not the first packet. Union flags. */
         val->uflags |= tcpinfo->flags;
     } else {

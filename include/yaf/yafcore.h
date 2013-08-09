@@ -308,15 +308,15 @@ typedef struct yfFlow_st {
 } yfFlow_t;
 
 /**
- * yfAlignmentCheck
+ * qfInternalTemplateCheck
  *
- * This is a purely internal diagnostic function.  It checks the alignment
- * of the internal data structures that are used with fixbuf and causes
- * the program to abort if there is an alignment issue.
+ * This is a purely internal diagnostic function. It ensures that
+ * the offsets calculated by the internal template align with the internal
+ * export data structure, and terminates if not.
  *
  */
-void yfAlignmentCheck(void);
 
+void qfInternalTemplateCheck(void);
 
 /**
  * Prepare a static flow buffer for use with yaf_flow_read(). Call this before

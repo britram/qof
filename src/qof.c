@@ -368,7 +368,7 @@ int main (
     gboolean        loop_ok = TRUE;
 
     /* check structure alignment */
-    yfAlignmentCheck();
+    qfInternalTemplateCheck();
 
     /* zero out context */
     memset(&qfctx, 0, sizeof(qfContext_t));

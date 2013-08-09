@@ -87,6 +87,38 @@ def derive_nets(df, v4_prefix=16, v6_prefix=64):
     
     return df
 
+def flag_string(flagnum):
+    flags = ((128, 'C'),
+             (64, 'E'),
+             (32, 'U'),
+             (16, 'A'),
+             (8,  'P'),
+             (4,  'R'),
+             (2,  'S'),
+             (1,  'F'))
+    
+    flagstr = ""
+    for flag in flags: 
+        if (flag[0] & flagnum):
+            flagstr += flag[1]
+    return flagstr
+
+def derive_flag_strings(df):
+    """
+    replace TCP flag columns with textual descriptions of TCP flags
+    
+    modifies the dataframe in place and returns it.
+    """
+    
+    cols = ('initialTCPFlags', 'reverseInitialTCPFlags',
+            'unionTCPFlags', 'reverseUnionTCPFlags',
+            'tcpControlBits', 'reverseTcpControlBits')
+    
+    for col in cols:
+        try:
+            df[col] = df[col].map(flag_string)
+        except KeyError:
+            pass
                
 def index_by_key_timeout(df, timeout=timedelta(seconds=15), 
                          keycol="sourceIPv4Address", 
