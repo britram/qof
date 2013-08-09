@@ -33,19 +33,6 @@ AC_CONFIG_HEADERS(airframe/include/airframe/config.h)
 RPM_CONFIG_FLAGS=""
 OPTION_CONFIG_STRING="build configuration: "
 
-dnl ----------------------------------------------------------------------
-dnl Check for (or install) libltdl #AC_LIBTOOL_DLOPEN
-dnl ----------------------------------------------------------------------
-
-AC_LIBTOOL_DLOPEN
-
-m4_include([autoconf/ax_check_ltdl.m4])
-AC_PATH_LIBLTDL
-
-AC_PROG_LIBTOOL
-
-AC_CONFIG_SUBDIRS(libltdl)
-
 dnl -------------------------------------
 dnl set version of plugins
 dnl -------------------------------------
@@ -169,8 +156,7 @@ fi
 AC_SUBST(GLIB_LDADD)
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
-AC_SUBST(LIBLTDL)
-AC_SUBST(LTDLINCL)
+
 
 use_popt=no
 

@@ -44,9 +44,6 @@ clean-local:
 lib_LTLIBRARIES = libqof.la
 bin_PROGRAMS = qof
 
-INCLUDES = $(LTDLINCL)
-LIBS += $(LIBLTDL)
-
 libqof_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c \
                     bitmap.c streamstat.c qofdyn.c qofifmap.c qofmaclist.c
 

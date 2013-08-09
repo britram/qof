@@ -19,7 +19,7 @@ ACLOCAL_AMFLAGS = -I m4
 # Avoid picking up MacOS X resource forks in "make dist"
 am__tar = COPY_EXTENDED_ATTRIBUTES_DISABLE=1 COPYFILE_DISABLE=1 ${AMTAR} cof - "$$tardir"
 
-SUBDIRS = airframe libltdl src include etc
+SUBDIRS = airframe src include etc
 
 include doxygen.am
 

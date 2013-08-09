@@ -119,7 +119,41 @@ def derive_flag_strings(df):
             df[col] = df[col].map(flag_string)
         except KeyError:
             pass
-               
+
+def tcpchar_string(charsnum):
+    chars = ((64, 'Ws'),
+             (32, 'Sa'),
+             (16, 'Ts'),
+             (4,  'Ce'),
+             (2,  'E1'),
+             (1,  'E0'))
+    
+    flagstr = ""
+    for flag in flags: 
+        if (flag[0] & flagnum):
+            flagstr += flag[1]
+    return flagstr
+
+
+def derive_tcpchar_strings(df):
+    """
+    replace TCP characteristic columns with textual descriptions of chars
+    
+    modifies the dataframe in place and returns it.
+    """
+    
+    cols = ('initialTCPFlags', 'reverseInitialTCPFlags',
+            'unionTCPFlags', 'reverseUnionTCPFlags',
+            'tcpControlBits', 'reverseTcpControlBits')
+    
+    for col in cols:
+        try:
+            df[col] = df[col].map(flag_string)
+        except KeyError:
+            pass
+
+
+           
 def index_by_key_timeout(df, timeout=timedelta(seconds=15), 
                          keycol="sourceIPv4Address", 
                          timecol="flowStartMilliseconds"):
