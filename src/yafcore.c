@@ -164,6 +164,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpRtxBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
     { "tcpOutOfOrderCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpOutOfOrderCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "tcpDupAckCount",                     8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "reverseTcpDupAckCount",              8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "tcpSelAckCount",                     8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "reverseTcpSelAckCount",              8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSequenceCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpSequenceCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceLossCount",               4, YTF_TCP | YTF_RLE },
@@ -172,8 +176,12 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRtxBurstCount",                   4, YTF_TCP | YTF_RLE },
     { "reverseTcpRtxBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpOutOfOrderCount",                    4, YTF_TCP | YTF_RLE },
-    { "reverseTcpOutOfOrderCount",             4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpOutOfOrderCount",                 4, YTF_TCP | YTF_RLE },
+    { "reverseTcpOutOfOrderCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpDupAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "reverseTcpDupAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpSelAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "reverseTcpSelAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
     { "maxTcpFlightSize",                   4, YTF_RTT },
@@ -272,6 +280,10 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpRtxBurstCount;
     uint64_t    tcpOutOfOrderCount;
     uint64_t    reverseTcpOutOfOrderCount;
+    uint64_t    tcpDupAckCount;
+    uint64_t    reverseTcpDupAckCount;
+    uint64_t    tcpSelAckCount;
+    uint64_t    reverseTcpSelAckCount;
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
     uint32_t    maxTcpFlightSize;
@@ -337,139 +349,6 @@ static qfNetList_t *yaf_source_netlist = NULL;
 static qfMacList_t *yaf_source_maclist = NULL;
 
 /**
- * yfAlignmentCheck
- *
- * this checks the alignment of the template and corresponding record
- * ideally, all this magic would happen at compile time, but it
- * doesn't currently, (can't really do it in C,) so we do it at
- * run time.
- *
- * replaced by qfInternalTemplateCheck, which more directly looks for the error
- * we care about. scheduled for demolition.
- *
- */
-#if 0
-void yfAlignmentCheck()
-{
-    size_t prevOffset = 0;
-    size_t prevSize = 0;
-
-#define DO_SIZE(S_,F_) (SIZE_T_CAST)sizeof(((S_ *)(0))->F_)
-#define EA_STRING(S_,F_) "alignment error in struct " #S_ " for element "   \
-                         #F_ " offset %#"SIZE_T_FORMATX" size %"            \
-                         SIZE_T_FORMAT" (pad %"SIZE_T_FORMAT")",            \
-                         (SIZE_T_CAST)offsetof(S_,F_), DO_SIZE(S_,F_),      \
-                         (SIZE_T_CAST)(offsetof(S_,F_) % DO_SIZE(S_,F_))
-#define EG_STRING(S_,F_,GS_) "gap error in struct " #S_ " for element " #F_  \
-                         " offset %#"SIZE_T_FORMATX" size %"SIZE_T_FORMAT    \
-                         " gap %lu",                               \
-                         (SIZE_T_CAST)offsetof(S_,F_),                       \
-                         DO_SIZE(S_,F_), GS_
-#define RUN_CHECKS(S_,F_,A_) {                                          \
-        if (((offsetof(S_,F_) % DO_SIZE(S_,F_)) != 0) && A_) {          \
-            g_error(EA_STRING(S_,F_));                                  \
-        }                                                               \
-        if (offsetof(S_,F_) != (prevOffset+prevSize)) {                 \
-            g_error(EG_STRING(S_,F_,offsetof(S_,F_)-(prevOffset+prevSize))); \
-            return;                                                     \
-        }                                                               \
-        prevOffset = offsetof(S_,F_);                                   \
-        prevSize = DO_SIZE(S_,F_);                                      \
-/*        fprintf(stderr, "%17s %40s %#5lx %3d %#5lx\n", #S_, #F_,      \
-                offsetof(S_,F_), DO_SIZE(S_,F_),                        \
-                offsetof(S_,F_)+DO_SIZE(S_,F_));*/                      \
-    }
-
-    RUN_CHECKS(yfIpfixFlow_t,flowId,1);
-    RUN_CHECKS(yfIpfixFlow_t,flowStartMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,flowEndMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,octetCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseOctetCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,packetCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reversePacketCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,transportOctetDeltaCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTransportOctetDeltaCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,transportPacketDeltaCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTransportPacketDeltaCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,0); // arrays don't need alignment
-    RUN_CHECKS(yfIpfixFlow_t,destinationIPv6Address,0); // arrays don't need alignment
-    RUN_CHECKS(yfIpfixFlow_t,tcpSequenceCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,tcpSequenceLossCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceLossCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,tcpRetransmitCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTcpRetransmitCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,tcpRtxBurstCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTcpRtxBurstCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,tcpOutOfOrderCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTcpOutOfOrderCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,tcpSequenceNumber,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTcpSequenceNumber,1);
-    RUN_CHECKS(yfIpfixFlow_t,maxTcpFlightSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpFlightSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,maxTcpReorderSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMaxTcpReorderSize,1);
-    RUN_CHECKS(yfIpfixFlow_t,qofTcpCharacteristics,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseQofTcpCharacteristics,1);
-    RUN_CHECKS(yfIpfixFlow_t,meanTcpRttMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,minTcpRttMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMinTcpRttMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,declaredTcpMss,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseDeclaredTcpMss,1);
-    RUN_CHECKS(yfIpfixFlow_t,observedTcpMss,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseObservedTcpMss,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseFlowDeltaMilliseconds,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceTransportPort,1);
-    RUN_CHECKS(yfIpfixFlow_t,destinationTransportPort,1);
-    RUN_CHECKS(yfIpfixFlow_t,protocolIdentifier,1);
-    RUN_CHECKS(yfIpfixFlow_t,flowEndReason,1);
-    RUN_CHECKS(yfIpfixFlow_t,ingressInterface,1);
-    RUN_CHECKS(yfIpfixFlow_t,egressInterface,1);
-    RUN_CHECKS(yfIpfixFlow_t,sourceMacAddress,0); // 6-byte arrays do not need to be aligned.
-    RUN_CHECKS(yfIpfixFlow_t,destinationMacAddress,0); // 6-byte arrays do not need to be aligned.
-    RUN_CHECKS(yfIpfixFlow_t,vlanId,1);
-    RUN_CHECKS(yfIpfixFlow_t,minimumTTL, 1);
-    RUN_CHECKS(yfIpfixFlow_t,maximumTTL, 1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMinimumTTL, 1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseMaximumTTL, 1);
-    RUN_CHECKS(yfIpfixFlow_t,initialTCPFlags,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseInitialTCPFlags,1);
-    RUN_CHECKS(yfIpfixFlow_t,unionTCPFlags,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseUnionTCPFlags,1);
-    RUN_CHECKS(yfIpfixFlow_t,tcpControlBits,1);
-    RUN_CHECKS(yfIpfixFlow_t,reverseTcpControlBits,1);
-
-    prevOffset = 0;
-    prevSize = 0;
-
-    RUN_CHECKS(yfIpfixStats_t, systemInitTimeMilliseconds,1);
-    RUN_CHECKS(yfIpfixStats_t, exportedFlowTotalCount,1);
-    RUN_CHECKS(yfIpfixStats_t, packetTotalCount, 1);
-    RUN_CHECKS(yfIpfixStats_t, droppedPacketTotalCount,1);
-    RUN_CHECKS(yfIpfixStats_t, ignoredPacketTotalCount, 1);
-    RUN_CHECKS(yfIpfixStats_t, notSentPacketTotalCount, 1);
-    RUN_CHECKS(yfIpfixStats_t, expiredFragmentCount,1);
-    RUN_CHECKS(yfIpfixStats_t, assembledFragmentCount,1);
-    RUN_CHECKS(yfIpfixStats_t, flowTableFlushEvents,1);
-    RUN_CHECKS(yfIpfixStats_t, flowTablePeakCount,1);
-    RUN_CHECKS(yfIpfixStats_t, exporterIPv4Address,1);
-    RUN_CHECKS(yfIpfixStats_t, exportingProcessId, 1);
-
-    prevOffset = 0;
-    prevSize = 0;
-
-#undef DO_SIZE
-#undef EA_STRING
-#undef EG_STRING
-#undef RUN_CHECKS
-
-}
-#endif
-
-/**
  * qfInternalTemplateCheck
  *
  * this checks the alignment of the template and corresponding record
@@ -528,6 +407,10 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRtxBurstCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpOutOfOrderCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpOutOfOrderCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpDupAckCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpDupAckCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpSelAckCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSelAckCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceNumber);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceNumber);
     CHECK_OFFSET(yfIpfixFlow_t,maxTcpFlightSize);
@@ -1102,6 +985,10 @@ gboolean yfWriteFlow(
         rec.reverseTcpRtxBurstCount = rval->tcp.rtx_burst_ct;
         rec.tcpOutOfOrderCount = val->tcp.ooo_ct;
         rec.reverseTcpOutOfOrderCount = rval->tcp.ooo_ct;
+        rec.tcpDupAckCount = val->tcp.dupack_ct;
+        rec.reverseTcpDupAckCount = rval->tcp.dupack_ct;
+        rec.tcpSelAckCount = val->tcp.selack_ct;
+        rec.reverseTcpSelAckCount = rval->tcp.selack_ct;
         rec.maxTcpReorderSize = val->tcp.ooo_max;
         rec.reverseMaxTcpReorderSize = rval->tcp.ooo_max;
         rec.qofTcpCharacteristics =

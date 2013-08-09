@@ -959,6 +959,12 @@ static const uint8_t *yfDecodeTCP(
     /* Skip to start of options */
     tcph_len -= YF_TCP_HLEN;
     pkt += YF_TCP_HLEN;
+
+//    if (tcph_len) {
+//        fprintf(stderr, "tcp options (%u):", tcph_len);
+//    } else {
+//       goto OPT_NONE;
+//    }
     
     /* Parse options while we still have them */
     while (tcpinfo && (tcph_len > 0)) {
@@ -966,8 +972,15 @@ static const uint8_t *yfDecodeTCP(
         to_kind = *(pkt);
         
         /* handle single-byte options */
-        if (to_kind == YF_TOK_EOL) goto OPT_EOL;
-        if (to_kind == YF_TOK_NOP) { to_len = 1; goto OPT_NEXT;}
+        if (to_kind == YF_TOK_EOL) {
+//            fprintf(stderr, " EOL");
+            goto OPT_EOL;
+        }
+        if (to_kind == YF_TOK_NOP) {
+            to_len = 1;
+//            fprintf(stderr, " NOP");
+            goto OPT_NEXT;
+        }
         
         /* get option length */
         if (tcph_len < 2) goto OPT_ERR;
@@ -980,14 +993,17 @@ static const uint8_t *yfDecodeTCP(
         switch (to_kind) {
             case YF_TOK_MSS:
                 if (to_len < 4 || tcph_len < to_len) goto OPT_ERR;
+//                fprintf(stderr, " MSS(%hhu)", to_len);
                 tcpinfo->mss = g_ntohs(*(const uint16_t *)(pkt + 2));
                 break;
             case YF_TOK_WS:
                 if (to_len < 3 && tcph_len < to_len) goto OPT_ERR;
+//                fprintf(stderr, " WS(%hhu)", to_len);
                 tcpinfo->ws = *(pkt + 2);
                 break;
             case YF_TOK_TS:
                 if (to_len < 10 || tcph_len < to_len) goto OPT_ERR;
+//                fprintf(stderr, " TS(%hhu)", to_len);
                 tsopt = (const yfHdrTcpOptTs_t*)(pkt + 2);
                 tcpinfo->tsval = g_ntohl(tsopt->ts_val);
                 tcpinfo->tsecr = g_ntohl(tsopt->ts_ecr);
@@ -995,8 +1011,14 @@ static const uint8_t *yfDecodeTCP(
             case YF_TOK_SACK:
                 /* SACK: reject less than minimum */
                 if (to_len < 10 || tcph_len < to_len) goto OPT_ERR;
+//               fprintf(stderr, " SACK(%hhu)", to_len);
+
                 /* we only care about the rightmost edge */
                 tcpinfo->sack = g_ntohl(*((uint32_t*)(pkt + to_len - sizeof(uint32_t))));
+//                fprintf(stderr, "[%u]", tcpinfo->sack - tcpinfo->ack);
+                break;
+            default:
+//                fprintf(stderr, " %hhu(%hhu)", to_kind, to_len);
                 break;
         }
         
@@ -1007,9 +1029,15 @@ OPT_NEXT:
     }
 OPT_EOL:
     /* Advance beyond any skipped options */
+//    if (tcph_len) {
+//        fprintf(stderr, " SKP(%u)", tcph_len);
+//    }
+//    fprintf(stderr, "\n");
+//OPT_NONE:
     return pkt + tcph_len;
     
 OPT_ERR:
+//    fprintf(stderr, " ERR\n");
     ++ctx->stats.fail_l4hdr;
     return NULL;
 }

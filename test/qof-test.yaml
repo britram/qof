@@ -10,6 +10,7 @@ template:
     - sourceTransportPort
     - destinationTransportPort
     - protocolIdentifier
+    - flowEndReason
     - packetDeltaCount
     - reversePacketDeltaCount
     - octetDeltaCount
@@ -28,18 +29,14 @@ template:
     - reverseTcpRtxBurstCount
     - tcpOutOfOrderCount
     - reverseTcpOutOfOrderCount
+    - tcpDupAckCount
+    - reverseTcpDupAckCount
+    - tcpSelAckCount
+    - reverseTcpSelAckCount
     - meanTcpRttMilliseconds
     - reverseMeanTcpRttMilliseconds
     - minTcpRttMilliseconds
     - reverseMinTcpRttMilliseconds
-    - maxTcpFlightSize
-    - reverseMaxTcpFlightSize
-    - maxTcpReorderSize
-    - reverseMaxTcpReorderSize
-    - declaredTcpMss
-    - reverseDeclaredTcpMss
-    - observedTcpMss
-    - reverseObservedTcpMss
     - minimumTTL
     - reverseMinimumTTL
     - maximumTTL

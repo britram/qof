@@ -146,7 +146,7 @@ unsigned int bimCountSet(uint64_t v) {
 unsigned int    bimHighBitSet(uint64_t v)
 {
     uint64_t m = 0x8000000000000000ULL;
-    uint64_t bit = 64;
+    unsigned int bit = 64;
     
     while (m > v) { m >>= 1; bit--; }
     return bit;

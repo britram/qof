@@ -336,21 +336,30 @@ void qfDynAck(qfDyn_t     *qd,
               uint32_t    sack,
               uint32_t    tsval,
               uint32_t    tsecr,
-              uint32_t    ms)
+              uint32_t    ms,
+              int         pure)
 {
     /* short circuit if turned off */
     if (!qf_dyn_enable) return;
   
-    /* initialize if necessary */
     if (!(qd->dynflags & QF_DYN_ACKINIT)) {
-        qd->dynflags |= QF_DYN_ACKINIT;        
+        /* initialize if necessary */
+        qd->dynflags |= QF_DYN_ACKINIT;
         qd->fan = ack;
     } else if (qfSeqCompare(ack, qd->fan) > 0) {
-        /* advance ack number */
+        /* new ack number, advance */
         qd->fan = ack;
         
         /* Do ack-side RTT calculation */
         if (qf_dyn_enable_rtt) qfDynRttWalkAck(qd, ack, tsval, ms);
+    } else if (pure) {
+        /* pure duplicate acknowledgement */
+        qd->dupack_ct++;
+    }
+    
+    if (sack && qfSeqCompare(sack, ack) > 0) {
+        /* selective acknowledgment */
+        qd->selack_ct++;
     }
 }
 

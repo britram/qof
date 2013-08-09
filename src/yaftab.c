@@ -803,7 +803,8 @@ static void yfFlowPktTCP(
     
     if (tcpinfo->flags & YF_TF_ACK) {
         qfDynAck(&rval->tcp, tcpinfo->ack, tcpinfo->sack,
-                 tcpinfo->tsval, tcpinfo->tsecr, lms);
+                 tcpinfo->tsval, tcpinfo->tsecr, lms,
+                 datalen > 0);
     }
     
     /* Store information from options */

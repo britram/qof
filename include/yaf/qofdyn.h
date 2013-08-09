@@ -109,6 +109,10 @@ typedef struct qfDyn_st {
     uint32_t        ooo_ct;
     /* Maxumum observed reordering (nsn - seq) */
     uint32_t        ooo_max;
+    /* Duplicate acknowledgement count */
+    uint32_t        dupack_ct;
+    /* Selective acklnowledgment count */
+    uint32_t        selack_ct;
     /* Observed maximum segment size */
     uint16_t        mss;
     /* Declared (via tcp option) maximum segment size */
@@ -137,10 +141,11 @@ void qfDynAck(qfDyn_t     *qd,
               uint32_t    sack,
               uint32_t    tsval,
               uint32_t    tsecr,
-              uint32_t    ms);
+              uint32_t    ms,
+              int         pure);
 
 void qfDynEcn(qfDyn_t *qd,
-              uint8_t tosbyte);
+              uint8_t ecnbits);
 
 void qfDynTcpOpts(qfDyn_t   *qd,
                   gboolean  ts_present,

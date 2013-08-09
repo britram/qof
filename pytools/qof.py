@@ -116,7 +116,7 @@ def derive_flag_strings(df):
     
     for col in cols:
         try:
-            df[col] = df[col].map(flag_string)
+            df[col+"String"] = df[col].map(flag_string)
         except KeyError:
             pass
 
@@ -147,13 +147,13 @@ def derive_tcpchar_strings(df):
     
     for col in cols:
         try:
-            df[col] = df[col].map(tcpchar_string)
+            df[col+"String"] = df[col].map(tcpchar_string)
         except KeyError:
             pass
            
-def index_by_key_timeout(df, timeout=timedelta(seconds=15), 
-                         keycol="sourceIPv4Address", 
-                         timecol="flowStartMilliseconds"):
+def key_timeout_groups(df, timeout=timedelta(seconds=15), 
+                           keycol="sourceIPv4Address", 
+                           timecol="flowStartMilliseconds"):
     """
     Implement vector aggregation of flows into groups given a key column,
     a time column, and a timeout. Sorts by the key and time columns, then 
@@ -180,8 +180,9 @@ def index_by_key_timeout(df, timeout=timedelta(seconds=15),
     regroup = (sdf[keycol] != sdf['prevk']) | \
                (sdf[timecol] - sdf['prevt'] > timeout)
     
-    # Now build two new index columns based on this regroup signal
+    # Build group ID and index columns based on the regroup signal
     gids = []
+    gidxs = []
     next_gid = 0
     next_gidx = 0
 
@@ -189,11 +190,14 @@ def index_by_key_timeout(df, timeout=timedelta(seconds=15),
         if z:
             next_gid += 1
             next_gidx = 0
-        gids.append((next_gid, next_gidx))
+        gids.append(next_gid)
+        gidxs.append(next_gidx)
+        
         next_gidx += 1
         
-    # And make them the new index
-    sdf.index = pd.MultiIndex.from_tuples(gids, names=["gid", "gidx"])
+    # And add them to the frame
+    sdf["flowGroupId"] = pd.Series(gids)
+    sdf["flowGroupIndex"] = pd.Series(gidxs)
 
     return sdf
     

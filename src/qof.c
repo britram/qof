@@ -363,8 +363,6 @@ int main (
     int             argc,
     char            *argv[])
 {
-    GError          *err = NULL;
-    int             datalink;
     gboolean        loop_ok = TRUE;
 
     /* check structure alignment */
