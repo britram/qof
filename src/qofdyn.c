@@ -359,7 +359,7 @@ void qfDynEcn(qfDyn_t *qd,
 {
     if (ecnbits & 0x01) qd->dynflags |= QF_DYN_ECT0;
     if (ecnbits & 0x02) qd->dynflags |= QF_DYN_ECT1;
-    if (ecnbits & 0x03) qd->dynflags |= QF_DYN_CE;
+    if ((ecnbits & 0x03) == 0x03) qd->dynflags |= QF_DYN_CE;
 }
 
 void qfDynClose(qfDyn_t *qd) {
