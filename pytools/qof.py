@@ -198,8 +198,16 @@ def key_timeout_groups(df, timeout=timedelta(seconds=15),
     # And add them to the frame
     sdf["flowGroupId"] = pd.Series(gids)
     sdf["flowGroupIndex"] = pd.Series(gidxs)
-
+    
     return sdf
+
+def trim_iqr_outliers(series):
+    iqr = series.quantile(0.75) - series.quantile(0.25)
+    lower = series.quantile(0.25) - 1.5 * iqr
+    upper = series.quantile(0.75) + 1.5 * iqr
+    out = series[series >= lower]
+    out = out[out <= upper]
+    return out
     
 key_ies = ("flowID",
             "sourceIPv4Address",

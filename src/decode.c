@@ -912,6 +912,9 @@ static const uint8_t *yfDecodeTCP(
     const yfHdrTcpOptTs_t   *tsopt;
     ssize_t                 tcph_len;
 
+    /* zero stale TCP info */
+    memset(tcpinfo, 0, sizeof(yfTCPInfo_t));
+    
     /* Verify we have a full TCP header without options */
     if (*caplen < YF_TCP_HLEN) {
         if (fraginfo && fraginfo->frag) {
