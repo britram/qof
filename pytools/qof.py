@@ -21,7 +21,7 @@ def dataframe_from_ipfix(filename, *ienames):
         r = ipfix.reader.from_stream(f)
         df = pd.DataFrame.from_records(
             [rec for rec in r.records_as_tuple(ielist)],
-            columns = [ie.name for ie in ielist])
+            columns = [ie.name for ie in ielist])            
         return df    
 
 def drop_lossy(df):
@@ -36,7 +36,22 @@ def drop_lossy(df):
         return df[lossy == False]
     except KeyError:
         return df
+
+def coerce_timestamps(df, cols=("flowStartMilliseconds", "flowEndMilliseconds")):    
+    """
+    add a floating point duration column
+    to a dataframe including flowStartMilliseconds and flowEndMilliseconds
     
+    modifies the dataframe in place and returns it.
+    """
+    # coerce timestamps to numpy types
+    for col in cols:
+        try:
+            df[col] = df[col].astype("datetime64[us]")
+        except KeyError:
+            pass
+
+    return df
     
 def derive_duration(df):
     """
@@ -150,13 +165,39 @@ def derive_tcpchar_strings(df):
             df[col+"String"] = df[col].map(tcpchar_string)
         except KeyError:
             pass
+
+def calculate_flow_iat(df, timecol="flowStartMilliseconds"):
+    """
+    Determine flow interarrival time across the entire set of flows
+    
+    Returns a sorted, reindexed copy of the dataframe.
+    
+    """
+    
+    sdf = df.sort(timecol)
+    sdf.index = pd.Index(range(len(sdf)))
+    
+    # Add temporary column for time, shift up by one via reindexing
+    prevt = sdf[timecol]
+    prevt.index = pd.Index(range(1,len(prevt)+1))
+    sdf['prevt'] = prevt
+
+    # Calculate IAT by subtraction
+    sdf['flowIAT'] = sdf[timecol] - sdf['prevt']
+    
+    # Delete temporary shifted time column
+    del(sdf['prevt'])
+    
+    return sdf
            
-def key_timeout_groups(df, timeout=timedelta(seconds=15), 
+def key_timeout_groups(df, timeout_s=15, 
                            keycol="sourceIPv4Address", 
                            timecol="flowStartMilliseconds"):
     """
     Implement vector aggregation of flows into groups given a key column,
-    a time column, and a timeout. Sorts by the key and time columns, then 
+    a time column, and a timeout. Sorts by the key and time columns, then adds
+    flow group identifiers and indices for grouping. Also adds a flowGroupIAT
+    column for intra-group IAT.
     
     Returns a sorted, reindexed copy of the dataframe.
     
@@ -178,7 +219,7 @@ def key_timeout_groups(df, timeout=timedelta(seconds=15),
     # Derive a "regroup signal": start a new group any time the key changes
     # or the time column has a difference greater than the timeout
     regroup = (sdf[keycol] != sdf['prevk']) | \
-               (sdf[timecol] - sdf['prevt'] > timeout)
+               (sdf[timecol] - sdf['prevt'] > (timeout_s * 1000000000))
     
     # Build group ID and index columns based on the regroup signal
     gids = []
@@ -199,6 +240,19 @@ def key_timeout_groups(df, timeout=timedelta(seconds=15),
     sdf["flowGroupId"] = pd.Series(gids)
     sdf["flowGroupIndex"] = pd.Series(gidxs)
     
+    # Now derive flow group IAT
+    sdf["flowGroupIAT"] = sdf[timecol] - sdf["prevt"]
+    
+    # Zero IAT for first flow in each group
+    zeroiat = pd.Series(index=sdf[sdf["flowGroupIndex"] == 0].index, 
+                        dtype="timedelta64[ns]", data=0)
+    sdf["flowGroupIAT"].update(zeroiat)
+
+    # Delete temporary columns
+    del(sdf['prevk'])
+    del(sdf['prevt'])
+
+    # All done
     return sdf
 
 def trim_iqr_outliers(series):
