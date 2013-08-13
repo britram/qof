@@ -47,6 +47,12 @@ template:
     - reverseInitialTCPFlags
     - unionTCPFlags
     - reverseUnionTCPFlags
+    - minTcpRwin
+    - reverseMinTcpRwin
+    - maxTcpRwin
+    - reverseMaxTcpRwin
+    - meanTcpRwin
+    - reverseMeanTcpRwin
 rtx-span: 1048576
 rtx-scale: 256
 #source-net:
