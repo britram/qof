@@ -802,16 +802,30 @@ static void yfFlowPktTCP(
     }
     
     if (tcpinfo->flags & YF_TF_ACK) {
-        qfDynAck(&rval->tcp, tcpinfo->ack, tcpinfo->sack,
+        qfDynAck(&rval->tcp, &val->tcp,
+                 tcpinfo->ack, tcpinfo->sack,
                  tcpinfo->tsval, tcpinfo->tsecr, lms,
                  datalen > 0);
     }
     
+    /* Track receiver window dynamics */
+    qfDynRwin(&val->tcp, tcpinfo->rwin);
+    
     /* Store information from options */
     qfDynEcn(&val->tcp, ipinfo->ecn);
-    if (tcpinfo->mss)  val->tcp.mss_opt = tcpinfo->mss;
-    if (tcpinfo->ws)   val->tcp.dynflags |= QF_DYN_WS;
-    if (tcpinfo->sack) val->tcp.dynflags |= QF_DYN_SACK;
+
+    if (tcpinfo->mss) {
+        val->tcp.mss_opt = tcpinfo->mss;
+    }
+    
+    if (tcpinfo->ws) {
+        val->tcp.dynflags |= QF_DYN_WS;
+        val->tcp.rwin_scale = tcpinfo->ws;
+    }
+    
+    if (tcpinfo->sack) {
+        val->tcp.dynflags |= QF_DYN_SACK;
+    }
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {

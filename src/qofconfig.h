@@ -20,6 +20,7 @@ typedef struct qfConfig_st {
     gboolean    enable_dyn;     // qfdyn master switch (seqno tracking)
     gboolean    enable_dyn_rtx; // qfdyn seqno rtx/loss detection
     gboolean    enable_dyn_rtt; // qfdyn RTT/IAT calculation
+    gboolean    enable_dyn_rwin; // qfdyn receiver window calculation
     gboolean    enable_tcpopt;  // require TCP options parsing
     gboolean    enable_iface;   // store interface information
     /* Features enabled by template selection and/or MAC list matching */

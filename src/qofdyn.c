@@ -331,36 +331,46 @@ void qfDynSeq(qfDyn_t     *qd,
     }
 }
 
-void qfDynAck(qfDyn_t     *qd,
-              uint32_t    ack,
-              uint32_t    sack,
-              uint32_t    tsval,
-              uint32_t    tsecr,
-              uint32_t    ms,
-              int         pure)
+void qfDynAck(qfDyn_t     *qdseq,
+                  qfDyn_t     *qdack,
+                  uint32_t    ack,
+                  uint32_t    sack,
+                  uint32_t    tsval,
+                  uint32_t    tsecr,
+                  uint32_t    ms,
+                  int         pure)
 {
     /* short circuit if turned off */
     if (!qf_dyn_enable) return;
   
-    if (!(qd->dynflags & QF_DYN_ACKINIT)) {
+    if (!(qdseq->dynflags & QF_DYN_ACKINIT)) {
         /* initialize if necessary */
-        qd->dynflags |= QF_DYN_ACKINIT;
-        qd->fan = ack;
-    } else if (qfSeqCompare(ack, qd->fan) > 0) {
+        qdseq->dynflags |= QF_DYN_ACKINIT;
+        qdseq->fan = ack;
+    } else if (qfSeqCompare(ack, qdseq->fan) > 0) {
         /* new ack number, advance */
-        qd->fan = ack;
+        qdseq->fan = ack;
         
         /* Do ack-side RTT calculation */
-        if (qf_dyn_enable_rtt) qfDynRttWalkAck(qd, ack, tsval, ms);
+        if (qf_dyn_enable_rtt) qfDynRttWalkAck(qdseq, ack, tsval, ms);
     } else if (pure) {
-        /* pure duplicate acknowledgement */
-        qd->dupack_ct++;
+        /* count pure duplicate acknowledgement */
+        qdack->dupack_ct++;
     }
     
+    /* count selective acknowledgment */
     if (sack && qfSeqCompare(sack, ack) > 0) {
         /* selective acknowledgment */
-        qd->selack_ct++;
+        qdack->selack_ct++;
     }
+    
+    
+}
+
+void qfDynRwin(qfDyn_t      *qd,
+               uint32_t     rwin_unscaled)
+{
+    sstMeanAdd(&qd->rwin, rwin_unscaled << qd->rwin_scale);
 }
 
 void qfDynEcn(qfDyn_t *qd,

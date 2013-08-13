@@ -76,8 +76,16 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"maxTcpFlightSize",        CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
     {"meanTcpRttMilliseconds",  CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
+    {"minTcpRwin",              CFG_OFF(enable_dyn_rwin), QF_CONFIG_BOOL},
+    {"meanTcpRwin",             CFG_OFF(enable_dyn_rwin), QF_CONFIG_BOOL},
+    {"maxTcpRwin",              CFG_OFF(enable_dyn_rwin), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"meanTcpRttMilliseconds",  CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"qofTcpCharacteristics",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"declaredTcpMss",          CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"minTcpRwin",              CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"meanTcpRwin",             CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"maxTcpRwin",              CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
 };
 

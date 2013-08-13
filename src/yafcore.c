@@ -190,6 +190,12 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMaxTcpReorderSize",           4, YTF_TCP | YTF_BIF},
     { "qofTcpCharacteristics",              4, YTF_TCP },
     { "reverseQofTcpCharacteristics",       4, YTF_TCP | YTF_BIF},
+    { "minTcpRwin",                         4, YTF_TCP },
+    { "reverseMinTcpRwin",                  4, YTF_TCP | YTF_BIF},
+    { "meanTcpRwin",                        4, YTF_TCP },
+    { "reverseMeanTcpRwin",                 4, YTF_TCP | YTF_BIF},
+    { "maxTcpRwin",                         4, YTF_TCP },
+    { "reverseMaxTcpRwin",                  4, YTF_TCP | YTF_BIF},
     { "meanTcpRttMilliseconds",             2, YTF_RTT },
     { "reverseMeanTcpRttMilliseconds",      2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
@@ -226,7 +232,7 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
 FB_IESPEC_NULL
 };
 
-#define QOF_EXPORT_SPEC_SZ 80
+#define QOF_EXPORT_SPEC_SZ 86
 static fbInfoElementSpec_t qof_export_spec[QOF_EXPORT_SPEC_SZ];
 static size_t qof_export_spec_count = 0;
 
@@ -292,6 +298,12 @@ typedef struct yfIpfixFlow_st {
     uint32_t    reverseMaxTcpReorderSize;
     uint32_t    qofTcpCharacteristics;
     uint32_t    reverseQofTcpCharacteristics;
+    uint32_t    minTcpRwin;
+    uint32_t    reverseMinTcpRwin;
+    uint32_t    meanTcpRwin;
+    uint32_t    reverseMeanTcpRwin;
+    uint32_t    maxTcpRwin;
+    uint32_t    reverseMaxTcpRwin;
     uint16_t    meanTcpRttMilliseconds;
     uint16_t    reverseMeanTcpRttMilliseconds;
     uint16_t    minTcpRttMilliseconds;
@@ -419,6 +431,12 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpReorderSize);
     CHECK_OFFSET(yfIpfixFlow_t,qofTcpCharacteristics);
     CHECK_OFFSET(yfIpfixFlow_t,reverseQofTcpCharacteristics);
+    CHECK_OFFSET(yfIpfixFlow_t,minTcpRwin);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMinTcpRwin);
+    CHECK_OFFSET(yfIpfixFlow_t,meanTcpRwin);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMeanTcpRwin);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpRwin);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpRwin);
     CHECK_OFFSET(yfIpfixFlow_t,meanTcpRttMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,minTcpRttMilliseconds);
@@ -1007,6 +1025,12 @@ gboolean yfWriteFlow(
         rec.reverseObservedTcpMss = rval->tcp.mss;
         rec.declaredTcpMss = val->tcp.mss_opt;
         rec.reverseDeclaredTcpMss = rval->tcp.mss_opt;
+        rec.minTcpRwin = val->tcp.rwin.min;
+        rec.reverseMinTcpRwin = rval->tcp.rwin.min;
+        rec.meanTcpRwin = (uint32_t)val->tcp.rwin.mean;
+        rec.reverseMeanTcpRwin = (uint32_t)rval->tcp.rwin.mean;
+        rec.maxTcpRwin = val->tcp.rwin.max;
+        rec.reverseMaxTcpRwin = rval->tcp.rwin.max;
 #if 0
         rec.ectMarkCount = val->ecn_capable;
         rec.reverseEctMarkCount = rval->ecn_capable;

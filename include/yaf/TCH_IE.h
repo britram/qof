@@ -35,7 +35,11 @@ static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("tcpRtxBurstCount", TCH_PEN, 1038, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("qofTcpCharacteristics", TCH_PEN, 1039, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("tcpDupAckCount", TCH_PEN, 1040, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
-     FB_IE_INIT("tcpSelAckCount", TCH_PEN, 1041, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE)
+     FB_IE_INIT("tcpSelAckCount", TCH_PEN, 1041, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("minTcpRwin", TCH_PEN, 1042, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("meanTcpRwin", TCH_PEN, 1043, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("maxTcpRwin", TCH_PEN, 1044, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_NULL
 };
 
 #endif

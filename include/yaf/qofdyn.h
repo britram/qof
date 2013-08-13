@@ -81,6 +81,8 @@ typedef struct qfDyn_st {
     uint32_t        cur_iatflight;
     /* Mean/min/max RTT */
     sstMean_t       rtt;
+    /* Receiver window statistics */
+    sstMean_t       rwin;
     /* Next ack/tsecr expected */
     uint32_t        rtt_next_tsack;
     /* Time of tsval or ack ( + rttx = ctime) */
@@ -117,6 +119,8 @@ typedef struct qfDyn_st {
     uint16_t        mss;
     /* Declared (via tcp option) maximum segment size */
     uint16_t        mss_opt;
+    /* Window scale option */
+    uint8_t         rwin_scale;
     /* Dynamics control and feature presence flags */
     uint32_t        dynflags;
 } qfDyn_t;
@@ -136,13 +140,17 @@ void qfDynSeq(qfDyn_t     *qd,
               uint32_t    tsecr,
               uint32_t    ms);
 
-void qfDynAck(qfDyn_t     *qd,
+void qfDynAck(qfDyn_t     *qdseq,
+              qfDyn_t     *qdack,
               uint32_t    ack,
               uint32_t    sack,
               uint32_t    tsval,
               uint32_t    tsecr,
               uint32_t    ms,
               int         pure);
+
+void qfDynRwin(qfDyn_t      *qd,
+               uint32_t     rwin_unscaled);
 
 void qfDynEcn(qfDyn_t *qd,
               uint8_t ecnbits);
