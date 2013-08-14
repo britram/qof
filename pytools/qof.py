@@ -168,7 +168,7 @@ def derive_tcpchar_strings(df):
 
 def calculate_flow_iat(df, timecol="flowStartMilliseconds"):
     """
-    Determine flow interarrival time across the entire set of flows
+    Determine flow interarrival time across the entire set of flows.
     
     Returns a sorted, reindexed copy of the dataframe.
     
@@ -196,8 +196,8 @@ def key_timeout_groups(df, timeout_s=15,
     """
     Implement vector aggregation of flows into groups given a key column,
     a time column, and a timeout. Sorts by the key and time columns, then adds
-    flow group identifiers and indices for grouping. Also adds a flowGroupIAT
-    column for intra-group IAT.
+    flow group identifiers and indices for grouping. Adds an interarrival time
+    column for per-key interarrival times.
     
     Returns a sorted, reindexed copy of the dataframe.
     
@@ -221,6 +221,8 @@ def key_timeout_groups(df, timeout_s=15,
     regroup = (sdf[keycol] != sdf['prevk']) | \
                (sdf[timecol] - sdf['prevt'] > (timeout_s * 1000000000))
     
+    rekey = sdf[keycol] != sdf['prevk']
+    
     # Build group ID and index columns based on the regroup signal
     gids = []
     gidxs = []
@@ -240,17 +242,21 @@ def key_timeout_groups(df, timeout_s=15,
     sdf["flowGroupId"] = pd.Series(gids)
     sdf["flowGroupIndex"] = pd.Series(gidxs)
     
-    # Now derive flow group IAT
-    sdf["flowGroupIAT"] = sdf[timecol] - sdf["prevt"]
-    
-    # Zero IAT for first flow in each group
+    # Now derive key IAT
+    sdf[keycol+"IAT"] = sdf[timecol] - sdf["prevt"]
+    # to stop Stephan's whining...
+    zeroiat = pd.Series(index=rekey[rekey].index, dtype="timedelta64[ns]", data=0)
+    sdf[keycol+"IAT"].update(zeroiat)
+
+    # Copy key IAT to flow group IAT, zero at beginning of group
+    sdf["flowGroupIAT"] = sdf[keycol+"IAT"]
     zeroiat = pd.Series(index=sdf[sdf["flowGroupIndex"] == 0].index, 
                         dtype="timedelta64[ns]", data=0)
     sdf["flowGroupIAT"].update(zeroiat)
 
     # Delete temporary columns
-    del(sdf['prevk'])
-    del(sdf['prevt'])
+    #del(sdf['prevk'])
+    #del(sdf['prevt'])
 
     # All done
     return sdf
@@ -262,43 +268,3 @@ def trim_iqr_outliers(series):
     out = series[series >= lower]
     out = out[out <= upper]
     return out
-    
-key_ies = ("flowID",
-            "sourceIPv4Address",
-            "destinationIPv4Address",
-            "sourceTransportPort",
-            "destinationTransportPort",
-            "protocolIdentifier")
-
-time_ies = ("flowStartMilliseconds",
-            "flowEndMilliseconds")
-
-address_ies = ("sourceIPv4Address")
-
-count_ies = ("octetDeltaCount", 
-             "packetDeltaCount",
-             "transportOctetDeltaCount", 
-             "transportPacketDeltaCount",
-             "tcpSequenceCount",
-             "tcpSequenceLossCount")
-
-rtt_ies = ("meanTcpRttMilliseconds",
-           "minTcpRttMilliseconds")
-
-rtx_ies = ("tcpRetransmitCount", 
-           "tcpRtxBurstCount")
-
-rev_count_ies = ("reverseOctetDeltaCount", 
-                 "reversePacketDeltaCount",
-                 "reverseTransportOctetDeltaCount",
-                 "reverseTransportPacketDeltaCount",
-                 "reverseTcpSequenceCount",
-                 "reverseTcpSequenceLossCount")
-
-rev_rtt_ies = ("reverseMeanTcpRttMilliseconds",
-               "reverseMinTcpRttMilliseconds")
-
-rev_rtx_ies = ("reverseTcpRetransmitCount",
-               "reverseTcpRtxBurstCount")
-
-    
