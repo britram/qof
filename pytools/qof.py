@@ -9,6 +9,23 @@ import collections
 from ipaddress import ip_network
 from datetime import datetime, timedelta
 
+# Flags constants
+TCP_CWR = 0x80
+TCP_ECE = 0x40
+TCP_URG = 0x20
+TCP_ACK = 0x10
+TCP_PSH = 0x08
+TCP_RST = 0x04
+TCP_SYN = 0x02
+TCP_FIN = 0x01
+
+# Flow end reasons
+END_IDLE = 0x01
+END_ACTIVE = 0x02
+END_FIN = 0x03
+END_FORCED = 0x04
+END_RESOURCE = 0x05
+
 def dataframe_from_ipfix(filename, *ienames):
     """ 
     read an IPFIX file into a dataframe, selecting only records
@@ -34,6 +51,21 @@ def drop_lossy(df):
     try:
         lossy = df['tcpSequenceLossCount'] + df['reverseTcpSequenceLossCount'] > 0
         return df[lossy == False]
+    except KeyError:
+        return df
+
+
+def drop_incomplete(df):
+    """
+    Filter out any flow records not representing complete flows.
+    
+    Returns a copy of the dataframe without incomplete flows.
+    """
+    try:
+        with_syn = ((df["initialTCPFlags"] & TCP_SYN) > 0) &\
+                   ((df["reverseInitialTCPFlags"] & TCP_SYN) > 0)
+        with_fin = (df["flowEndReason"] == END_FIN)
+        return df[with_syn & with_fin]
     except KeyError:
         return df
 
