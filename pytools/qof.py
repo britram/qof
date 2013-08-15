@@ -79,7 +79,7 @@ def coerce_timestamps(df, cols=("flowStartMilliseconds", "flowEndMilliseconds"))
     # coerce timestamps to numpy types
     for col in cols:
         try:
-            df[col] = df[col].astype("datetime64[us]")
+            df[col] = df[col].astype("datetime64[ns]")
         except KeyError:
             pass
 
