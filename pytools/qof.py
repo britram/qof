@@ -37,7 +37,7 @@ def dataframe_from_ipfix(filename, *ienames):
     with open(filename, mode="rb") as f:
         r = ipfix.reader.from_stream(f)
         df = pd.DataFrame.from_records(
-            [rec for rec in r.records_as_tuple(ielist)],
+            [rec for rec in r.tuple_iterator(ielist)],
             columns = [ie.name for ie in ielist])            
         return df    
 
