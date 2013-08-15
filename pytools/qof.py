@@ -6,6 +6,8 @@ import ipfix.ie
 import ipfix.reader
 import pandas as pd
 import collections
+import bz2
+
 from ipaddress import ip_network
 from datetime import datetime, timedelta
 
@@ -36,7 +38,12 @@ def dataframe_from_v9(filename, *ienames):
     """
     ielist = ipfix.ie.spec_list(ienames)
     
-    with open(filename, mode="rb") as f:
+    if (filename.ends_with(".bz2")):
+        open_fn = bz2.open
+    else:
+        open_fn = open
+    
+    with open_fn(filename, mode="rb") as f:
         r = ipfix.v9pdu.TimeAdapter(ipfix.v9pdu.from_stream(f))
         cols = [ie.name for ie in ielist]
         if "flowStartSysUpTime" in cols and "flowEndSysUpTime" in cols:
