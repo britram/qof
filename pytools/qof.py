@@ -26,6 +26,29 @@ END_FIN = 0x03
 END_FORCED = 0x04
 END_RESOURCE = 0x05
 
+def dataframe_from_v9(filename, *ienames):
+    """ 
+    read an V9 PDU file into a dataframe, selecting only records
+    containing all the named IEs, and adding columns for timing information
+    
+    not really qof, but used for comparisons with V9 data
+     
+    """
+    ielist = ipfix.ie.spec_list(ienames)
+    
+    with open(filename, mode="rb") as f:
+        r = ipfix.v9pdu.TimeAdapter(ipfix.v9pdu.from_stream(f))
+        cols = [ie.name for ie in ielist]
+        if "flowStartSysUpTime" in cols and "flowEndSysUpTime" in cols:
+            cols.append("flowStartMilliseconds")
+            cols.append("flowEndMilliseconds")
+        
+        df = pd.DataFrame.from_records(
+            [rec for rec in r.tuple_iterator(ielist)],
+            columns = cols)            
+        return df    
+
+
 def dataframe_from_ipfix(filename, *ienames):
     """ 
     read an IPFIX file into a dataframe, selecting only records
