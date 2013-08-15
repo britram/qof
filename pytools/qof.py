@@ -287,16 +287,9 @@ def key_timeout_groups(df, timeout_s=15,
     sdf["flowGroupIAT"].update(zeroiat)
 
     # Delete temporary columns
-    #del(sdf['prevk'])
-    #del(sdf['prevt'])
+    del(sdf['prevk'])
+    del(sdf['prevt'])
 
     # All done
     return sdf
 
-def trim_iqr_outliers(series):
-    iqr = series.quantile(0.75) - series.quantile(0.25)
-    lower = series.quantile(0.25) - 1.5 * iqr
-    upper = series.quantile(0.75) + 1.5 * iqr
-    out = series[series >= lower]
-    out = out[out <= upper]
-    return out
