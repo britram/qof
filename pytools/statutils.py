@@ -1,12 +1,12 @@
-## Taken from http://johnstachurski.net/lectures/more_numpy.html
-## Author: John Stachurski
-
-## (c) John Stachurski, All Rights Reserved
 ## This file is NOT to be distributed with QoF, and not subject to the 
 ## QoF licensing terms.
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+## ECDF Taken from http://johnstachurski.net/lectures/more_numpy.html
+## Author: John Stachurski
+## (c) John Stachurski, All Rights Reserved
 
 class ecdf:
 
@@ -34,3 +34,11 @@ class ecdf:
         f = np.vectorize(self.__call__)
         plt.plot(X, f(X))
         plt.show()
+        
+def trim_iqr_outliers(series):
+    iqr = series.quantile(0.75) - series.quantile(0.25)
+    lower = series.quantile(0.25) - 1.5 * iqr
+    upper = series.quantile(0.75) + 1.5 * iqr
+    out = series[series >= lower]
+    out = out[out <= upper]
+    return out
