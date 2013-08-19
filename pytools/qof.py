@@ -28,8 +28,21 @@ END_FIN = 0x03
 END_FORCED = 0x04
 END_RESOURCE = 0x05
 
+DEFAULT_QOF_IES = [  "flowStartMilliseconds",
+                        "flowEndMilliseconds",
+                        "sourceIPv4Address",
+                        "destinationIPv4Address",
+                        "protocolIdentifier",
+                        "sourceTransportPort",
+                        "destinationTransportPort",
+                        "octetDeltaCount",
+                        "packetDeltaCount",
+                        "reverseOctetDeltaCount",
+                        "reversePacketDeltaCount",
+                        "flowEndReason"
+                         ]
 
-def dataframe_from_ipfix(filename, *ienames):
+def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES):
     """ 
     read an IPFIX file into a dataframe, selecting only records
     containing all the named IEs

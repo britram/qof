@@ -53,7 +53,7 @@ template:
     - reverseMaxTcpRwin
     - meanTcpRwin
     - reverseMeanTcpRwin
-rtx-span: 1048576
-rtx-scale: 256
+rtx-span: 256000
+rtx-scale: 64
 #source-net:
 #    - 130.216.0.0/16
