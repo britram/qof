@@ -2,14 +2,14 @@ template:
     - flowId
     - flowStartMilliseconds
     - flowEndMilliseconds
-    - reverseFlowDeltaMilliseconds
+#- reverseFlowDeltaMilliseconds
 #    - sourceIPv4Address
 #    - destinationIPv4Address
 #    - sourceIPv6Address
 #    - destinationIPv6Address
     - sourceTransportPort
     - destinationTransportPort
-#    - protocolIdentifier
+    - protocolIdentifier
     - packetDeltaCount
     - reversePacketDeltaCount
     - octetDeltaCount
@@ -36,14 +36,14 @@ template:
     - reverseMaxTcpFlightSize
     - maxTcpReorderSize
     - reverseMaxTcpReorderSize
-#    - declaredTcpMss
-#    - reverseDeclaredTcpMss
+    - declaredTcpMss
+    - reverseDeclaredTcpMss
     - observedTcpMss
     - reverseObservedTcpMss
-#    - minimumTTL
-#    - reverseMinimumTTL
-#    - maximumTTL
-#    - reverseMaximumTTL
+    - minimumTTL
+    - reverseMinimumTTL
+    - maximumTTL
+    - reverseMaximumTTL
 rtx-span: 1048576
 rtx-scale: 256
 source-net:
