@@ -292,11 +292,12 @@ typedef struct yfFlow_st {
     uint8_t         sourceMacAddr[ETHERNET_MAC_ADDR_LENGTH];
     /** destination Mac Address */
     uint8_t         destinationMacAddr[ETHERNET_MAC_ADDR_LENGTH];
-    qfRtt_t         rtt;
-   /** Forward value */
+    /** Forward value */
     yfFlowVal_t     val;
     /** Reverse value */
     yfFlowVal_t     rval;
+    /** RTT value */
+    qfRtt_t         rtt;
     /** Flow key */
     yfFlowKey_t     key;
 } yfFlow_t;
