@@ -18,28 +18,27 @@
 #include <yaf/autoinc.h>
 #include <yaf/streamstat.h>
 
+typedef struct qfRttDir_st {
+    /** Next ack/tsecr expected in this direction */
+    uint32_t    tsack;
+    /** Time seq/tsval seen ( + rttx = ctime) in this direction */
+    uint32_t    lms;
+    /** True if waiting for ACK */
+    uint32_t    ackwait : 1;
+    /** True if waiting for ECR */
+    uint32_t    ecrwait : 1;
+    /** Last observation (in milliseconds) */
+    uint32_t    obs_ms  : 30;
+} qfRttDir_t;
+
 /** per-biflow RTT tracking structure */
 typedef struct qfRtt_st {
     /** Mean/min/max RTT (per biflow) */
     sstMean_t       val;
-    struct {
-        /** Next ack/tsecr expected in the forward direction */
-        uint32_t    tsack;
-        /** Time seq/tsval seen ( + rttx = ctime) in the forward direction */
-        uint32_t    lms;
-        /** observed forward RTT (fwd synack / rev valecr) */
-        uint32_t    obs_ms;
-    } fwd;
-    struct {
-        /** Next ack/tsecr expected in the reverse direction */
-        uint32_t    tsack;
-        /** Time seq/tsval seen ( + rttx = ctime) in the reverse direction */
-        uint32_t    lms;
-        /** observed reverse RTT (rev synack / fwd valecr) */
-        uint32_t    obs_ms;
-    } rev;
-    /** control flags */
-    uint32_t        flags;
+    /** Forward observations */
+    qfRttDir_t      fwd;
+    /** Reverse observations */
+    qfRttDir_t      rev;
 } qfRtt_t;
 
 void qfRttSegment(qfRtt_t           *rtt,
@@ -47,6 +46,7 @@ void qfRttSegment(qfRtt_t           *rtt,
                   uint32_t          ack,
                   uint32_t          tsval,
                   uint32_t          tsecr,
+                  uint32_t          ms,
                   uint8_t           tcpflags,
                   unsigned          reverse);
 
