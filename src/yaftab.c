@@ -135,13 +135,9 @@ typedef struct yfFlowIPv4_st {
     uint64_t        etime;
     uint32_t        rdtime;
     uint8_t         reason;
-    uint8_t         pcap_serial;
     uint8_t         sourceMacAddr[6];
     uint8_t         destinationMacAddr[6];
-
-    uint8_t         pcap_file_no;
-    pcap_dumper_t   *pcap;
-    uint8_t         pktdir;
+    qfRtt_t         rtt;
     yfFlowVal_t     val;
     yfFlowVal_t     rval;
     yfFlowKeyIPv4_t key;
@@ -742,17 +738,6 @@ static void yfFlowPktIP( yfFlowTab_t                 *flowtab,
     if (ipinfo->ttl > val->maxttl) {
         val->maxttl = ipinfo->ttl;
     }
-    
-#if 0
-    /* count ECN */
-    if (ipinfo->ecn) {
-        if (ipinfo->ecn == 0x03) {
-            val->ecn_ce++;
-        } else {
-            val->ecn_capable++;
-        }        
-    }
-#endif
 }
 
 /**
@@ -788,7 +773,7 @@ static void yfFlowPktTCP(
         /* First packet. Initial flags. */
         val->iflags = tcpinfo->flags;
     }
-
+    
     /* track tcp dynamics */
     if (tcpinfo->flags & YF_TF_SYN) {
         qfDynSyn(&val->tcp, tcpinfo->seq, lms);
@@ -797,7 +782,8 @@ static void yfFlowPktTCP(
         qfDynTmiFlow(flowtab->ctime - fn->f.stime,
                      fn->f.fid, val == &fn->f.rval);
 #endif
-        qfDynSeq(&val->tcp, tcpinfo->seq, (uint32_t)datalen,
+        qfDynSeq(&val->tcp, &fn->f.rtt,
+                 tcpinfo->seq, (uint32_t)datalen,
                  tcpinfo->tsval, tcpinfo->tsecr, lms);
     }
     
@@ -807,6 +793,11 @@ static void yfFlowPktTCP(
                  tcpinfo->tsval, tcpinfo->tsecr, lms,
                  datalen > 0);
     }
+    
+    /* Track round trip time */
+    qfRttSegment(&fn->f.rtt, tcpinfo->seq, tcpinfo->ack,
+                 tcpinfo->tsval, tcpinfo->tsecr, lms,
+                 tcpinfo->flags, (val == &fn->f.rval));
     
     /* Track receiver window dynamics */
     qfDynRwin(&val->tcp, tcpinfo->rwin);

@@ -111,6 +111,7 @@
 
 #include <yaf/ring.h>
 #include <yaf/qofdyn.h>
+#include <yaf/qofrtt.h>
 
 /**
  * This is the CERT Private Enterprise Number (PEN) assigned by
@@ -252,10 +253,6 @@ typedef struct yfFlowVal_st {
     uint64_t    pkt;
     /** Non-empty packet count */
     uint64_t    apppkt;
-    /** ECT mark counter */
-    uint64_t    ecn_capable;
-    /** CE mark counter */
-    uint64_t    ecn_ce;
     /** TCP dynamics */
     qfDyn_t     tcp;
     /** minimum ttl */
@@ -291,14 +288,11 @@ typedef struct yfFlow_st {
     int32_t         rdtime;
     /** Flow termination reason (YAF_END_ macros, per IPFIX standard) */
     uint8_t         reason;
-    /** Keep track of number of pcap files for this flow */
-    uint8_t         pcap_serial;
     /** src Mac Address */
     uint8_t         sourceMacAddr[ETHERNET_MAC_ADDR_LENGTH];
     /** destination Mac Address */
     uint8_t         destinationMacAddr[ETHERNET_MAC_ADDR_LENGTH];
-    /** non empty packet directions, 1, or 0 **/
-    uint8_t         pktdir;
+    qfRtt_t         rtt;
    /** Forward value */
     yfFlowVal_t     val;
     /** Reverse value */

@@ -18,6 +18,7 @@
 #include <yaf/autoinc.h>
 #include <yaf/bitmap.h>
 #include <yaf/streamstat.h>
+#include <yaf/qofrtt.h>
 
 /**
  * Compare sequence numbers A and B, accounting for 2e31 wraparound.
@@ -79,18 +80,8 @@ typedef struct qfDyn_st {
     sstLinSmooth_t  iatflight;
     /* Current IAT flight size */
     uint32_t        cur_iatflight;
-    /* Mean/min/max RTT */
-    sstMean_t       rtt;
     /* Receiver window statistics */
     sstMean_t       rwin;
-    /* Next ack/tsecr expected */
-    uint32_t        rtt_next_tsack;
-    /* Time of tsval or ack ( + rttx = ctime) */
-    uint32_t        rtt_next_lms;
-    /* observed forward RTT (rtt measured) */
-    uint32_t        rttm;
-    /* observed reverse RTT (rtt correction term) */
-    uint32_t        rttc;
     /* Initial sequence number */
     uint32_t        isn;
     /* Next sequence number expected */
@@ -134,6 +125,7 @@ void qfDynSyn(qfDyn_t     *qd,
               uint32_t    ms);
 
 void qfDynSeq(qfDyn_t     *qd,
+              qfRtt_t     *rtt,
               uint32_t    seq,
               uint32_t    oct,
               uint32_t    tsval,
