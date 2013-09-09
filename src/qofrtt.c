@@ -83,9 +83,11 @@ void qfRttSegment(qfRtt_t           *rtt,
             
     } else if (fdir->ecrwait && qfWrapCompare(tsecr, fdir->tsack) >= 0) {
         /* got a TSECR we were waiting for */
-        fdir->obs_ms = ms - fdir->lms;
-        qfRttSample(rtt);
-        sstMeanAdd(&rtt->val, fdir->obs_ms + rdir->obs_ms);
+        if ((ms - fdir->lms) > fdir->obs_ms) {
+            /* Minimize measured RTT on TSECR samples */
+            fdir->obs_ms = ms - fdir->lms;
+            qfRttSample(rtt);
+        }
         fdir->ecrwait = 0;
         qfRttSetAckWait(rdir, seq, ms);
     } else if (!rdir->ackwait && !rdir->ecrwait) {
