@@ -34,9 +34,7 @@ template:
     - tcpSelAckCount
     - reverseTcpSelAckCount
     - meanTcpRttMilliseconds
-    - reverseMeanTcpRttMilliseconds
     - minTcpRttMilliseconds
-    - reverseMinTcpRttMilliseconds
     - minimumTTL
     - reverseMinimumTTL
     - maximumTTL

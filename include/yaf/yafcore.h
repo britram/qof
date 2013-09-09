@@ -111,6 +111,7 @@
 
 #include <yaf/ring.h>
 #include <yaf/qofdyn.h>
+#include <yaf/qofrtt.h>
 
 /**
  * This is the CERT Private Enterprise Number (PEN) assigned by
@@ -252,10 +253,6 @@ typedef struct yfFlowVal_st {
     uint64_t    pkt;
     /** Non-empty packet count */
     uint64_t    apppkt;
-    /** ECT mark counter */
-    uint64_t    ecn_capable;
-    /** CE mark counter */
-    uint64_t    ecn_ce;
     /** TCP dynamics */
     qfDyn_t     tcp;
     /** minimum ttl */
@@ -299,6 +296,8 @@ typedef struct yfFlow_st {
     yfFlowVal_t     val;
     /** Reverse value */
     yfFlowVal_t     rval;
+    /** RTT value */
+    qfRtt_t         rtt;
     /** Flow key */
     yfFlowKey_t     key;
 } yfFlow_t;

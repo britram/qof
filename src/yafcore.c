@@ -197,9 +197,7 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "maxTcpRwin",                         4, YTF_TCP },
     { "reverseMaxTcpRwin",                  4, YTF_TCP | YTF_BIF},
     { "meanTcpRttMilliseconds",             2, YTF_RTT },
-    { "reverseMeanTcpRttMilliseconds",      2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
-    { "reverseMinTcpRttMilliseconds",       2, YTF_RTT },
     { "declaredTcpMss",                     2, YTF_TCP },
     { "reverseDeclaredTcpMss",              2, YTF_TCP | YTF_BIF },
     { "observedTcpMss",                     2, YTF_TCP },
@@ -305,9 +303,7 @@ typedef struct yfIpfixFlow_st {
     uint32_t    maxTcpRwin;
     uint32_t    reverseMaxTcpRwin;
     uint16_t    meanTcpRttMilliseconds;
-    uint16_t    reverseMeanTcpRttMilliseconds;
     uint16_t    minTcpRttMilliseconds;
-    uint16_t    reverseMinTcpRttMilliseconds;
     uint16_t    declaredTcpMss;
     uint16_t    reverseDeclaredTcpMss;
     uint16_t    observedTcpMss;
@@ -438,9 +434,7 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,maxTcpRwin);
     CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpRwin);
     CHECK_OFFSET(yfIpfixFlow_t,meanTcpRttMilliseconds);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseMeanTcpRttMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,minTcpRttMilliseconds);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseMinTcpRttMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,declaredTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,reverseDeclaredTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,observedTcpMss);
@@ -1031,21 +1025,13 @@ gboolean yfWriteFlow(
         rec.reverseMeanTcpRwin = (uint32_t)rval->tcp.rwin.mean;
         rec.maxTcpRwin = val->tcp.rwin.max;
         rec.reverseMaxTcpRwin = rval->tcp.rwin.max;
-#if 0
-        rec.ectMarkCount = val->ecn_capable;
-        rec.reverseEctMarkCount = rval->ecn_capable;
-        rec.ceMarkCount = val->ecn_ce;
-        rec.reverseCeMarkCount = rval->ecn_ce;
-#endif
         /* Enable RTT export if we have enough samples */
-        if (val->tcp.rtt.n + rval->tcp.rtt.n >= QOF_MIN_RTT_COUNT) {
+        if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
             rec.maxTcpFlightSize = val->tcp.iatflight.max;
             rec.reverseMaxTcpFlightSize = rval->tcp.iatflight.max;
-            rec.meanTcpRttMilliseconds = (uint32_t)val->tcp.rtt.mean;
-            rec.reverseMeanTcpRttMilliseconds = (uint32_t)rval->tcp.rtt.mean;
-            rec.minTcpRttMilliseconds = val->tcp.rtt.min;
-            rec.reverseMinTcpRttMilliseconds = rval->tcp.rtt.min;
+            rec.meanTcpRttMilliseconds = flow->rtt.val.mean;
+            rec.minTcpRttMilliseconds = flow->rtt.val.min;
         }
     }
     

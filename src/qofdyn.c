@@ -103,6 +103,7 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb)
 }
 
 static void qfDynRexmit(qfDyn_t     *qd,
+                        qfRtt_t     *rtt,
                         uint32_t    seq,
                         uint32_t    ms)
 {
@@ -110,9 +111,9 @@ static void qfDynRexmit(qfDyn_t     *qd,
     qd->rtx_ct++;
     
     /* require three RTT samples to assume we can calucate burst */
-    if ((qd->rtt.n < 3) ||
+    if ((rtt->val.n < 3) ||
         !qd->rtx_burst_lms ||
-        (ms < (qd->rtx_burst_lms + qd->rtt.mean)))
+        (ms < (qd->rtx_burst_lms + rtt->val.mean)))
     {
         qd->rtx_burst_lms = ms;
         qd->rtx_burst_ct++;
@@ -141,73 +142,6 @@ static int qfDynBreakFlight(qfDyn_t    *qd,
     return 0;
 }
 
-static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
-                                uint32_t    seq,
-                                uint32_t    oct,
-                                uint32_t    tsecr,
-                                uint32_t    ms)
-{
-    unsigned nrttc;
-    
-    /* short-circuit if we're looking for an ack */
-    if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_SA) return FALSE;
-
-    /* try rttc measurement if we're looking for a seq */
-    if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_AS) {
-        if (tsecr && (qfSeqCompare(tsecr, qd->rtt_next_tsack) >= 0)) {
-                /* found via TS, update and minimize rttc. */
-                nrttc = ms - qd->rtt_next_lms;
-                if (!qd->rttc || nrttc < qd->rttc) {
-                    qd->rttc = nrttc;
-                }
-//                if (qd->rttc && qd->rttm) {
-//                    sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
-//                }
-        } else if (!qd->rtt_next_tsack) {
-            /* no timestamps for this flow. RTTC remains 0, go to SA state. */
-            qd->rttc = 0;
-//          if (qd->rttm) {
-//              sstMeanAdd(&qd->rtt, qd->rttm);
-//          }
-        } else {
-            /* not found. skip state switch. */
-            return FALSE;
-        }
-    }
-    
-    /* updated rttc or in initial state; take seq and look for ack. */
-    qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_AS) | QF_DYN_RTTW_SA;
-    qd->rtt_next_lms = ms;
-    qd->rtt_next_tsack = seq + oct;
-    
-    return TRUE;
-}
-
-static gboolean qfDynRttWalkAck  (qfDyn_t     *qd,
-                                  uint32_t    ack,
-                                  uint32_t    tsval,
-                                  uint32_t    ms)
-{
-    /* short-circuit if we're not looking for an ack */
-    if ((qd->dynflags & QF_DYN_RTTW_STATE) != QF_DYN_RTTW_SA) return FALSE;
-
-    /* try rttm measurement */
-    if (qfSeqCompare(ack, qd->rtt_next_tsack) >= 0) {
-        /* yep, got the ack we're looking for */
-        qd->rttm = ms - qd->rtt_next_lms;
-        if (qd->rttm) {
-            sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
-        }
-        
-        /* set next expected tsecr */
-        qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_SA) | QF_DYN_RTTW_AS;
-        qd->rtt_next_lms = ms;
-        qd->rtt_next_tsack = tsval;
-        return TRUE;
-    }
-
-    return FALSE;
-}
 
 void qfDynConfig(gboolean enable,
                  gboolean enable_rtt,
@@ -255,6 +189,7 @@ void qfDynSyn(qfDyn_t     *qd,
 }
 
 void qfDynSeq(qfDyn_t     *qd,
+              qfRtt_t     *rtt,
               uint32_t    seq,
               uint32_t    oct,
               uint32_t    tsval,
@@ -289,7 +224,7 @@ void qfDynSeq(qfDyn_t     *qd,
     if (qfDynHasSeqbits(qd)) {
         seqstat = qfSeqBitsSegment(&(qd->sb), seq, seq + oct);
         if (seqstat == QF_SEQ_REXMIT) {
-            qfDynRexmit(qd, seq, ms);
+            qfDynRexmit(qd, rtt, seq, ms);
         } else if (seqstat == QF_SEQ_REORDER) {
             qfDynReorder(qd, seq, ms);
         }
@@ -310,9 +245,6 @@ void qfDynSeq(qfDyn_t     *qd,
             if (seqstat == QF_SEQ_INORDER) qfDynBreakFlight(qd, iat);
             /* count octets in this flight */
             qd->cur_iatflight += oct;
-
-            /* Do seq-side RTT calculation */
-            qfDynRttWalkSeq(qd, seq, oct, tsecr, ms);
         }
         
         /* output situation after processing of segment to TMI if necessary */
@@ -350,9 +282,6 @@ void qfDynAck(qfDyn_t     *qdseq,
     } else if (qfSeqCompare(ack, qdseq->fan) > 0) {
         /* new ack number, advance */
         qdseq->fan = ack;
-        
-        /* Do ack-side RTT calculation */
-        if (qf_dyn_enable_rtt) qfDynRttWalkAck(qdseq, ack, tsval, ms);
     } else if (pure) {
         /* count pure duplicate acknowledgement */
         qdack->dupack_ct++;
@@ -399,6 +328,79 @@ uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
 }
 
 
+
 void qfDynDumpStats() {
     /* no more ring overruns, nothing to print */
 }
+
+// FIXME graveyard -- old seq/ack walk code
+
+#if 0
+static gboolean qfDynRttWalkSeq(qfDyn_t     *qd,
+                                uint32_t    seq,
+                                uint32_t    oct,
+                                uint32_t    tsecr,
+                                uint32_t    ms)
+{
+    unsigned nrttc;
+    
+    /* short-circuit if we're looking for an ack */
+    if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_SA) return FALSE;
+    
+    /* try rttc measurement if we're looking for a seq */
+    if ((qd->dynflags & QF_DYN_RTTW_STATE) == QF_DYN_RTTW_AS) {
+        if (tsecr && (qfSeqCompare(tsecr, qd->rtt_next_tsack) >= 0)) {
+            /* found via TS, update and minimize rttc. */
+            nrttc = ms - qd->rtt_next_lms;
+            if (!qd->rttc || nrttc < qd->rttc) {
+                qd->rttc = nrttc;
+            }
+            //                if (qd->rttc && qd->rttm) {
+            //                    sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+            //                }
+        } else if (!qd->rtt_next_tsack) {
+            /* no timestamps for this flow. RTTC remains 0, go to SA state. */
+            qd->rttc = 0;
+            //          if (qd->rttm) {
+            //              sstMeanAdd(&qd->rtt, qd->rttm);
+            //          }
+        } else {
+            /* not found. skip state switch. */
+            return FALSE;
+        }
+    }
+    
+    /* updated rttc or in initial state; take seq and look for ack. */
+    qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_AS) | QF_DYN_RTTW_SA;
+    qd->rtt_next_lms = ms;
+    qd->rtt_next_tsack = seq + oct;
+    
+    return TRUE;
+}
+
+static gboolean qfDynRttWalkAck  (qfDyn_t     *qd,
+                                  uint32_t    ack,
+                                  uint32_t    tsval,
+                                  uint32_t    ms)
+{
+    /* short-circuit if we're not looking for an ack */
+    if ((qd->dynflags & QF_DYN_RTTW_STATE) != QF_DYN_RTTW_SA) return FALSE;
+    
+    /* try rttm measurement */
+    if (qfSeqCompare(ack, qd->rtt_next_tsack) >= 0) {
+        /* yep, got the ack we're looking for */
+        qd->rttm = ms - qd->rtt_next_lms;
+        if (qd->rttm) {
+            sstMeanAdd(&qd->rtt, qd->rttc + qd->rttm);
+        }
+        
+        /* set next expected tsecr */
+        qd->dynflags = (qd->dynflags & ~QF_DYN_RTTW_SA) | QF_DYN_RTTW_AS;
+        qd->rtt_next_lms = ms;
+        qd->rtt_next_tsack = tsval;
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+#endif

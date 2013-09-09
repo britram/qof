@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D3282A631709703600B2ABA4 /* bitmap.c in Sources */ = {isa = PBXBuildFile; fileRef = D3282A601708CF2100B2ABA4 /* bitmap.c */; };
+		D33B675217DCF4B000E44B6B /* qofrtt.c in Sources */ = {isa = PBXBuildFile; fileRef = D33B675117DCF4B000E44B6B /* qofrtt.c */; };
 		D377339E171E0B40004FF28F /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
 		D377339F171E0B55004FF28F /* tracepull.c in Sources */ = {isa = PBXBuildFile; fileRef = D3773390171DF9E4004FF28F /* tracepull.c */; };
 		D38872B716946DDF00E66A70 /* qofifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922211672388F00514165 /* qofifmap.c */; };
@@ -78,6 +79,7 @@
 		D31013E416A94BA80068059F /* test_ifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_ifmap.c; sourceTree = "<group>"; };
 		D3282A601708CF2100B2ABA4 /* bitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitmap.c; sourceTree = "<group>"; };
 		D3282A621708CF8400B2ABA4 /* bitmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = "<group>"; };
+		D33B675117DCF4B000E44B6B /* qofrtt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrtt.c; sourceTree = "<group>"; };
 		D364E00E176A281E0011F16A /* qof.iespec */ = {isa = PBXFileReference; lastKnownFileType = text; path = qof.iespec; sourceTree = "<group>"; };
 		D364E00F176A281E0011F16A /* qof.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = qof.py; sourceTree = "<group>"; };
 		D36F0F4916E3B6B80028EDAE /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
@@ -199,6 +201,7 @@
 		F5192302167238A400514165 /* mio_stdio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mio_stdio.c; sourceTree = "<group>"; };
 		F5192303167238A400514165 /* privconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = privconfig.c; sourceTree = "<group>"; };
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5AF252C17D4BC12003F3DB3 /* qofrtt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrtt.h; sourceTree = "<group>"; };
 		F5CAEEA0176720A5003AD16F /* qofmaclist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofmaclist.c; sourceTree = "<group>"; };
 		F5CAEEA2176732AD003AD16F /* qofmaclist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofmaclist.h; sourceTree = "<group>"; };
 		F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
@@ -285,6 +288,7 @@
 				F5CAEEA0176720A5003AD16F /* qofmaclist.c */,
 				D3EADBDE170BE2B5006FE1FE /* qofltrace.h */,
 				D3EADBDC170BDDEC006FE1FE /* qofltrace.c */,
+				D33B675117DCF4B000E44B6B /* qofrtt.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -319,6 +323,7 @@
 				F519225F1672389900514165 /* yaftab.h */,
 				D39F27671703AB4C00089492 /* qofdyn.h */,
 				D39F5C34170D03150094B103 /* IANA_IE.h */,
+				F5AF252C17D4BC12003F3DB3 /* qofrtt.h */,
 			);
 			path = yaf;
 			sourceTree = "<group>";
@@ -569,6 +574,7 @@
 				D3C4E99917263E9200DB5423 /* qofconfig.c in Sources */,
 				D3C4E99B17263FA100DB5423 /* qof.c in Sources */,
 				F5CAEEA1176720A5003AD16F /* qofmaclist.c in Sources */,
+				D33B675217DCF4B000E44B6B /* qofrtt.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
