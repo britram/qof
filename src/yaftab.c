@@ -131,17 +131,14 @@ typedef struct yfFlowKeyIPv4_st {
 } yfFlowKeyIPv4_t;
 
 typedef struct yfFlowIPv4_st {
+    uint64_t        fid;
     uint64_t        stime;
     uint64_t        etime;
-    uint32_t        rdtime;
+    int32_t        rdtime;
     uint8_t         reason;
-    uint8_t         pcap_serial;
     uint8_t         sourceMacAddr[6];
     uint8_t         destinationMacAddr[6];
 
-    uint8_t         pcap_file_no;
-    pcap_dumper_t   *pcap;
-    uint8_t         pktdir;
     yfFlowVal_t     val;
     yfFlowVal_t     rval;
     yfFlowKeyIPv4_t key;

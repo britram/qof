@@ -291,15 +291,11 @@ typedef struct yfFlow_st {
     int32_t         rdtime;
     /** Flow termination reason (YAF_END_ macros, per IPFIX standard) */
     uint8_t         reason;
-    /** Keep track of number of pcap files for this flow */
-    uint8_t         pcap_serial;
     /** src Mac Address */
     uint8_t         sourceMacAddr[ETHERNET_MAC_ADDR_LENGTH];
     /** destination Mac Address */
     uint8_t         destinationMacAddr[ETHERNET_MAC_ADDR_LENGTH];
-    /** non empty packet directions, 1, or 0 **/
-    uint8_t         pktdir;
-   /** Forward value */
+    /** Forward value */
     yfFlowVal_t     val;
     /** Reverse value */
     yfFlowVal_t     rval;
