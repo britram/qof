@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D324127C17E1FA7B0088C9E4 /* qofseq.c in Sources */ = {isa = PBXBuildFile; fileRef = D324127B17E1FA7B0088C9E4 /* qofseq.c */; };
 		D3282A631709703600B2ABA4 /* bitmap.c in Sources */ = {isa = PBXBuildFile; fileRef = D3282A601708CF2100B2ABA4 /* bitmap.c */; };
 		D33B675217DCF4B000E44B6B /* qofrtt.c in Sources */ = {isa = PBXBuildFile; fileRef = D33B675117DCF4B000E44B6B /* qofrtt.c */; };
 		D377339E171E0B40004FF28F /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
@@ -77,6 +78,8 @@
 /* Begin PBXFileReference section */
 		D306F28D1701436C00FE09F5 /* qofdyn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofdyn.c; sourceTree = "<group>"; };
 		D31013E416A94BA80068059F /* test_ifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_ifmap.c; sourceTree = "<group>"; };
+		D324127A17E1F0A50088C9E4 /* qofseq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofseq.h; sourceTree = "<group>"; };
+		D324127B17E1FA7B0088C9E4 /* qofseq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofseq.c; sourceTree = "<group>"; };
 		D3282A601708CF2100B2ABA4 /* bitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitmap.c; sourceTree = "<group>"; };
 		D3282A621708CF8400B2ABA4 /* bitmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = "<group>"; };
 		D33B675117DCF4B000E44B6B /* qofrtt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrtt.c; sourceTree = "<group>"; };
@@ -289,6 +292,7 @@
 				D3EADBDE170BE2B5006FE1FE /* qofltrace.h */,
 				D3EADBDC170BDDEC006FE1FE /* qofltrace.c */,
 				D33B675117DCF4B000E44B6B /* qofrtt.c */,
+				D324127B17E1FA7B0088C9E4 /* qofseq.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -324,6 +328,7 @@
 				D39F27671703AB4C00089492 /* qofdyn.h */,
 				D39F5C34170D03150094B103 /* IANA_IE.h */,
 				F5AF252C17D4BC12003F3DB3 /* qofrtt.h */,
+				D324127A17E1F0A50088C9E4 /* qofseq.h */,
 			);
 			path = yaf;
 			sourceTree = "<group>";
@@ -575,6 +580,7 @@
 				D3C4E99B17263FA100DB5423 /* qof.c in Sources */,
 				F5CAEEA1176720A5003AD16F /* qofmaclist.c in Sources */,
 				D33B675217DCF4B000E44B6B /* qofrtt.c in Sources */,
+				D324127C17E1FA7B0088C9E4 /* qofseq.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
