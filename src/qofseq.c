@@ -109,6 +109,13 @@ static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b) {
 }
 
 static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
+    
+    /* FIXME this implementation does not handle ranges which 
+             cross gap boundaries (i.e., single segments which are partially
+             retransmissions and partially not). These seem to
+             exist in the wild, so will have to redesign the gap search and
+             fill algorithm to handle this. */
+    
     int i = 0;
 #if QF_DEBUG_SEQ
     char *filltype = NULL;
