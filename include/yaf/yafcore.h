@@ -112,6 +112,7 @@
 #include <yaf/ring.h>
 #include <yaf/qofdyn.h>
 #include <yaf/qofrtt.h>
+#include <yaf/qofseq.h>
 
 /**
  * This is the CERT Private Enterprise Number (PEN) assigned by
@@ -255,6 +256,8 @@ typedef struct yfFlowVal_st {
     uint64_t    apppkt;
     /** TCP dynamics */
     qfDyn_t     tcp;
+    /** TCP sequence number tracking */
+    qfSeq_t     tcpseq;
     /** minimum ttl */
     uint8_t     minttl;
     /** maximum ttl */

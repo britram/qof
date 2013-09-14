@@ -985,30 +985,30 @@ gboolean yfWriteFlow(
         wtid |= YTF_TCP;
         qfDynClose(&val->tcp);
         qfDynClose(&rval->tcp);
-        rec.tcpSequenceCount = qfDynSequenceCount(&(val->tcp),
-                                val->iflags | val->uflags);
-        rec.reverseTcpSequenceCount = qfDynSequenceCount(&(rval->tcp),
-                                rval->iflags | rval->uflags);
-        rec.tcpSequenceLossCount = val->tcp.sb.lostseq_ct;
-        rec.reverseTcpSequenceLossCount = rval->tcp.sb.lostseq_ct;
-        rec.tcpRetransmitCount = val->tcp.rtx_ct;
-        rec.reverseTcpRetransmitCount = rval->tcp.rtx_ct;
-        rec.tcpRtxBurstCount = val->tcp.rtx_burst_ct;
-        rec.reverseTcpRtxBurstCount = rval->tcp.rtx_burst_ct;
-        rec.tcpOutOfOrderCount = val->tcp.ooo_ct;
-        rec.reverseTcpOutOfOrderCount = rval->tcp.ooo_ct;
+        rec.tcpSequenceCount = qfSeqCount(&val->tcpseq,
+                               val->iflags | val->uflags);
+        rec.reverseTcpSequenceCount = qfSeqCount(&rval->tcpseq,
+                                      rval->iflags | rval->uflags);
+        rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcpseq);
+        rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcpseq);
+        rec.tcpRetransmitCount = val->tcpseq.rtx;
+        rec.reverseTcpRetransmitCount = rval->tcpseq.rtx;
+        rec.tcpRtxBurstCount = 0; /* FIXME make burst loss work again */
+        rec.reverseTcpRtxBurstCount = 0; /* FIXME make burst loss work again */
+        rec.tcpOutOfOrderCount = val->tcpseq.ooo;
+        rec.reverseTcpOutOfOrderCount = rval->tcpseq.ooo;
+        rec.maxTcpReorderSize = val->tcpseq.maxooo; /* FIXME rename this */
+        rec.reverseMaxTcpReorderSize = rval->tcpseq.maxooo; /* FIXME rename this */
         rec.tcpDupAckCount = val->tcp.dupack_ct;
         rec.reverseTcpDupAckCount = rval->tcp.dupack_ct;
         rec.tcpSelAckCount = val->tcp.selack_ct;
         rec.reverseTcpSelAckCount = rval->tcp.selack_ct;
-        rec.maxTcpReorderSize = val->tcp.ooo_max;
-        rec.reverseMaxTcpReorderSize = rval->tcp.ooo_max;
         rec.qofTcpCharacteristics =
             val->tcp.dynflags & QF_DYN_EXPORT_FLAGS;
         rec.reverseQofTcpCharacteristics =
             rval->tcp.dynflags & QF_DYN_EXPORT_FLAGS;
-        rec.tcpSequenceNumber = val->tcp.isn;
-        rec.reverseTcpSequenceNumber = rval->tcp.isn;
+        rec.tcpSequenceNumber = val->tcpseq.isn;
+        rec.reverseTcpSequenceNumber = rval->tcpseq.isn;
         rec.initialTCPFlags = val->iflags;
         rec.reverseInitialTCPFlags = rval->iflags;
         rec.unionTCPFlags = val->uflags;

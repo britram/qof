@@ -15,6 +15,10 @@
 #define _YAF_SOURCE_
 
 #include <yaf/qofseq.h>
+#include <yaf/decode.h>
+
+/** Constant - 2^32 (for sequence number calculations) */
+static const uint64_t k2e32 = 0x100000000ULL;
 
 static int qfWrapCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
@@ -87,21 +91,34 @@ void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
 }
 
 void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
-    qs->nsn = seq + oct;
-    
-    if (qfWrapCompare(seq, qs->nsn) > 0) {
-        qfSeqGapPush(qs, seq, seq + oct);
-    } else if (seq != qs->nsn) {
+    if (qfWrapCompare(seq, qs->nsn) < 0) {
+        if (seq - qs->nsn > qs->maxooo) {
+            qs->maxooo = seq - qs->nsn;
+        }
         qfSeqGapFill(qs, seq, seq + oct);
+    } else {
+        if (seq != qs->nsn) qfSeqGapPush(qs, seq, seq + oct);
+        if (seq + oct < qs->nsn) qs->wrapct++;
+        qs->nsn = seq + oct;
     }
 }
 
-void qfSeqFinalize(qfSeq_t *qs) {
+uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags) {
+    uint64_t sc = qs->nsn - qs->isn + (k2e32 * qs->wrapct);
+    if (sc) sc -= 1; // remove one: nsn is the next expected sequence number
+    if (sc & (flags & YF_TF_SYN) && sc) sc -= 1; // remove one for the syn
+    if (sc & (flags & YF_TF_FIN) && sc) sc -= 1; // remove one for the fin
+    return sc;
+}
+
+uint32_t qfSeqCountLost(qfSeq_t *qs) {
     int i;
     
     /* iterate over gaps adding to loss */
     for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i); i++) {
         qs->seqlost += qs->gaps[i].b - qs->gaps[i].a;
     }
+    
+    return qs->seqlost;
 
 }

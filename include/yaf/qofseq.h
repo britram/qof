@@ -38,6 +38,8 @@ typedef struct qfSeq_st {
     uint32_t        rtx;
     /** Segment reorder count */
     uint32_t        ooo;
+    /** Maximum sequence inversion */
+    uint32_t        maxooo;
     /** Sequence loss count */
     uint32_t        seqlost;
 #if QF_DEBUG_SEQ
@@ -51,4 +53,6 @@ void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct);
 
 void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct);
 
-void qfSeqFinalize(qfSeq_t *qs);
+uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags);
+
+uint32_t qfSeqCountLost(qfSeq_t *qs);
