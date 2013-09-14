@@ -32,6 +32,41 @@ static int qfWrapCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
 }
 
+
+#if QF_DEBUG_SEQ
+static int qfSeqGapValidate(qfSeq_t *qs) {
+    int i;
+    char *err = NULL;
+
+    for (i = 0; i < QF_SEQGAP_CT; i++) {
+        if (qs->gaps[i].a && qs->gaps[i].b) {
+            if (qfWrapCompare(qs->gaps[i].b, qs->gaps[i].a) < 1) {
+                err = "invalid";
+                break;
+            }
+            if (i && (qfWrapCompare(qs->gaps[i].a, qs->gaps[i-1].b) >= 0)) {
+                err = "inverted";
+                break;
+            }
+        }
+    }
+    
+    if (!err) return 1;
+    
+    fprintf(stderr, "%8s gap at %u in %p (nsn %u):\n", err, i, qs, qs->nsn);
+    
+    for (i = 0; i < QF_SEQGAP_CT; i++) {
+        fprintf(stderr, "\t%u-%u (%u) (%d)\n",
+                qs->gaps[i].a,  qs->gaps[i].b,
+                qs->gaps[i].b - qs->gaps[i].a,
+                i ? (qs->gaps[i-1].b - qs->gaps[i].a) : 0);
+    }
+
+    return 0;
+}
+#endif
+
+
 static int qfSeqGapEmpty(qfSeqGap_t *sg, unsigned i) {
     return !(sg[i].a || sg[i].b);
 }
@@ -64,13 +99,11 @@ static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b) {
 #endif // QF_DEBUG_SEQ
     }
     
-#if 0
-    int i;
-    fprintf(stderr,"push %p ", qs);
-    for (i = 0; i < QF_SEQGAP_CT; i++) {
-        fprintf(stderr, "%u-%u ", qs->gaps[i].a,  qs->gaps[i].b);
+#if QF_DEBUG_SEQ
+    if (!qfSeqGapValidate(qs)) {
+        fprintf(stderr, "  after push\n");
     }
-    fprintf(stderr, "\n");
+
 #endif // QF_DEBUG_SEQ
 
 }
@@ -80,16 +113,20 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
 #if QF_DEBUG_SEQ
     char *filltype = NULL;
 #endif
+
     /* seek to gap to fill */
     while (i < QF_SEQGAP_CT &&
            !qfSeqGapEmpty(qs->gaps, i) &&
-            qfWrapCompare(a, qs->gaps[i].a) < 0 &&
-            qfWrapCompare(b, qs->gaps[i].a) < 0) i++;
+            qfWrapCompare(a, qs->gaps[i].a) <= 0 &&
+            qfWrapCompare(b, qs->gaps[i].a) <= 0)
+    {
+        i++;
+    }
 
     if (i == QF_SEQGAP_CT || qfSeqGapEmpty(qs->gaps, i)) {
         /* no gap to fill, signal rtx */
         qs->rtx++;
-    } else if (a > qs->gaps[i].b) {
+    } else if (a >= qs->gaps[i].b) {
         /* fill after gap, signal rtx */
         qs->rtx++;
     } else if ((a == qs->gaps[i].a) && (b == qs->gaps[i].b)) {
@@ -110,8 +147,8 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     } else {
         /* split gap in middle */
         qs->seqlost += qfSeqGapUnshift(qs->gaps, i);
-        qs->gaps[i].b = a;
-        qs->gaps[i+1].a = b;
+        qs->gaps[i].a = b;
+        qs->gaps[i+1].b = a;
 #if QF_DEBUG_SEQ
         qs->gapcount++;
         if (qs->gapcount > qs->highwater) qs->highwater = qs->gapcount;
@@ -121,10 +158,8 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
 
 #if QF_DEBUG_SEQ
     if (filltype) {
-        fprintf(stderr,"fill %5s at %u %p \n", filltype, i, qs);
-        for (i = 0; i < QF_SEQGAP_CT; i++) {
-            fprintf(stderr, "\t%u-%u (%u)\n", qs->gaps[i].a,  qs->gaps[i].b,
-                                              qs->gaps[i].b - qs->gaps[i].a);
+        if (!qfSeqGapValidate(qs)) {
+            fprintf(stderr, "  after %5s fill at %u (%u-%u)\n", filltype, i, a, b);
         }
     }
 #endif // QF_DEBUG_SEQ
@@ -144,6 +179,9 @@ void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
 }
 
 void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
+    /* Empty segments don't count */
+    if (!oct) return;
+    
     if (qfWrapCompare(seq, qs->nsn) < 0) {
         if (seq - qs->nsn > qs->maxooo) {
             qs->maxooo = seq - qs->nsn;
