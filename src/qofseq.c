@@ -54,15 +54,15 @@ static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b) {
 }
 
 static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
-    int i;
+    int i = 0;
     
     /* seek to gap to fill */
-    for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i) &&
-                qfWrapCompare(a, qs->gaps[i].a) < 0 &&
-                qfWrapCompare(b, qs->gaps[i].a) < 0;
-         i++);
+    while (i < QF_SEQGAP_CT &&
+           !qfSeqGapEmpty(qs->gaps, i) &&
+            qfWrapCompare(a, qs->gaps[i].a) < 0 &&
+            qfWrapCompare(b, qs->gaps[i].a) < 0) i++;
 
-    if (qfSeqGapEmpty(qs->gaps, i)) {
+    if (i == QF_SEQGAP_CT || qfSeqGapEmpty(qs->gaps, i)) {
         /* no gap to fill, signal rtx */
         qs->rtx++;
     } else if (a > qs->gaps[i].b) {
