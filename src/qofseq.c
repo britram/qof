@@ -13,6 +13,7 @@
  */
 
 #define _YAF_SOURCE_
+
 #include <yaf/qofseq.h>
 
 static int qfWrapCompare(uint32_t a, uint32_t b) {
@@ -30,30 +31,31 @@ static void qfSeqGapShift(qfSeqGap_t *sg, unsigned i) {
 }
 
 static uint32_t qfSeqGapUnshift(qfSeqGap_t *sg, unsigned i) {
-    uint32_t lost = sg[QF_SEQGAP_CT - 1].b - sg[QF_SEQGAP_CT - 1].a
-    memmove(&sg[i+1], &sg[i], sizeof(qfSeqGap_t)*(QF_SEQGAP_CT - i - 1))
+    uint32_t lost = sg[QF_SEQGAP_CT - 1].b - sg[QF_SEQGAP_CT - 1].a;
+    memmove(&sg[i+1], &sg[i], (QF_SEQGAP_CT - i - 1) * sizeof(qfSeqGap_t));
     return lost;
 }
 
 static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b) {
-    /* FIXME signal segment out of order */
+    qs->ooo++;
     if (!qfSeqGapEmpty(qs->gaps, 0) && (a == qs->gaps[0].a)) {
         /* Special case: extend an existing gap */
         qs->gaps[0].b = b;
     } else {
         /* Push a new gap cell */
-        qs->oloss += qfSeqGapUnshift(qs->gaps, 0);
+        qs->seqlost += qfSeqGapUnshift(qs->gaps, 0);
         qs->gaps[0].a = a;
         qs->gaps[0].b = b;
     }
 }
 
 static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
-    uint32_t oloss;
+    int i;
     
     /* seek to gap to fill */
-    for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(&qs->gaps, i) &&
-                a < qs->gaps[i].a && b < qs->gaps[i].a;
+    for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i) &&
+                qfWrapCompare(a, qs->gaps[i].a) < 0 &&
+                qfWrapCompare(b, qs->gaps[i].a) < 0;
          i++);
 
     if (qfSeqGapEmpty(qs->gaps, i)) {
@@ -64,18 +66,42 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
         qs->rtx++;
     } else if ((a == qs->gaps[i].a) && (b == qs->gaps[i].b)) {
         /* fill gap completely */
-        qfSeqGapShift(&qs->gaps, i);
-    } else if ((a == qs->gaps[i].a)) {
+        qfSeqGapShift(qs->gaps, i);
+    } else if (a == qs->gaps[i].a) {
         /* fill gap on low side */
         qs->gaps[i].a = b;
-    } else if ((b == qs->gaps[i].b)) {
+    } else if (b == qs->gaps[i].b) {
         /* fill gap on high side */
         qs->gaps[i].b = a;
     } else {
         /* split gap in middle */
-        qs->oloss += qsSeqGapUnshift(qs->gaps, i);
-        qs->gaps[i].a = b
-        qs->gaps[i+1].b = a
+        qs->seqlost += qfSeqGapUnshift(qs->gaps, i);
+        qs->gaps[i].a = b;
+        qs->gaps[i+1].b = a;
     }    
 }
 
+void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
+    qs->isn = seq;
+    qs->nsn = seq + oct;
+}
+
+void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
+    qs->nsn = seq + oct;
+    
+    if (qfWrapCompare(seq, qs->nsn) > 0) {
+        qfSeqGapPush(qs, seq, seq + oct);
+    } else if (seq != qs->nsn) {
+        qfSeqGapFill(qs, seq, seq + oct);
+    }
+}
+
+void qfSeqFinalize(qfSeq_t *qs) {
+    int i;
+    
+    /* iterate over gaps adding to loss */
+    for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i); i++) {
+        qs->seqlost += qs->gaps[i].b - qs->gaps[i].a;
+    }
+
+}
