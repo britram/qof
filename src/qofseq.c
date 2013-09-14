@@ -17,6 +17,14 @@
 #include <yaf/qofseq.h>
 #include <yaf/decode.h>
 
+#if QF_DEBUG_SEQ
+#include <yaf/streamstat.h>
+
+static sstMean_t gapstack_high;
+static int debug_init = 0;
+
+#endif
+
 /** Constant - 2^32 (for sequence number calculations) */
 static const uint64_t k2e32 = 0x100000000ULL;
 
@@ -50,6 +58,10 @@ static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b) {
         qs->seqlost += qfSeqGapUnshift(qs->gaps, 0);
         qs->gaps[0].a = a;
         qs->gaps[0].b = b;
+#if QF_DEBUG_SEQ
+        qs->gapcount++;
+        if (qs->gapcount > qs->highwater) qs->highwater = qs->gapcount;
+#endif // QF_DEBUG_SEQ
     }
 }
 
@@ -71,6 +83,9 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     } else if ((a == qs->gaps[i].a) && (b == qs->gaps[i].b)) {
         /* fill gap completely */
         qfSeqGapShift(qs->gaps, i);
+#if QF_DEBUG_SEQ
+        qs->gapcount--;
+#endif // QF_DEBUG_SEQ
     } else if (a == qs->gaps[i].a) {
         /* fill gap on low side */
         qs->gaps[i].a = b;
@@ -82,10 +97,21 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
         qs->seqlost += qfSeqGapUnshift(qs->gaps, i);
         qs->gaps[i].a = b;
         qs->gaps[i+1].b = a;
-    }    
+#if QF_DEBUG_SEQ
+        qs->gapcount++;
+        if (qs->gapcount > qs->highwater) qs->highwater = qs->gapcount;
+#endif // QF_DEBUG_SEQ
+    }
 }
 
 void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
+#if QF_DEBUG_SEQ
+    if (!debug_init) {
+        fprintf(stderr, "initializing gapstack debug structures\n");
+        sstMeanInit(&gapstack_high);
+        debug_init++;
+    }
+#endif // QF_DEBUG_SEQ
     qs->isn = seq;
     qs->nsn = seq + oct;
 }
@@ -117,8 +143,19 @@ uint32_t qfSeqCountLost(qfSeq_t *qs) {
     /* iterate over gaps adding to loss */
     for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i); i++) {
         qs->seqlost += qs->gaps[i].b - qs->gaps[i].a;
+        qs->gaps[i].a = 0;
+        qs->gaps[i].b = 0;
     }
-    
+
+#if QF_DEBUG_SEQ
+    fprintf(stderr, "gapstack count %u hw %u\n", qs->gapcount, qs->highwater);
+    if (!qs->seqlost) {
+        sstMeanAdd(&gapstack_high, qs->highwater);
+        fprintf(stderr, "    mean hw %4.2f, max hw %3u\n", gapstack_high.mean, gapstack_high.max);
+    }
+
+#endif // QF_DEBUG_SEQ
+
     return qs->seqlost;
 
 }
