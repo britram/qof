@@ -109,6 +109,95 @@ static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b) {
 }
 
 static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
+    int i;
+    uint32_t rtxoct = 0, nexa, nexb;
+    
+    /* Segment might fill multiple gaps, so iterate until
+       we've distributed the entire segment */
+    while (qfWrapCompare(b, a) > 0) {
+        
+        /* Seek to the next applicable gap */
+        i = 0;
+        while ((i < QF_SEQGAP_CT) && !qfSeqGapEmpty(qs->gaps, i) &&
+               (qfWrapCompare(a, qs->gaps[i].a)) < 0) i++;
+        
+        /* If we're off the edge of the gapstack, this is pure RTX. */
+        if (i == QF_SEQGAP_CT || qfSeqGapEmpty(qs->gaps, i)) {
+            rtxoct += b - a;
+            break;
+        }
+        
+        /* Everything greater than the gap is also RTX */
+        if (qfWrapCompare(b, qs->gaps[i].b) > 0) {
+            if (qfWrapCompare(a, qs->gaps[i].b) > 0) {
+                rtxoct += b - a;
+                break;
+            } else {
+                rtxoct += b - qs->gaps[i].b;
+                b = qs->gaps[i].b;
+            }
+        }
+
+        /* Check to see if we'll need to iterate */
+        if (qfWrapCompare(a, qs->gaps[i].a) < 0) {
+            /* A is less than the gap; prepare to iterate */
+            nexa = a;
+            nexb = b;
+            a = qs->gaps[i].a;
+        } else {
+            /* A and B within or on gap edge; terminate iteration */
+            nexa = 0;
+            nexb = 0;
+        }
+
+        /* Check for overlap within gap and fill */
+        if (a == qs->gaps[i].a && b == qs->gaps[i].b) {
+            /* Completely fill gap */
+            qfSeqGapShift(qs->gaps, i);
+#if QF_DEBUG_SEQ
+            qs->gapcount--;
+#endif // QF_DEBUG_SEQ
+            break;
+        } else if (b == qs->gaps[i].b) {
+            /* A within gap, B on edge; fill on the high side */
+            qs->gaps[i].b = a;
+            break;
+        } else if (a == qs->gaps[i].a) {
+            /* B within gap, A on edge; fill on the high side */
+            qs->gaps[i].b = a;
+            break;
+        } else {
+            /* A and B within gap; split the gap */
+            qs->seqlost += qfSeqGapUnshift(qs->gaps, i);
+            qs->gaps[i].a = b;
+            qs->gaps[i+1].b = a;
+#if QF_DEBUG_SEQ
+            qs->gapcount++;
+            if (qs->gapcount > QF_SEQGAP_CT) qs->gapcount = QF_SEQGAP_CT;
+            if (qs->gapcount > qs->highwater) qs->highwater = qs->gapcount;
+#endif // QF_DEBUG_SEQ            
+        }
+        
+        /* Modify segment and iterate */
+        a = nexa;
+        b = nexb;
+    }
+    
+    /* Done. Count retransmit */
+    if (rtxoct) {
+        qs->rtx++;
+    }
+    
+#if QF_DEBUG_SEQ
+    if (!qfSeqGapValidate(qs)) {
+        fprintf(stderr, "  after fill at %u (%u-%u)\n", i, a, b);
+    }
+#endif // QF_DEBUG_SEQ
+
+}
+
+#if 0
+static void qfSeqGapFillOldAndBusted(qfSeq_t *qs, uint32_t a, uint32_t b) {
     
     /* FIXME this implementation does not handle ranges which 
              cross gap boundaries (i.e., single segments which are partially
@@ -172,6 +261,7 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
 #endif // QF_DEBUG_SEQ
 
 }
+#endif
 
 void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
 #if QF_DEBUG_SEQ
