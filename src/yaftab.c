@@ -180,7 +180,11 @@ struct yfFlowTab_st {
     gboolean        uniflow;
     gboolean        silkmode;
     gboolean        macmode;
-    gboolean        force_read_all;
+    gboolean        tcp_seq_enable;
+    gboolean        tcp_ack_enable;
+    gboolean        tcp_rtt_enable;
+    gboolean        tcp_rwin_enable;
+    gboolean        tcp_iat_enable;
     /* Statistics */
     struct yfFlowTabStats_st stats;
 };
@@ -572,7 +576,11 @@ yfFlowTab_t *yfFlowTabAlloc(
     gboolean        uniflow,
     gboolean        silkmode,
     gboolean        macmode,
-    gboolean        force_read_all)
+    gboolean        tcp_seq_enable,
+    gboolean        tcp_ack_enable,
+    gboolean        tcp_rtt_enable,
+    gboolean        tcp_rwin_enable,
+    gboolean        tcp_iat_enable)
 {
     yfFlowTab_t     *flowtab = NULL;
 
@@ -591,7 +599,11 @@ yfFlowTab_t *yfFlowTabAlloc(
     flowtab->uniflow = uniflow;
     flowtab->silkmode = silkmode;
     flowtab->macmode = macmode;
-    flowtab->force_read_all = force_read_all;
+    flowtab->tcp_seq_enable = tcp_seq_enable;
+    flowtab->tcp_ack_enable = tcp_ack_enable;
+    flowtab->tcp_rtt_enable = tcp_rtt_enable;
+    flowtab->tcp_rwin_enable = tcp_rwin_enable;
+    flowtab->tcp_iat_enable = tcp_iat_enable;
 
     /* Allocate key index table */
     flowtab->table = g_hash_table_new((GHashFunc)yfFlowKeyHash,
@@ -764,27 +776,35 @@ static void yfFlowPktTCP(
     if (val->pkt) {
         /* Not the first packet. Union flags, track sequence number */
         val->uflags |= tcpinfo->flags;
-        qfSeqSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen, lms);
+        if (flowtab->tcp_seq_enable) {
+            qfSeqSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen, lms);
+        }
     } else {
         /* First packet. Initial flags, start sequence number tracking */
         val->iflags = tcpinfo->flags;
-        qfSeqFirstSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen, lms);
+        if (flowtab->tcp_seq_enable) {
+            qfSeqFirstSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen, lms);
+        }
     }
     
     /* track ACK dynamics */
-    if (tcpinfo->flags & YF_TF_ACK) {
+    if (tcpinfo->flags & YF_TF_ACK && flowtab->tcp_ack_enable) {
         qfAckSegment(&val->tcpack, tcpinfo->ack, tcpinfo->sack,
                      (uint32_t) datalen, lms);
     }
         
     /* Track round trip time */
-    qfRttSegment(&fn->f.rtt, tcpinfo->seq, tcpinfo->ack,
-                 tcpinfo->tsval, tcpinfo->tsecr, lms,
-                 tcpinfo->flags, (val == &fn->f.rval));
+    if (flowtab->tcp_rtt_enable) {
+        qfRttSegment(&fn->f.rtt, tcpinfo->seq, tcpinfo->ack,
+                     tcpinfo->tsval, tcpinfo->tsecr, lms,
+                     tcpinfo->flags, (val == &fn->f.rval));
+    }
     
     /* Track receiver window dynamics */
-    if (tcpinfo->ws) qfRwinScale(&val->tcprwin, tcpinfo->ws);
-    qfRwinSegment(&val->tcprwin, tcpinfo->rwin);
+    if (flowtab->tcp_rwin_enable) {
+        if (tcpinfo->ws) qfRwinScale(&val->tcprwin, tcpinfo->ws);
+        qfRwinSegment(&val->tcprwin, tcpinfo->rwin);
+    }
     
     /* Store information from options */
     qfOptSegment(&val->opts, tcpinfo, ipinfo, (uint32_t) datalen);
@@ -838,15 +858,8 @@ void yfFlowPBuf(
 
     /* skip and count out of sequence packets */
     if (pbuf->ptime < flowtab->ctime) {
-        if (!flowtab->force_read_all) {
             ++(flowtab->stats.stat_seqrej);
             return;
-        } else {
-            fprintf(stderr, "Skipping out of sequence packet until yfAddOufOfSequence refactor complete.");
-            ++(flowtab->stats.stat_seqrej);
-            /* yfAddOutOfSequence(flowtab, key, pbuflen, pbuf); */
-            return;
-        }
     }
 
     /* update flow table current time */

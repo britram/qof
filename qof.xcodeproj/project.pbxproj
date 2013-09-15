@@ -77,7 +77,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		D306F28D1701436C00FE09F5 /* qofdyn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofdyn.c; sourceTree = "<group>"; };
 		D31013E416A94BA80068059F /* test_ifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_ifmap.c; sourceTree = "<group>"; };
 		D324127A17E1F0A50088C9E4 /* qofseq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofseq.h; sourceTree = "<group>"; };
 		D324127B17E1FA7B0088C9E4 /* qofseq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofseq.c; sourceTree = "<group>"; };
@@ -93,7 +92,6 @@
 		D3773390171DF9E4004FF28F /* tracepull.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tracepull.c; sourceTree = "<group>"; };
 		D3773395171E0B2C004FF28F /* tracepull */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tracepull; sourceTree = BUILT_PRODUCTS_DIR; };
 		D37733A0171E43A0004FF28F /* qofdyntmi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qofdyntmi.c; sourceTree = "<group>"; };
-		D39F27671703AB4C00089492 /* qofdyn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdyn.h; sourceTree = "<group>"; };
 		D39F5C32170CDE480094B103 /* libtrace.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtrace.3.dylib; path = ../../opt/lib/libtrace.3.dylib; sourceTree = "<group>"; };
 		D39F5C34170D03150094B103 /* IANA_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IANA_IE.h; sourceTree = "<group>"; };
 		D3AF47E217279781000212C8 /* qofifmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofifmap.h; sourceTree = "<group>"; };
@@ -291,7 +289,6 @@
 				F51922391672388F00514165 /* yaftab.c */,
 				D377338F171CFB50004FF28F /* qofconfig.h */,
 				D3CCBE961716AF06006C25EB /* qofconfig.c */,
-				D306F28D1701436C00FE09F5 /* qofdyn.c */,
 				D37733A0171E43A0004FF28F /* qofdyntmi.c */,
 				D3F2AA70171F5506009DC254 /* qofdyntmi.h */,
 				F51922211672388F00514165 /* qofifmap.c */,
@@ -336,7 +333,6 @@
 				F519225D1672389900514165 /* yafcore.h */,
 				F519225E1672389900514165 /* yafrag.h */,
 				F519225F1672389900514165 /* yaftab.h */,
-				D39F27671703AB4C00089492 /* qofdyn.h */,
 				F5AF252C17D4BC12003F3DB3 /* qofrtt.h */,
 				D324127A17E1F0A50088C9E4 /* qofseq.h */,
 				D3EBDBF917E65035003059FF /* qofack.h */,

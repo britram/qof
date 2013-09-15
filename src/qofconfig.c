@@ -71,6 +71,8 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"tcpSequenceLossCount",    CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpRetransmitCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpOutOfOrderCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"tcpDupAckCount",          CFG_OFF(enable_ack), QF_CONFIG_BOOL},
+    {"tcpSelAckCount",          CFG_OFF(enable_ack), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
     {"meanTcpRttMilliseconds",  CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
     {"minTcpRwin",              CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
@@ -83,6 +85,7 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"minTcpRwin",              CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"meanTcpRwin",             CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"maxTcpRwin",              CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"tcpSelAckCount",          CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
 };
 
@@ -953,7 +956,11 @@ void qfContextSetup(qfContext_t *ctx) {
                                   !ctx->cfg.enable_biflow,
                                   ctx->cfg.enable_silk,
                                   ctx->cfg.enable_mac,
-                                  ctx->ictx.bulletproof);
+                                  ctx->cfg.enable_seq,
+                                  ctx->cfg.enable_ack,
+                                  ctx->cfg.enable_rtt,
+                                  ctx->cfg.enable_rwin,
+                                  ctx->cfg.enable_iat);
     
     /* Allocate fragment table */
     if (ctx->cfg.max_fragtab) {

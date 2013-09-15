@@ -18,8 +18,10 @@ typedef struct qfConfig_st {
     gboolean    enable_ipv4;    // IPv4 address export (false = map v4 to v6)
     gboolean    enable_ipv6;    // IPv6 address export (false = drop v6)
     gboolean    enable_seq;     // sequence number tracking (rtx/ooo/loss)
+    gboolean    enable_ack;     // acknowledgment tracking (dup/sack)
     gboolean    enable_rtt;     // RTT tracking
     gboolean    enable_rwin;    // receiver window tracking
+    gboolean    enable_iat;     // interarrival time tracking
     gboolean    enable_tcpopt;  // require TCP options parsing
     gboolean    enable_iface;   // store interface information
     /* Features enabled by template selection and/or MAC list matching */
@@ -51,8 +53,6 @@ typedef struct qfInputContext_st {
     char            *bpf_expr;
     /** Packet source */
     struct qfTraceSource_st *pktsrc;
-    /** Keep going no matter what */
-    gboolean        bulletproof;
 } qfInputContext_t;
 
 typedef struct qfOutputContext_st {

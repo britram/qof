@@ -157,19 +157,20 @@ typedef struct yfFlowTab_st yfFlowTab_t;
  *
  * @param macmode   If TRUE, collect and export source and destination Mac
  *                  Addresses.
- * @param force_read_all If TRUE, then yaf will process files that are out of
- *                       sequence.
- *
+*
  * @return a new flow table.
  */
- yfFlowTab_t *yfFlowTabAlloc(
-     uint64_t        idle_ms,
-     uint64_t        active_ms,
-     uint32_t        max_flows,
-     gboolean        uniflow,
-     gboolean        silkmode,
-     gboolean        macmode,
-     gboolean        force_read_all);
+yfFlowTab_t *yfFlowTabAlloc(uint64_t        idle_ms,
+                            uint64_t        active_ms,
+                            uint32_t        max_flows,
+                            gboolean        uniflow,
+                            gboolean        silkmode,
+                            gboolean        macmode,
+                            gboolean        tcp_seq_enable,
+                            gboolean        tcp_ack_enable,
+                            gboolean        tcp_rtt_enable,
+                            gboolean        tcp_rwin_enable,
+                            gboolean        tcp_iat_enable);
 
 /**
  * Free a previously allocated flow table. Discards any outstanding active
