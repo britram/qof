@@ -18,8 +18,6 @@
 
 #include <yaf/autoinc.h>
 
-#define QF_DEBUG_SEQ 1
-
 #define QF_SEQGAP_CT 8
 
 typedef struct qfSeqGap_st {
@@ -44,10 +42,7 @@ typedef struct qfSeq_st {
     uint32_t        maxooo;
     /** Sequence loss count */
     uint32_t        seqlost;
-#if QF_DEBUG_SEQ
-    uint32_t          gapcount;
-    uint32_t          highwater;
-#endif
+
 } qfSeq_t;
 
 #endif /* idem */
