@@ -18,6 +18,8 @@
 		D3C4E99917263E9200DB5423 /* qofconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = D3CCBE961716AF06006C25EB /* qofconfig.c */; };
 		D3C4E99B17263FA100DB5423 /* qof.c in Sources */ = {isa = PBXBuildFile; fileRef = D3C4E99A17263FA100DB5423 /* qof.c */; };
 		D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E1D8BE1712764700E94E6D /* streamstat.c */; };
+		D3EBDBF817E64D42003059FF /* qofrwin.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EBDBF717E64D42003059FF /* qofrwin.c */; };
+		D3EBDBFB17E650F7003059FF /* qofack.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EBDBFA17E650F7003059FF /* qofack.c */; };
 		D3F2AA6D171EA76E009DC254 /* qofdyn.c in Sources */ = {isa = PBXBuildFile; fileRef = D306F28D1701436C00FE09F5 /* qofdyn.c */; };
 		D3F2AA6F171F53BB009DC254 /* qofdyntmi.c in Sources */ = {isa = PBXBuildFile; fileRef = D37733A0171E43A0004FF28F /* qofdyntmi.c */; };
 		F519223B1672388F00514165 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = F519221A1672388F00514165 /* decode.c */; };
@@ -104,6 +106,10 @@
 		D3E1D8C017127BDF00E94E6D /* streamstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = streamstat.h; sourceTree = "<group>"; };
 		D3EADBDC170BDDEC006FE1FE /* qofltrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofltrace.c; sourceTree = "<group>"; };
 		D3EADBDE170BE2B5006FE1FE /* qofltrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofltrace.h; sourceTree = "<group>"; };
+		D3EBDBF617E64C47003059FF /* qofrwin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrwin.h; sourceTree = "<group>"; };
+		D3EBDBF717E64D42003059FF /* qofrwin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrwin.c; sourceTree = "<group>"; };
+		D3EBDBF917E65035003059FF /* qofack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofack.h; sourceTree = "<group>"; };
+		D3EBDBFA17E650F7003059FF /* qofack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofack.c; sourceTree = "<group>"; };
 		D3F2AA70171F5506009DC254 /* qofdyntmi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdyntmi.h; sourceTree = "<group>"; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -293,6 +299,8 @@
 				D3EADBDC170BDDEC006FE1FE /* qofltrace.c */,
 				D33B675117DCF4B000E44B6B /* qofrtt.c */,
 				D324127B17E1FA7B0088C9E4 /* qofseq.c */,
+				D3EBDBF717E64D42003059FF /* qofrwin.c */,
+				D3EBDBFA17E650F7003059FF /* qofack.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -329,6 +337,8 @@
 				D39F27671703AB4C00089492 /* qofdyn.h */,
 				F5AF252C17D4BC12003F3DB3 /* qofrtt.h */,
 				D324127A17E1F0A50088C9E4 /* qofseq.h */,
+				D3EBDBF917E65035003059FF /* qofack.h */,
+				D3EBDBF617E64C47003059FF /* qofrwin.h */,
 			);
 			path = yaf;
 			sourceTree = "<group>";
@@ -581,6 +591,8 @@
 				F5CAEEA1176720A5003AD16F /* qofmaclist.c in Sources */,
 				D33B675217DCF4B000E44B6B /* qofrtt.c in Sources */,
 				D324127C17E1FA7B0088C9E4 /* qofseq.c in Sources */,
+				D3EBDBF817E64D42003059FF /* qofrwin.c in Sources */,
+				D3EBDBFB17E650F7003059FF /* qofack.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

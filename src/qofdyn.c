@@ -102,33 +102,6 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb)
     }
 }
 
-static void qfDynRexmit(qfDyn_t     *qd,
-                        qfRtt_t     *rtt,
-                        uint32_t    seq,
-                        uint32_t    ms)
-{
-    /* increment retransmit counter */
-    qd->rtx_ct++;
-    
-    /* require three RTT samples to assume we can calucate burst */
-    if ((rtt->val.n < 3) ||
-        !qd->rtx_burst_lms ||
-        (ms < (qd->rtx_burst_lms + rtt->val.mean)))
-    {
-        qd->rtx_burst_lms = ms;
-        qd->rtx_burst_ct++;
-    }
-}
-
-static void qfDynReorder(qfDyn_t     *qd,
-                         uint32_t    seq,
-                         uint32_t    ms)
-{
-    /* increment reorder counter */
-    qd->ooo_ct++;
-}
-
-
 void qfDynConfig(gboolean enable,
                  gboolean enable_rtt,
                  gboolean enable_rtx,
@@ -147,127 +120,6 @@ void qfDynFree(qfDyn_t      *qd)
     // qfSeqBitsFree(&qd->sb);
 }
 
-void qfDynSyn(qfDyn_t     *qd,
-              uint32_t    seq,
-              uint32_t    ms)
-{
-    /* short circuit if turned off */
-    if (!qf_dyn_enable) return;
-    
-    /* check for duplicate SYN */
-    if (qd->dynflags & QF_DYN_SEQINIT) {
-        // FIXME what to do here?
-        return;
-    }
-    
-    /* allocate structures 
-       FIXME figure out how to delay this until we have enough packets */
-    if (qf_dyn_enable_rtx && qf_dyn_bincap) {
-        // qfSeqBitsInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
-    }
-    
-    /* set initial sequence number */
-    qd->isn = qd->nsn = seq;
-    qd->advlms = ms;
-    
-    /* note we've tracked the SYN */
-    qd->dynflags |= QF_DYN_SEQINIT;
-}
-
-void qfDynSeq(qfDyn_t     *qd,
-              qfRtt_t     *rtt,
-              uint32_t    seq,
-              uint32_t    oct,
-              uint32_t    tsval,
-              uint32_t    tsecr,
-              uint32_t    ms)
-{
-    qfSeqStat_t           seqstat;
-    
-    /* short circuit if turned off */
-    if (!qf_dyn_enable) return;
-
-    /* short circuit on no octets */
-    if (!oct) {
-        return;
-    }
-    
-    /* short circuit if we didn't see a syn (FIXME?) */
-    if (!(qd->dynflags & QF_DYN_SEQINIT)) {
-        return;
-    }
-    
-    /* update MSS */
-    if (oct > qd->mss) {
-        qd->mss = oct;
-    }
-    
-    /* note timestamp presence */
-    if (tsval || tsecr) qd->dynflags |= QF_DYN_TS;
-    
-    /* track sequence numbers in binmap to detect order/loss */
-    seqstat = QF_SEQ_INORDER; // presume in order (need this for IAT)
-    
-    /* advance sequence number if necessary */
-    if (qfSeqCompare(seq, qd->nsn) > -1) {
-        if (seq + oct < qd->nsn) ++(qd->wrap_ct);
-        qd->nsn = seq + oct;          // next expected seq
-        
-        /* output situation after processing of segment to TMI if necessary */
-#if QOF_DYN_TMI_ENABLE
-        qfDynTmiDynamics(seq - qd->isn, qd->fan - qd->isn,
-                         qd->cur_iatflight,
-                         iat, qd->rttm, qd->rttc,
-                         qd->rtx_ct, qd->ooo_ct);
-#endif
-        
-    } else {        
-        /* update max out of order */
-        if ((qd->nsn - seq) > qd->ooo_max) {
-            qd->ooo_max = qd->nsn - seq;
-        }
-    }
-}
-
-void qfDynAck(qfDyn_t     *qdseq,
-                  qfDyn_t     *qdack,
-                  uint32_t    ack,
-                  uint32_t    sack,
-                  uint32_t    tsval,
-                  uint32_t    tsecr,
-                  uint32_t    ms,
-                  int         pure)
-{
-    /* short circuit if turned off */
-    if (!qf_dyn_enable) return;
-  
-    if (!(qdseq->dynflags & QF_DYN_ACKINIT)) {
-        /* initialize if necessary */
-        qdseq->dynflags |= QF_DYN_ACKINIT;
-        qdseq->fan = ack;
-    } else if (qfSeqCompare(ack, qdseq->fan) > 0) {
-        /* new ack number, advance */
-        qdseq->fan = ack;
-    } else if (pure) {
-        /* count pure duplicate acknowledgement */
-        qdack->dupack_ct++;
-    }
-    
-    /* count selective acknowledgment */
-    if (sack && qfSeqCompare(sack, ack) > 0) {
-        /* selective acknowledgment */
-        qdack->selack_ct++;
-    }
-    
-    
-}
-
-void qfDynRwin(qfDyn_t      *qd,
-               uint32_t     rwin_unscaled)
-{
-    sstMeanAdd(&qd->rwin, rwin_unscaled << qd->rwin_scale);
-}
-
 void qfDynEcn(qfDyn_t *qd,
               uint8_t ecnbits)
 {
@@ -279,14 +131,6 @@ void qfDynEcn(qfDyn_t *qd,
 void qfDynClose(qfDyn_t *qd) {
     // count loss
     // add last flight
-}
-
-uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {
-    uint64_t sc = qd->nsn - qd->isn + (k2e32 * qd->wrap_ct);
-    if (sc) sc -= 1; // remove one: nsn is the next expected sequence number
-    if (sc & (flags & YF_TF_SYN) && sc) sc -= 1; // remove one for the syn
-    if (sc & (flags & YF_TF_FIN) && sc) sc -= 1; // remove one for the fin
-    return sc;
 }
 
 

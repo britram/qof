@@ -777,24 +777,10 @@ static void yfFlowPktTCP(
         qfSeqFirstSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen, lms);
     }
     
-    /* track tcp dynamics */
-    if (tcpinfo->flags & YF_TF_SYN) {
-        qfDynSyn(&val->tcp, tcpinfo->seq, lms);
-    } else {
-#if QOF_DYN_TMI_ENABLE
-        qfDynTmiFlow(flowtab->ctime - fn->f.stime,
-                     fn->f.fid, val == &fn->f.rval);
-#endif
-        qfDynSeq(&val->tcp, &fn->f.rtt,
-                 tcpinfo->seq, (uint32_t)datalen,
-                 tcpinfo->tsval, tcpinfo->tsecr, lms);
-    }
-    
+    /* track ACK dynamics */
     if (tcpinfo->flags & YF_TF_ACK) {
-        qfDynAck(&rval->tcp, &val->tcp,
-                 tcpinfo->ack, tcpinfo->sack,
-                 tcpinfo->tsval, tcpinfo->tsecr, lms,
-                 datalen > 0);
+        qfAckSegment(&val->tcpack, tcpinfo->ack, tcpinfo->sack,
+                     (uint32_t) datalen, lms);
     }
         
     /* Track round trip time */
@@ -803,7 +789,10 @@ static void yfFlowPktTCP(
                  tcpinfo->flags, (val == &fn->f.rval));
     
     /* Track receiver window dynamics */
-    qfDynRwin(&val->tcp, tcpinfo->rwin);
+    if (tcpinfo->ws) {
+        qfRwinScale(&val->tcprwin, tcpinfo->ws);
+    }
+    qfRwinSegment(&val->tcprwin, tcpinfo->rwin);
     
     /* Store information from options */
     qfDynEcn(&val->tcp, ipinfo->ecn);
@@ -814,7 +803,6 @@ static void yfFlowPktTCP(
     
     if (tcpinfo->ws) {
         val->tcp.dynflags |= QF_DYN_WS;
-        val->tcp.rwin_scale = tcpinfo->ws;
     }
     
     if (tcpinfo->sack) {

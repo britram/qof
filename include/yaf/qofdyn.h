@@ -72,28 +72,8 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
 #define QF_DYN_WS               0x00000040 /* observed a window scale option */
 
 typedef struct qfDyn_st {
-    /* Receiver window statistics */
-    sstMean_t       rwin;
-    /* Initial sequence number */
-    uint32_t        isn;
-    /* Next sequence number expected */
-    uint32_t        nsn;
-    /* Timestamp of last sequence number advance */
-    uint32_t        advlms;
     /* Final acknowledgment number observed */
     uint32_t        fan;
-    /* Sequence number space wraparound count */
-    uint32_t        wrap_ct;
-    /* Detected retransmitted segment count */
-    uint32_t        rtx_ct;
-    /* Detected retransmitted segment burst count */
-    uint32_t        rtx_burst_ct;
-    /* Last burst start time */
-    uint32_t        rtx_burst_lms;
-    /* Detected reordered segment count */
-    uint32_t        ooo_ct;
-    /* Maxumum observed reordering (nsn - seq) */
-    uint32_t        ooo_max;
     /* Duplicate acknowledgement count */
     uint32_t        dupack_ct;
     /* Selective acklnowledgment count */
@@ -102,8 +82,6 @@ typedef struct qfDyn_st {
     uint16_t        mss;
     /* Declared (via tcp option) maximum segment size */
     uint16_t        mss_opt;
-    /* Window scale option */
-    uint8_t         rwin_scale;
     /* Dynamics control and feature presence flags */
     uint32_t        dynflags;
 } qfDyn_t;
@@ -111,30 +89,6 @@ typedef struct qfDyn_st {
 void qfDynClose(qfDyn_t   *qd);
 
 void qfDynFree(qfDyn_t    *qd);
-
-void qfDynSyn(qfDyn_t     *qd,
-              uint32_t    seq,
-              uint32_t    ms);
-
-void qfDynSeq(qfDyn_t     *qd,
-              qfRtt_t     *rtt,
-              uint32_t    seq,
-              uint32_t    oct,
-              uint32_t    tsval,
-              uint32_t    tsecr,
-              uint32_t    ms);
-
-void qfDynAck(qfDyn_t     *qdseq,
-              qfDyn_t     *qdack,
-              uint32_t    ack,
-              uint32_t    sack,
-              uint32_t    tsval,
-              uint32_t    tsecr,
-              uint32_t    ms,
-              int         pure);
-
-void qfDynRwin(qfDyn_t      *qd,
-               uint32_t     rwin_unscaled);
 
 void qfDynEcn(qfDyn_t *qd,
               uint8_t ecnbits);
@@ -150,8 +104,6 @@ void qfDynConfig(gboolean enable,
                  gboolean enable_rtx,
                  uint32_t span,
                  uint32_t scale);
-
-uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags);
 
 void qfDynDumpStats();
 

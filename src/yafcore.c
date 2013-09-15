@@ -1019,12 +1019,12 @@ gboolean yfWriteFlow(
         rec.reverseObservedTcpMss = rval->tcp.mss;
         rec.declaredTcpMss = val->tcp.mss_opt;
         rec.reverseDeclaredTcpMss = rval->tcp.mss_opt;
-        rec.minTcpRwin = val->tcp.rwin.min;
-        rec.reverseMinTcpRwin = rval->tcp.rwin.min;
-        rec.meanTcpRwin = (uint32_t)val->tcp.rwin.mean;
-        rec.reverseMeanTcpRwin = (uint32_t)rval->tcp.rwin.mean;
-        rec.maxTcpRwin = val->tcp.rwin.max;
-        rec.reverseMaxTcpRwin = rval->tcp.rwin.max;
+        rec.minTcpRwin = val->tcprwin.val.min;
+        rec.reverseMinTcpRwin = rval->tcprwin.val.min;
+        rec.meanTcpRwin = (uint32_t)val->tcprwin.val.mean;
+        rec.reverseMeanTcpRwin = (uint32_t)rval->tcprwin.val.mean;
+        rec.maxTcpRwin = val->tcprwin.val.max;
+        rec.reverseMaxTcpRwin = rval->tcprwin.val.max;
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
@@ -1544,13 +1544,11 @@ void yfPrintString(
     switch (flow->key.proto) {
     case YF_PROTO_TCP:
         if (flow->rval.oct) {
-            g_string_append_printf(rstr, " tcp %s:%u => %s:%u %08x:%08x ",
-                                   sabuf, flow->key.sp, dabuf, flow->key.dp,
-                                   flow->val.tcp.isn, flow->rval.tcp.isn);
+            g_string_append_printf(rstr, " tcp %s:%u => %s:%u ",
+                                   sabuf, flow->key.sp, dabuf, flow->key.dp);
         } else {
-            g_string_append_printf(rstr, " tcp %s:%u => %s:%u %08x ",
-                                   sabuf, flow->key.sp, dabuf, flow->key.dp,
-                                   flow->val.tcp.isn);
+            g_string_append_printf(rstr, " tcp %s:%u => %s:%u ",
+                                   sabuf, flow->key.sp, dabuf, flow->key.dp);
         }
 
         yfPrintFlags(rstr, flow->val.iflags);
