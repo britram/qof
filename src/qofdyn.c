@@ -43,7 +43,7 @@ void qfSeqBitsFree(qfSeqBits_t *sb) {
     bimFree(&(sb->map));
 }
 
-static int qfDynHasSeqbits(qfDyn_t *qd) { return qd->sb.map.v != 0; }
+static int qfDynHasSeqbits(qfDyn_t *qd) { return 0; }
 
 qfSeqStat_t qfSeqBitsSegment(qfSeqBits_t *sb, uint32_t aseq, uint32_t bseq) {
     bimIntersect_t brv;
@@ -129,20 +129,6 @@ static void qfDynReorder(qfDyn_t     *qd,
 }
 
 
-static int qfDynBreakFlight(qfDyn_t    *qd,
-                             uint32_t   iat)
-{
-    if ((qd->seg_iat.n > kFlightMinSegments) &&
-        (iat > (kFlightBreakIATDev * sstStdev(&qd->seg_iat))))
-    {
-        sstLinSmoothAdd(&qd->iatflight, qd->cur_iatflight);
-        qd->cur_iatflight = 0;
-        return 1;
-    }
-    return 0;
-}
-
-
 void qfDynConfig(gboolean enable,
                  gboolean enable_rtt,
                  gboolean enable_rtx,
@@ -158,7 +144,7 @@ void qfDynConfig(gboolean enable,
 
 void qfDynFree(qfDyn_t      *qd)
 {
-    qfSeqBitsFree(&qd->sb);
+    // qfSeqBitsFree(&qd->sb);
 }
 
 void qfDynSyn(qfDyn_t     *qd,
@@ -177,7 +163,7 @@ void qfDynSyn(qfDyn_t     *qd,
     /* allocate structures 
        FIXME figure out how to delay this until we have enough packets */
     if (qf_dyn_enable_rtx && qf_dyn_bincap) {
-        qfSeqBitsInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
+        // qfSeqBitsInit(&qd->sb, qf_dyn_bincap, qf_dyn_binscale);
     }
     
     /* set initial sequence number */
@@ -196,7 +182,6 @@ void qfDynSeq(qfDyn_t     *qd,
               uint32_t    tsecr,
               uint32_t    ms)
 {
-    uint32_t              iat;
     qfSeqStat_t           seqstat;
     
     /* short circuit if turned off */
@@ -221,31 +206,12 @@ void qfDynSeq(qfDyn_t     *qd,
     if (tsval || tsecr) qd->dynflags |= QF_DYN_TS;
     
     /* track sequence numbers in binmap to detect order/loss */
-    if (qfDynHasSeqbits(qd)) {
-        seqstat = qfSeqBitsSegment(&(qd->sb), seq, seq + oct);
-        if (seqstat == QF_SEQ_REXMIT) {
-            qfDynRexmit(qd, rtt, seq, ms);
-        } else if (seqstat == QF_SEQ_REORDER) {
-            qfDynReorder(qd, seq, ms);
-        }
-    } else {
-        seqstat = QF_SEQ_INORDER; // presume in order (need this for IAT)
-    }
+    seqstat = QF_SEQ_INORDER; // presume in order (need this for IAT)
     
     /* advance sequence number if necessary */
     if (qfSeqCompare(seq, qd->nsn) > -1) {
         if (seq + oct < qd->nsn) ++(qd->wrap_ct);
         qd->nsn = seq + oct;          // next expected seq
-        iat = ms - qd->advlms;        // calculate last IAT
-        qd->advlms = ms;              // update time of advance
-
-        if (qf_dyn_enable_rtt) {
-            /* detect iat flight break */
-            sstMeanAdd(&qd->seg_iat, iat);
-            if (seqstat == QF_SEQ_INORDER) qfDynBreakFlight(qd, iat);
-            /* count octets in this flight */
-            qd->cur_iatflight += oct;
-        }
         
         /* output situation after processing of segment to TMI if necessary */
 #if QOF_DYN_TMI_ENABLE
@@ -312,11 +278,7 @@ void qfDynEcn(qfDyn_t *qd,
 
 void qfDynClose(qfDyn_t *qd) {
     // count loss
-    if (qfDynHasSeqbits(qd)) {
-        qfSeqBitsFinalizeLoss(&qd->sb);
-    }
     // add last flight
-    sstLinSmoothAdd(&qd->iatflight, qd->cur_iatflight);
 }
 
 uint64_t qfDynSequenceCount(qfDyn_t *qd, uint8_t flags) {

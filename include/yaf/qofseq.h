@@ -17,6 +17,7 @@
 #define _QOF_SEQ_H_
 
 #include <yaf/autoinc.h>
+#include <yaf/streamstat.h>
 
 #define QF_SEQGAP_CT 8
 
@@ -28,6 +29,10 @@ typedef struct qfSeqGap_st {
 typedef struct qfSeq_st {
     /** Gaps in seen sequence number space */
     qfSeqGap_t      gaps[QF_SEQGAP_CT];
+    /* Non-empty segment interarrival time tracking */
+    sstMean_t       seg_iat;
+    /** Time of last sequence number advance */
+    uint32_t        advlms;
     /** Initial sequence number */
     uint32_t        isn;
     /** Next sequence number expected */
@@ -42,14 +47,13 @@ typedef struct qfSeq_st {
     uint32_t        maxooo;
     /** Sequence loss count */
     uint32_t        seqlost;
-
 } qfSeq_t;
 
 #endif /* idem */
 
-void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct);
+void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms);
 
-void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct);
+void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms);
 
 uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags);
 

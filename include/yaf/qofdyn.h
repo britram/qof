@@ -72,14 +72,6 @@ void qfSeqBitsFinalizeLoss(qfSeqBits_t *sb);
 #define QF_DYN_WS               0x00000040 /* observed a window scale option */
 
 typedef struct qfDyn_st {
-    /** Bitmap for storing seen sequence numbers */
-    qfSeqBits_t     sb;
-    /* Non-empty segment interarrival time tracking */
-    sstMean_t       seg_iat;
-    /* Smoothed IAT flight size series */
-    sstLinSmooth_t  iatflight;
-    /* Current IAT flight size */
-    uint32_t        cur_iatflight;
     /* Receiver window statistics */
     sstMean_t       rwin;
     /* Initial sequence number */

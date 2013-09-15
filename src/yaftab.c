@@ -770,11 +770,11 @@ static void yfFlowPktTCP(
     if (val->pkt) {
         /* Not the first packet. Union flags, track sequence number */
         val->uflags |= tcpinfo->flags;
-        qfSeqSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen);
+        qfSeqSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen, lms);
     } else {
         /* First packet. Initial flags, start sequence number tracking */
         val->iflags = tcpinfo->flags;
-        qfSeqFirstSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen);
+        qfSeqFirstSegment(&val->tcpseq, tcpinfo->seq, (uint32_t) datalen, lms);
     }
     
     /* track tcp dynamics */

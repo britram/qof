@@ -1028,8 +1028,10 @@ gboolean yfWriteFlow(
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
-            rec.maxTcpFlightSize = val->tcp.iatflight.max;
-            rec.reverseMaxTcpFlightSize = rval->tcp.iatflight.max;
+            rec.maxTcpFlightSize = 0; /* FIXME make flight size export work again */
+            rec.reverseMaxTcpFlightSize = 0; /* FIXME (would be nice if we 
+                                                could invent something that 
+                                                makes sense, too) */
             rec.meanTcpRttMilliseconds = flow->rtt.val.mean;
             rec.minTcpRttMilliseconds = flow->rtt.val.min;
         }

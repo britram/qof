@@ -171,12 +171,13 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     
 }
 
-void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
+void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms) {
     qs->isn = seq;
     qs->nsn = seq + oct;
+    qs->advlms = ms;
 }
 
-void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
+void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms) {
     /* Empty segments don't count */
     if (!oct) return;
     
@@ -189,6 +190,10 @@ void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct) {
         if (seq != qs->nsn) qfSeqGapPush(qs, seq, seq + oct);
         if (seq + oct < qs->nsn) qs->wrapct++;
         qs->nsn = seq + oct;
+        
+        /* count interarrival time of advancing segments */
+        sstMeanAdd(&qs->seg_iat, ms - qs->advlms);
+        qs->advlms = ms;
     }
 }
 
