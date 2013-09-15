@@ -18,7 +18,7 @@
 #include <yaf/autoinc.h>
 #include <yaf/streamstat.h>
 
-/* Receiver window statistics */
+/** Receiver window statistics structure */
 typedef struct qfRwin_st {
     /** Receiver window mean/min/max value */
     sstMean_t       val;

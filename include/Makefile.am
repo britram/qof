@@ -13,7 +13,9 @@
 
 nobase_include_HEADERS = yaf/yafcore.h  yaf/yafrag.h  yaf/yaftab.h \
                          yaf/decode.h   yaf/picq.h    yaf/autoinc.h \
-	                     yaf/ring.h     yaf/qofdyn.h  yaf/bitmap.h \
-                         yaf/streamstat.h yaf/qofifmap.h yaf/qofmaclist.h \
+	                     yaf/ring.h     yaf/bitmap.h  yaf/streamstat.h \
+                         yaf/qofifmap.h yaf/qofmaclist.h \
+                         yaf/qofseq.h   yaf/qofack.h  yaf/qofrtt.h \
+                         yaf/qofrwin.h  yaf/qofopt.h \
                          yaf/CERT_IE.h  yaf/TCH_IE.h  yaf/IANA_IE.h
 

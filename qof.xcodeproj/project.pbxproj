@@ -20,8 +20,7 @@
 		D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E1D8BE1712764700E94E6D /* streamstat.c */; };
 		D3EBDBF817E64D42003059FF /* qofrwin.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EBDBF717E64D42003059FF /* qofrwin.c */; };
 		D3EBDBFB17E650F7003059FF /* qofack.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EBDBFA17E650F7003059FF /* qofack.c */; };
-		D3F2AA6D171EA76E009DC254 /* qofdyn.c in Sources */ = {isa = PBXBuildFile; fileRef = D306F28D1701436C00FE09F5 /* qofdyn.c */; };
-		D3F2AA6F171F53BB009DC254 /* qofdyntmi.c in Sources */ = {isa = PBXBuildFile; fileRef = D37733A0171E43A0004FF28F /* qofdyntmi.c */; };
+		D3EBDBFE17E65A55003059FF /* qofopt.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EBDBFD17E65A55003059FF /* qofopt.c */; };
 		F519223B1672388F00514165 /* decode.c in Sources */ = {isa = PBXBuildFile; fileRef = F519221A1672388F00514165 /* decode.c */; };
 		F519223E1672388F00514165 /* picq.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922201672388F00514165 /* picq.c */; };
 		F51922401672388F00514165 /* ring.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922221672388F00514165 /* ring.c */; };
@@ -110,6 +109,8 @@
 		D3EBDBF717E64D42003059FF /* qofrwin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrwin.c; sourceTree = "<group>"; };
 		D3EBDBF917E65035003059FF /* qofack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofack.h; sourceTree = "<group>"; };
 		D3EBDBFA17E650F7003059FF /* qofack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofack.c; sourceTree = "<group>"; };
+		D3EBDBFC17E65700003059FF /* qofopt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofopt.h; sourceTree = "<group>"; };
+		D3EBDBFD17E65A55003059FF /* qofopt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofopt.c; sourceTree = "<group>"; };
 		D3F2AA70171F5506009DC254 /* qofdyntmi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdyntmi.h; sourceTree = "<group>"; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -301,6 +302,7 @@
 				D324127B17E1FA7B0088C9E4 /* qofseq.c */,
 				D3EBDBF717E64D42003059FF /* qofrwin.c */,
 				D3EBDBFA17E650F7003059FF /* qofack.c */,
+				D3EBDBFD17E65A55003059FF /* qofopt.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -339,6 +341,7 @@
 				D324127A17E1F0A50088C9E4 /* qofseq.h */,
 				D3EBDBF917E65035003059FF /* qofack.h */,
 				D3EBDBF617E64C47003059FF /* qofrwin.h */,
+				D3EBDBFC17E65700003059FF /* qofopt.h */,
 			);
 			path = yaf;
 			sourceTree = "<group>";
@@ -584,8 +587,6 @@
 				D3282A631709703600B2ABA4 /* bitmap.c in Sources */,
 				D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */,
 				D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */,
-				D3F2AA6D171EA76E009DC254 /* qofdyn.c in Sources */,
-				D3F2AA6F171F53BB009DC254 /* qofdyntmi.c in Sources */,
 				D3C4E99917263E9200DB5423 /* qofconfig.c in Sources */,
 				D3C4E99B17263FA100DB5423 /* qof.c in Sources */,
 				F5CAEEA1176720A5003AD16F /* qofmaclist.c in Sources */,
@@ -593,6 +594,7 @@
 				D324127C17E1FA7B0088C9E4 /* qofseq.c in Sources */,
 				D3EBDBF817E64D42003059FF /* qofrwin.c in Sources */,
 				D3EBDBFB17E650F7003059FF /* qofack.c in Sources */,
+				D3EBDBFE17E65A55003059FF /* qofopt.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

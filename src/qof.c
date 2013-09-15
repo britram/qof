@@ -71,7 +71,6 @@
 #include "yafstat.h"
 
 #include "qofconfig.h"
-#include "qofdyntmi.h"
 
 /* FIXME determine if we want to be more dynamic about this */
 #define YAF_SNAPLEN 96
@@ -191,7 +190,7 @@ static char *yfCleanVersionString (
     const unsigned int TabSize = 8;
     char *resultString;
 
-    formatStringSize = strlen(verNumStr) + 1;
+    formatStringSize = (unsigned int)strlen(verNumStr) + 1;
     if (MaxLineSize > strlen(capbilStr)) {
         formatStringSize += strlen(capbilStr);
         resultString = g_malloc(formatStringSize + 1);
@@ -388,11 +387,6 @@ int main (
     /* Set up quit handler */
     yfQuitInit();
 
-    /* Set up dynamics TMI output (compile-time switch) */
-#if QOF_DYN_TMI_ENABLE
-    qfDynTmiOpen("qof_dyn_tmi.txt");
-#endif
-
     /* Set up context */
     qfContextSetup(&qfctx);
 
@@ -411,10 +405,6 @@ int main (
     /* Clean up! */
     qfContextTeardown(&qfctx);
     
-#if QOF_DYN_TMI_ENABLE
-    qfDynTmiClose();
-#endif
-
     /* Print exit message */
     if (loop_ok) {
         g_debug("qof terminating");

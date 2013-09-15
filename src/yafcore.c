@@ -983,8 +983,6 @@ gboolean yfWriteFlow(
     /* TCP flow; copy TCP data and enable export */
     if (key->proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
-        qfDynClose(&val->tcp);
-        qfDynClose(&rval->tcp);
         rec.tcpSequenceCount = qfSeqCount(&val->tcpseq,
                                val->iflags | val->uflags);
         rec.reverseTcpSequenceCount = qfSeqCount(&rval->tcpseq,
@@ -999,14 +997,12 @@ gboolean yfWriteFlow(
         rec.reverseTcpOutOfOrderCount = rval->tcpseq.ooo;
         rec.maxTcpReorderSize = val->tcpseq.maxooo; /* FIXME rename this */
         rec.reverseMaxTcpReorderSize = rval->tcpseq.maxooo; /* FIXME rename this */
-        rec.tcpDupAckCount = val->tcp.dupack_ct;
-        rec.reverseTcpDupAckCount = rval->tcp.dupack_ct;
-        rec.tcpSelAckCount = val->tcp.selack_ct;
-        rec.reverseTcpSelAckCount = rval->tcp.selack_ct;
-        rec.qofTcpCharacteristics =
-            val->tcp.dynflags & QF_DYN_EXPORT_FLAGS;
-        rec.reverseQofTcpCharacteristics =
-            rval->tcp.dynflags & QF_DYN_EXPORT_FLAGS;
+        rec.tcpDupAckCount = val->tcpack.dup_ct;
+        rec.reverseTcpDupAckCount = rval->tcpack.dup_ct;
+        rec.tcpSelAckCount = val->tcpack.sel_ct;
+        rec.reverseTcpSelAckCount = rval->tcpack.sel_ct;
+        rec.qofTcpCharacteristics = val->opts.flags;
+        rec.reverseQofTcpCharacteristics = rval->opts.flags;
         rec.tcpSequenceNumber = val->tcpseq.isn;
         rec.reverseTcpSequenceNumber = rval->tcpseq.isn;
         rec.initialTCPFlags = val->iflags;
@@ -1015,10 +1011,10 @@ gboolean yfWriteFlow(
         rec.reverseUnionTCPFlags = rval->uflags;
         rec.tcpControlBits = val->iflags | val->uflags;
         rec.reverseTcpControlBits = rval->iflags | rval->uflags;
-        rec.observedTcpMss = val->tcp.mss;
-        rec.reverseObservedTcpMss = rval->tcp.mss;
-        rec.declaredTcpMss = val->tcp.mss_opt;
-        rec.reverseDeclaredTcpMss = rval->tcp.mss_opt;
+        rec.observedTcpMss = val->opts.mss;
+        rec.reverseObservedTcpMss = rval->opts.mss;
+        rec.declaredTcpMss = val->opts.mss_opt;
+        rec.reverseDeclaredTcpMss = rval->opts.mss_opt;
         rec.minTcpRwin = val->tcprwin.val.min;
         rec.reverseMinTcpRwin = rval->tcprwin.val.min;
         rec.meanTcpRwin = (uint32_t)val->tcprwin.val.mean;

@@ -53,8 +53,6 @@ static qfConfigKeyAction_t cfg_key_actions[] = {
     {"active-timeout-octets",  CFG_OFF(max_flow_oct), QF_CONFIG_U64},
     {"active-timeout-packets", CFG_OFF(max_flow_pkt), QF_CONFIG_U64},
     {"active-timeout-rtts",    CFG_OFF(ato_rtts), QF_CONFIG_U32},
-    {"rtx-span",               CFG_OFF(rtx_span), QF_CONFIG_U32},
-    {"rtx-scale",              CFG_OFF(rtx_scale), QF_CONFIG_U32},
     {"gre-decap",              CFG_OFF(enable_gre), QF_CONFIG_BOOL},
     {"silk-compatible",        CFG_OFF(enable_silk), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
@@ -68,17 +66,16 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"sourceMacAddress",        CFG_OFF(enable_mac), QF_CONFIG_BOOL},
     {"destinationMacAddress",   CFG_OFF(enable_mac), QF_CONFIG_BOOL},
     {"vlanId",                  CFG_OFF(enable_mac), QF_CONFIG_BOOL},
-    {"tcpSequenceCount",        CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
-    {"maxTcpReorderSize",       CFG_OFF(enable_dyn), QF_CONFIG_BOOL},
-    {"tcpSequenceLossCount",    CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
-    {"tcpRetransmitCount",      CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
-    {"tcpOutOfOrderCount",      CFG_OFF(enable_dyn_rtx), QF_CONFIG_BOOL},
-    {"maxTcpFlightSize",        CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
-    {"minTcpRttMilliseconds",   CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
-    {"meanTcpRttMilliseconds",  CFG_OFF(enable_dyn_rtt), QF_CONFIG_BOOL},
-    {"minTcpRwin",              CFG_OFF(enable_dyn_rwin), QF_CONFIG_BOOL},
-    {"meanTcpRwin",             CFG_OFF(enable_dyn_rwin), QF_CONFIG_BOOL},
-    {"maxTcpRwin",              CFG_OFF(enable_dyn_rwin), QF_CONFIG_BOOL},
+    {"tcpSequenceCount",        CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"maxTcpReorderSize",       CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"tcpSequenceLossCount",    CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"tcpRetransmitCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"tcpOutOfOrderCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"minTcpRttMilliseconds",   CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
+    {"meanTcpRttMilliseconds",  CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
+    {"minTcpRwin",              CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
+    {"meanTcpRwin",             CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
+    {"maxTcpRwin",              CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"meanTcpRttMilliseconds",  CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"qofTcpCharacteristics",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
@@ -787,8 +784,6 @@ void qfConfigDefaults(qfConfig_t           *cfg,
     cfg->max_flow_pkt = 0;              /* no max packet */
     cfg->max_flow_oct = 0;              /* no max octet count */
     cfg->ato_rtts = 0;                  /* no RTT-based ATO */
-    cfg->rtx_span = 4 * 1024 * 1024;    /* 4 mebioct inflight */
-    cfg->rtx_scale = 128;               /* 128 octet sequence scale */
     octx->rotate_period = 0;            /* no output rotation by default */
     octx->template_rtx_period = 60000;  /* 1 min template 
                                            retransmit period on UDP */
@@ -965,12 +960,7 @@ void qfContextSetup(qfContext_t *ctx) {
         ctx->fragtab = yfFragTabAlloc(30000, ctx->cfg.max_fragtab);
     }
 
-    /* Configure dynamics */
-    qfDynConfig(ctx->cfg.enable_dyn,
-                ctx->cfg.enable_dyn_rtt,
-                ctx->cfg.enable_dyn_rtx,
-                ctx->cfg.rtx_span,
-                ctx->cfg.rtx_scale);
+    /* FIXME need to re-add configuration of dynamics */
 }
 
 void qfContextTeardown(qfContext_t *ctx) {

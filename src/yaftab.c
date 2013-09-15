@@ -68,11 +68,10 @@
 #include <yaf/picq.h>
 #include <yaf/yaftab.h>
 #include <yaf/yafrag.h>
+#include <yaf/qofopt.h>
 
 #include "qofconfig.h"
-#include "decode.h"
-
-#include "qofdyntmi.h"
+#include <yaf/decode.h>
 
 #ifndef YFDEBUG_FLOWTABLE
 #define YFDEBUG_FLOWTABLE 0
@@ -485,11 +484,6 @@ static void yfFlowFree(
     yfFlowTab_t         *flowtab,
     yfFlowNode_t        *fn)
 {
-
-    /* free dynamics if present */
-    qfDynFree(&fn->f.val.tcp);
-    qfDynFree(&fn->f.rval.tcp);
-
     /* free flow */
 #if YAF_ENABLE_COMPACT_IP4
     if (fn->f.key.version == 4) {
@@ -789,25 +783,11 @@ static void yfFlowPktTCP(
                  tcpinfo->flags, (val == &fn->f.rval));
     
     /* Track receiver window dynamics */
-    if (tcpinfo->ws) {
-        qfRwinScale(&val->tcprwin, tcpinfo->ws);
-    }
+    if (tcpinfo->ws) qfRwinScale(&val->tcprwin, tcpinfo->ws);
     qfRwinSegment(&val->tcprwin, tcpinfo->rwin);
     
     /* Store information from options */
-    qfDynEcn(&val->tcp, ipinfo->ecn);
-
-    if (tcpinfo->mss) {
-        val->tcp.mss_opt = tcpinfo->mss;
-    }
-    
-    if (tcpinfo->ws) {
-        val->tcp.dynflags |= QF_DYN_WS;
-    }
-    
-    if (tcpinfo->sack) {
-        val->tcp.dynflags |= QF_DYN_SACK;
-    }
+    qfOptSegment(&val->opts, tcpinfo, ipinfo, (uint32_t) datalen);
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {

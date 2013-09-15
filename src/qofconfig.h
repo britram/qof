@@ -17,10 +17,9 @@ typedef struct qfConfig_st {
     gboolean    enable_biflow;  // RFC5103 biflow export
     gboolean    enable_ipv4;    // IPv4 address export (false = map v4 to v6)
     gboolean    enable_ipv6;    // IPv6 address export (false = drop v6)
-    gboolean    enable_dyn;     // qfdyn master switch (seqno tracking)
-    gboolean    enable_dyn_rtx; // qfdyn seqno rtx/loss detection
-    gboolean    enable_dyn_rtt; // qfdyn RTT/IAT calculation
-    gboolean    enable_dyn_rwin; // qfdyn receiver window calculation
+    gboolean    enable_seq;     // sequence number tracking (rtx/ooo/loss)
+    gboolean    enable_rtt;     // RTT tracking
+    gboolean    enable_rwin;    // receiver window tracking
     gboolean    enable_tcpopt;  // require TCP options parsing
     gboolean    enable_iface;   // store interface information
     /* Features enabled by template selection and/or MAC list matching */
@@ -36,9 +35,6 @@ typedef struct qfConfig_st {
     uint64_t    max_flow_pkt;     // max packet count to force ATO (silk mode)
     uint64_t    max_flow_oct;     // max octet count to force ATO  (silk mode)
     uint32_t    ato_rtts;         // multiple of RTT to force ATO
-    /* TCP dynamics state configuration */
-    uint32_t    rtx_span;
-    uint32_t    rtx_scale;
     /* Interface map */
     qfIfMap_t           ifmap;
     /* Internal networks */

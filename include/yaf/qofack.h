@@ -18,6 +18,7 @@
 
 #include <yaf/autoinc.h>
 
+/** Acknowledgment tracking structure */
 typedef struct qfAck_st {
     /** Final acknowledgment number */
     uint32_t        fan;

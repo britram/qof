@@ -1,6 +1,6 @@
 /**
- ** qofrtt.c
- ** RTT estimation data structures and function prototypes for QoF
+ ** qofrwin.c
+ ** Receiver window functions for QoF
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2013      Brian Trammell. All Rights Reserved

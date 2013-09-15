@@ -110,7 +110,6 @@
 #include <math.h>
 
 #include <yaf/ring.h>
-#include <yaf/qofdyn.h>
 #include <yaf/qofrtt.h>
 #include <yaf/qofseq.h>
 #include <yaf/qofack.h>
@@ -243,6 +242,16 @@ typedef struct yfFlowKey_st {
     }                   addr;
 } yfFlowKey_t;
 
+/** Options tracking structure */
+typedef struct qfOpt_st {
+    /* TCP characteristics flags */
+    uint32_t    flags;
+    /* Advertised maximum segment size */
+    uint16_t    mss_opt;
+    /* Observed maximum segment size */
+    uint16_t    mss;
+} qfOpt_t;
+
 /**
  * A YAF uniflow value. Contains directional packet header fields and counters;
  * two of these are used to build a biflow.
@@ -256,14 +265,14 @@ typedef struct yfFlowVal_st {
     uint64_t    pkt;
     /** Non-empty packet count */
     uint64_t    apppkt;
-    /** TCP dynamics */
-    qfDyn_t     tcp;
     /** TCP sequence number tracking */
     qfSeq_t     tcpseq;
     /** TCP acknowledgment tracking */
     qfAck_t     tcpack;
     /** TCP receiver window tracking */
     qfRwin_t    tcprwin;
+    /** Option information tracking */
+    qfOpt_t     opts;
     /** minimum ttl */
     uint8_t     minttl;
     /** maximum ttl */

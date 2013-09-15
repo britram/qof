@@ -99,10 +99,9 @@ static void yfStatDump()
     numPackets = yfFlowDumpStats(statctx->flowtab, yaf_fft);
     yfFragDumpStats(statctx->fragtab, numPackets);
     yfDecodeDumpStats(statctx->dectx, numPackets);
-    qfDynDumpStats();
 
     if (yaf_dropped) {
-        g_warning("Capture dropped %u packets.", yaf_dropped);
+        g_warning("Capture dropped %llu packets.", yaf_dropped);
     }
 }
 
