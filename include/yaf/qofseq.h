@@ -53,7 +53,7 @@ typedef struct qfSeq_st {
 
 void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms);
 
-void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms);
+void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms, gboolean do_iat);
 
 uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags);
 

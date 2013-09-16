@@ -177,7 +177,7 @@ void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms) {
     qs->advlms = ms;
 }
 
-void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms) {
+void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms, gboolean do_iat) {
     /* Empty segments don't count */
     if (!oct) return;
     
@@ -192,8 +192,9 @@ void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms) {
         qs->nsn = seq + oct;
         
         /* count interarrival time of advancing segments */
-        sstMeanAdd(&qs->seg_iat, ms - qs->advlms);
+        if (do_iat) sstMeanAdd(&qs->seg_iat, ms - qs->advlms);
         qs->advlms = ms;
+
     }
 }
 
