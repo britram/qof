@@ -171,30 +171,30 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     
 }
 
-void qfSeqFirstSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms) {
+void qfSeqFirstSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct, uint32_t ms) {
     qs->isn = seq;
-    qs->nsn = seq + oct;
+    qs->nsn = seq + oct + ((flags & YF_TF_SYN) ? 1 : 0) ;
     qs->advlms = ms;
 }
 
-void qfSeqSegment(qfSeq_t *qs, uint32_t seq, uint32_t oct, uint32_t ms, gboolean do_iat) {
+void qfSeqSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct, uint32_t ms, gboolean do_iat) {
     /* Empty segments don't count */
     if (!oct) return;
     
     if (qfWrapCompare(seq, qs->nsn) < 0) {
+        /* Sequence less than NSN: push */
         if (seq - qs->nsn > qs->maxooo) {
             qs->maxooo = seq - qs->nsn;
         }
         qfSeqGapFill(qs, seq, seq + oct);
     } else {
-        if (seq != qs->nsn) qfSeqGapPush(qs, seq, seq + oct);
+        if (seq != qs->nsn) qfSeqGapPush(qs, qs->nsn, seq);
         if (seq + oct < qs->nsn) qs->wrapct++;
         qs->nsn = seq + oct;
         
         /* count interarrival time of advancing segments */
         if (do_iat) sstMeanAdd(&qs->seg_iat, ms - qs->advlms);
         qs->advlms = ms;
-
     }
 }
 
@@ -210,8 +210,14 @@ uint32_t qfSeqCountLost(qfSeq_t *qs) {
     int i;
     
     /* iterate over gaps adding to loss */
+//    fprintf(stderr,"seqCountLost %p prev_seqlost %u isn %u nsn %u len %u\n",
+//            qs, qs->seqlost, qs->isn, qs->nsn, qs->nsn - qs->isn);
     for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i); i++) {
         qs->seqlost += qs->gaps[i].b - qs->gaps[i].a;
+//            fprintf(stderr, "\t%u-%u (%u) (%u)\n",
+//                    qs->gaps[i].a,  qs->gaps[i].b,
+//                    qs->gaps[i].b - qs->gaps[i].a,
+//                    qs->nsn - qs->gaps[i].b);
         qs->gaps[i].a = 0;
         qs->gaps[i].b = 0;
     }

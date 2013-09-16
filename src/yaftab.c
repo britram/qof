@@ -777,15 +777,16 @@ static void yfFlowPktTCP(
         /* Not the first packet. Union flags, track sequence number */
         val->uflags |= tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
-            qfSeqSegment(&val->tcpseq, tcpinfo->seq,
-                         (uint32_t) datalen, lms, flowtab->tcp_iat_enable);
+            qfSeqSegment(&val->tcpseq, tcpinfo->flags,
+                         tcpinfo->seq, (uint32_t) datalen, lms,
+                         flowtab->tcp_iat_enable);
         }
     } else {
         /* First packet. Initial flags, start sequence number tracking */
         val->iflags = tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
-            qfSeqFirstSegment(&val->tcpseq, tcpinfo->seq,
-                              (uint32_t) datalen, lms);
+            qfSeqFirstSegment(&val->tcpseq, tcpinfo->flags,
+                              tcpinfo->seq, (uint32_t) datalen, lms);
         }
     }
     
