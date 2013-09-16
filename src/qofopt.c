@@ -24,6 +24,7 @@ void qfOptSegment(qfOpt_t *qo,
     if (ipinfo->ecn & 0x01) qo->flags |= QF_OPT_ECT0;
     if (ipinfo->ecn & 0x02) qo->flags |= QF_OPT_ECT1;
     if ((ipinfo->ecn & 0x03) == 0x03) qo->flags |= QF_OPT_CE;
+    if (tcpinfo->tsval) qo->flags |= QF_OPT_TS;
     if (tcpinfo->ws) qo->flags |= QF_OPT_WS;
     if (tcpinfo->sack) qo->flags |= QF_OPT_SACK;
     if (tcpinfo->mss) qo->mss_opt = tcpinfo->mss;
