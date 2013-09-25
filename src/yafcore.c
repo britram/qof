@@ -116,7 +116,7 @@
 
 #define YF_PRINT_DELIM  "|"
 
-#define QOF_MIN_RTT_COUNT 3
+#define QOF_MIN_RTT_COUNT 1
 
 /** include enterprise-specific Information Elements for YAF */
 #include "yaf/CERT_IE.h"
@@ -196,7 +196,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMeanTcpRwin",                 4, YTF_TCP | YTF_BIF},
     { "maxTcpRwin",                         4, YTF_TCP },
     { "reverseMaxTcpRwin",                  4, YTF_TCP | YTF_BIF},
-    { "meanTcpRttMilliseconds",             2, YTF_RTT },
+    { "tcpRttSampleCount",                  4, YTF_RTT },
+    { "lastTcpRttMilliseconds",             2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
     { "declaredTcpMss",                     2, YTF_TCP },
     { "reverseDeclaredTcpMss",              2, YTF_TCP | YTF_BIF },
@@ -302,7 +303,8 @@ typedef struct yfIpfixFlow_st {
     uint32_t    reverseMeanTcpRwin;
     uint32_t    maxTcpRwin;
     uint32_t    reverseMaxTcpRwin;
-    uint16_t    meanTcpRttMilliseconds;
+    uint32_t    tcpRttSampleCount;
+    uint16_t    lastTcpRttMilliseconds;
     uint16_t    minTcpRttMilliseconds;
     uint16_t    declaredTcpMss;
     uint16_t    reverseDeclaredTcpMss;
@@ -433,7 +435,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseMeanTcpRwin);
     CHECK_OFFSET(yfIpfixFlow_t,maxTcpRwin);
     CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpRwin);
-    CHECK_OFFSET(yfIpfixFlow_t,meanTcpRttMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpRttSampleCount);
+    CHECK_OFFSET(yfIpfixFlow_t,lastTcpRttMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,minTcpRttMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,declaredTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,reverseDeclaredTcpMss);
@@ -1028,8 +1031,9 @@ gboolean yfWriteFlow(
             rec.reverseMaxTcpFlightSize = 0; /* FIXME (would be nice if we 
                                                 could invent something that 
                                                 makes sense, too) */
-            rec.meanTcpRttMilliseconds = flow->rtt.val.mean;
+            rec.lastTcpRttMilliseconds = flow->rtt.val.val;
             rec.minTcpRttMilliseconds = flow->rtt.val.min;
+            rec.tcpRttSampleCount = flow->rtt.val.n;
         }
     }
     

@@ -45,7 +45,7 @@ static void qfRttSetEcrWait(qfRttDir_t  *dir,
 static void qfRttSample(qfRtt_t     *rtt)
 {
     if (rtt->fwd.obs_ms && rtt->rev.obs_ms) {
-        sstMeanAdd(&rtt->val, rtt->fwd.obs_ms + rtt->rev.obs_ms);
+        sstLinSmoothAdd(&rtt->val, rtt->fwd.obs_ms + rtt->rev.obs_ms);
     }
 }
 

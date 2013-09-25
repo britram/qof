@@ -72,4 +72,5 @@ void sstLinSmoothAdd(sstLinSmooth_t *v, uint32_t x) {
         }
         v->val = (v->val * (v->alpha - 1) + x) / v->alpha;
     }
+    ++v->n;
 }

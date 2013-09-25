@@ -33,8 +33,8 @@ typedef struct qfRttDir_st {
 
 /** per-biflow RTT tracking structure */
 typedef struct qfRtt_st {
-    /** Mean/min/max RTT (per biflow) */
-    sstMean_t       val;
+    /** smoothed RTT estimate */
+    sstLinSmooth_t   val;
     /** Forward observations */
     qfRttDir_t      fwd;
     /** Reverse observations */

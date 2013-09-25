@@ -33,7 +33,7 @@ def fixread(c)
     # iterate over records
     c.each do |h, m|
         # skip if no rtt information
-        unless (h[:meanTcpRttMilliseconds] || h[:reverseMeanTcpRttMilliseconds])
+        unless (h[:tcpRttMilliseconds] || h[:reverseTcpRttMilliseconds])
           next
         end
 
@@ -65,7 +65,7 @@ def fixread(c)
             h[:maxTcpReorderSize],
             h[:maxTcpFlightSize],
             h[:minTcpRttMilliseconds],
-            h[:meanTcpRttMilliseconds],
+            h[:tcpRttMilliseconds],
             h[:observedTcpMss]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
         end
         
@@ -82,7 +82,7 @@ def fixread(c)
             h[:reverseMaxTcpReorderSize],
             h[:reverseMaxTcpFlightSize],
             h[:reverseMinTcpRttMilliseconds],
-            h[:reverseMeanTcpRttMilliseconds],
+            h[:reverseTcpRttMilliseconds],
             h[:reverseObservedTcpMss]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
         end
     end

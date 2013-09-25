@@ -29,6 +29,7 @@ typedef struct sstMean_st {
 
 typedef struct sstLinSmooth_st {
     uint32_t    alpha;
+    uint32_t    n;
     uint32_t    min;
     uint32_t    max;
     uint32_t    val;
