@@ -16,6 +16,8 @@
 #include <yaf/qofrtt.h>
 #include <yaf/yaftab.h>
 
+#define QOF_RTT_DEBUG 1
+
 static int qfWrapCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
 }
@@ -42,10 +44,20 @@ static void qfRttSetEcrWait(qfRttDir_t  *dir,
     dir->tsack = tsval;
 }
 
-static void qfRttSample(qfRtt_t     *rtt)
+static int qfRttSample(qfRtt_t     *rtt)
 {
     if (rtt->fwd.obs_ms && rtt->rev.obs_ms) {
         sstLinSmoothAdd(&rtt->val, rtt->fwd.obs_ms + rtt->rev.obs_ms);
+#if QOF_RTT_DEBUG
+        yfFlow_t *f = (yfFlow_t *)(((uint8_t*)rtt) - offsetof(yfFlow_t, rtt));
+        fprintf(stderr,"%10llu fwd %4u rev %4u sample %4u last %4u n %4u\n",
+                f->fid, rtt->fwd.obs_ms, rtt->rev.obs_ms,
+                rtt->fwd.obs_ms + rtt->rev.obs_ms,
+                rtt->val.val, rtt->val.n);
+#endif
+        return 1;
+    } else {
+        return 0;
     }
 }
 
@@ -75,7 +87,11 @@ void qfRttSegment(qfRtt_t           *rtt,
     {
         /* got an ACK we were waiting for */
         fdir->obs_ms = ms - fdir->lms;
-        qfRttSample(rtt);
+        if (qfRttSample(rtt)) {
+#if QOF_RTT_DEBUG
+            fprintf(stderr, "\ton ack %u for seq %u (%u)\n", ack, fdir->tsack, ack - fdir->tsack);
+#endif
+        }
         fdir->ackwait = 0;
         if (tsval) {
             qfRttSetEcrWait(rdir, tsval, ms);
@@ -86,7 +102,11 @@ void qfRttSegment(qfRtt_t           *rtt,
         if ((ms - fdir->lms) > fdir->obs_ms) {
             /* Minimize measured RTT on TSECR samples */
             fdir->obs_ms = ms - fdir->lms;
-            qfRttSample(rtt);
+            if (qfRttSample(rtt)) {
+#if QOF_RTT_DEBUG
+                fprintf(stderr, "\ton ecr %u for val %u (%u)\n", tsecr, fdir->tsack, tsecr - fdir->tsack);
+#endif
+            }
         }
         fdir->ecrwait = 0;
         qfRttSetAckWait(rdir, seq, ms);

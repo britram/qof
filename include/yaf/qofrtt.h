@@ -36,9 +36,9 @@ typedef struct qfRtt_st {
     /** smoothed RTT estimate */
     sstLinSmooth_t   val;
     /** Forward observations */
-    qfRttDir_t      fwd;
+    qfRttDir_t       fwd;
     /** Reverse observations */
-    qfRttDir_t      rev;
+    qfRttDir_t       rev;
 } qfRtt_t;
 
 void qfRttSegment(qfRtt_t           *rtt,

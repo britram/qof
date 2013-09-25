@@ -70,7 +70,7 @@ void sstLinSmoothAdd(sstLinSmooth_t *v, uint32_t x) {
         } else if (x < v->min) {
             v->min = x;
         }
-        v->val = (v->val * (v->alpha - 1) + x) / v->alpha;
+        v->val = ((v->val * (v->alpha - 1)) + x) / v->alpha;
     }
     ++v->n;
 }
