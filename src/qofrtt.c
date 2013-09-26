@@ -16,7 +16,7 @@
 #include <yaf/qofrtt.h>
 #include <yaf/yaftab.h>
 
-#define QOF_RTT_DEBUG 1
+#define QOF_RTT_DEBUG 0
 
 static int qfWrapCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
