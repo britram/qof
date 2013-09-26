@@ -50,10 +50,10 @@ static int qfRttSample(qfRtt_t     *rtt)
         sstLinSmoothAdd(&rtt->val, rtt->fwd.obs_ms + rtt->rev.obs_ms);
 #if QOF_RTT_DEBUG
         yfFlow_t *f = (yfFlow_t *)(((uint8_t*)rtt) - offsetof(yfFlow_t, rtt));
-        fprintf(stderr,"%10llu fwd %4u rev %4u sample %4u last %4u n %4u\n",
+        fprintf(stderr,"%10llu fwd %4u rev %4u sample %4u last %4u min %4u n %4u\n",
                 f->fid, rtt->fwd.obs_ms, rtt->rev.obs_ms,
                 rtt->fwd.obs_ms + rtt->rev.obs_ms,
-                rtt->val.val, rtt->val.n);
+                rtt->val.val, rtt->val.min, rtt->val.n);
 #endif
         return 1;
     } else {
@@ -72,14 +72,23 @@ void qfRttSegment(qfRtt_t           *rtt,
                   unsigned          reverse)
 {
     qfRttDir_t    *fdir, *rdir;
+#if QOF_RTT_DEBUG
+    char          *dirname;
+#endif
     
     /* select which side we're looking at */
     if (reverse) {
         fdir = &rtt->rev;
         rdir = &rtt->fwd;
+#if QOF_RTT_DEBUG
+        dirname = "rev";
+#endif
     } else {
         fdir = &rtt->fwd;
         rdir = &rtt->rev;
+#if QOF_RTT_DEBUG
+        dirname = "fwd";
+#endif
     }
 
     if (fdir->ackwait && (tcpflags & YF_TF_ACK) &&
@@ -89,7 +98,8 @@ void qfRttSegment(qfRtt_t           *rtt,
         fdir->obs_ms = ms - fdir->lms;
         if (qfRttSample(rtt)) {
 #if QOF_RTT_DEBUG
-            fprintf(stderr, "\ton ack %u for seq %u (%u)\n", ack, fdir->tsack, ack - fdir->tsack);
+            fprintf(stderr, "\ton %3s ack %u for seq %u (%u)\n", dirname,
+                    ack, fdir->tsack, ack - fdir->tsack);
 #endif
         }
         fdir->ackwait = 0;
@@ -104,7 +114,8 @@ void qfRttSegment(qfRtt_t           *rtt,
             fdir->obs_ms = ms - fdir->lms;
             if (qfRttSample(rtt)) {
 #if QOF_RTT_DEBUG
-                fprintf(stderr, "\ton ecr %u for val %u (%u)\n", tsecr, fdir->tsack, tsecr - fdir->tsack);
+                fprintf(stderr, "\ton %s ecr %u for val %u (%u)\n", dirname,
+                        tsecr, fdir->tsack, tsecr - fdir->tsack);
 #endif
             }
         }
