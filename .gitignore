@@ -16,6 +16,19 @@
 *.out
 *.app
 
+# Libtool
+*.la
+*.lo
+*.Po
+*.Plo
+.libs
+.deps
+
+# Autotools generated
+Makefile
+Makefile.in
+stamp-h1
+
 # Xcode project state
 project.xcworkspace
 xcuserdata
