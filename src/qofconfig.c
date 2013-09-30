@@ -74,18 +74,20 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"tcpDupAckCount",          CFG_OFF(enable_ack), QF_CONFIG_BOOL},
     {"tcpSelAckCount",          CFG_OFF(enable_ack), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
-    {"tcpRttMilliseconds",  CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
+    {"tcpRttMilliseconds",      CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
     {"minTcpRwin",              CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
     {"meanTcpRwin",             CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
     {"maxTcpRwin",              CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
+    {"tcpTimestampFrequency",   CFG_OFF(enable_ts), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
-    {"tcpRttMilliseconds",  CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"tcpRttMilliseconds",      CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"qofTcpCharacteristics",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"declaredTcpMss",          CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"minTcpRwin",              CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"meanTcpRwin",             CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"maxTcpRwin",              CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"tcpSelAckCount",          CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"tcpTimestampFrequency",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
 };
 
@@ -960,6 +962,7 @@ void qfContextSetup(qfContext_t *ctx) {
                                   ctx->cfg.enable_ack,
                                   ctx->cfg.enable_rtt,
                                   ctx->cfg.enable_rwin,
+                                  ctx->cfg.enable_ts,
                                   ctx->cfg.enable_iat);
     
     /* Allocate fragment table */

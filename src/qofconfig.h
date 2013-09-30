@@ -21,6 +21,7 @@ typedef struct qfConfig_st {
     gboolean    enable_ack;     // acknowledgment tracking (dup/sack)
     gboolean    enable_rtt;     // RTT tracking
     gboolean    enable_rwin;    // receiver window tracking
+    gboolean    enable_ts;      // timestamp tracking
     gboolean    enable_iat;     // interarrival time tracking
     gboolean    enable_tcpopt;  // require TCP options parsing
     gboolean    enable_iface;   // store interface information

@@ -170,6 +170,7 @@ yfFlowTab_t *yfFlowTabAlloc(uint64_t        idle_ms,
                             gboolean        tcp_ack_enable,
                             gboolean        tcp_rtt_enable,
                             gboolean        tcp_rwin_enable,
+                            gboolean        tcp_ts_enable,
                             gboolean        tcp_iat_enable);
 
 /**

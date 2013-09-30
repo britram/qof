@@ -196,6 +196,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMeanTcpRwin",                 4, YTF_TCP | YTF_BIF},
     { "maxTcpRwin",                         4, YTF_TCP },
     { "reverseMaxTcpRwin",                  4, YTF_TCP | YTF_BIF},
+    { "tcpTimestampFrequency",              4, YTF_TCP },
+    { "reverseTcpTimestampFrequency",       4, YTF_TCP | YTF_BIF},
     { "tcpRttSampleCount",                  4, YTF_RTT },
     { "lastTcpRttMilliseconds",             2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
@@ -303,6 +305,8 @@ typedef struct yfIpfixFlow_st {
     uint32_t    reverseMeanTcpRwin;
     uint32_t    maxTcpRwin;
     uint32_t    reverseMaxTcpRwin;
+    uint32_t    tcpTimestampFrequency;
+    uint32_t    reverseTcpTimestampFrequency;
     uint32_t    tcpRttSampleCount;
     uint16_t    lastTcpRttMilliseconds;
     uint16_t    minTcpRttMilliseconds;
@@ -435,6 +439,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseMeanTcpRwin);
     CHECK_OFFSET(yfIpfixFlow_t,maxTcpRwin);
     CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpRwin);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpTimestampFrequency);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpTimestampFrequency);
     CHECK_OFFSET(yfIpfixFlow_t,tcpRttSampleCount);
     CHECK_OFFSET(yfIpfixFlow_t,lastTcpRttMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,minTcpRttMilliseconds);
@@ -1024,6 +1030,8 @@ gboolean yfWriteFlow(
         rec.reverseMeanTcpRwin = (uint32_t)rval->tcprwin.val.mean;
         rec.maxTcpRwin = val->tcprwin.val.max;
         rec.reverseMaxTcpRwin = rval->tcprwin.val.max;
+        rec.tcpTimestampFrequency = (uint32_t)val->tsopt.hz.mean;
+        rec.reverseTcpTimestampFrequency = (uint32_t)rval->tsopt.hz.mean;
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;

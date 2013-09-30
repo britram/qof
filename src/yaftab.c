@@ -184,6 +184,7 @@ struct yfFlowTab_st {
     gboolean        tcp_ack_enable;
     gboolean        tcp_rtt_enable;
     gboolean        tcp_rwin_enable;
+    gboolean        tcp_ts_enable;
     gboolean        tcp_iat_enable;
     /* Statistics */
     struct yfFlowTabStats_st stats;
@@ -580,6 +581,7 @@ yfFlowTab_t *yfFlowTabAlloc(
     gboolean        tcp_ack_enable,
     gboolean        tcp_rtt_enable,
     gboolean        tcp_rwin_enable,
+    gboolean        tcp_ts_enable,
     gboolean        tcp_iat_enable)
 {
     yfFlowTab_t     *flowtab = NULL;
@@ -603,6 +605,7 @@ yfFlowTab_t *yfFlowTabAlloc(
     flowtab->tcp_ack_enable = tcp_ack_enable;
     flowtab->tcp_rtt_enable = tcp_rtt_enable;
     flowtab->tcp_rwin_enable = tcp_rwin_enable;
+    flowtab->tcp_ts_enable = tcp_ts_enable,
     flowtab->tcp_iat_enable = tcp_iat_enable;
 
     /* Allocate key index table */
@@ -807,6 +810,11 @@ static void yfFlowPktTCP(
     if (flowtab->tcp_rwin_enable) {
         if (tcpinfo->ws) qfRwinScale(&val->tcprwin, tcpinfo->ws);
         qfRwinSegment(&val->tcprwin, tcpinfo->rwin);
+    }
+    
+    /* Track timestamp frequency */
+    if (flowtab->tcp_ts_enable && tcpinfo->tsval) {
+        qfTimestampSegment(&val->tsopt, tcpinfo->tsval, tcpinfo->tsecr, lms);
     }
     
     /* Store information from options */

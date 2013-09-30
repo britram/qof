@@ -39,6 +39,7 @@ static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("meanTcpRwin", TCH_PEN, 1043, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("maxTcpRwin", TCH_PEN, 1044, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("tcpRttSampleCount", TCH_PEN, 1046, 4, FB_IE_F_ENDIAN),
+     FB_IE_INIT("tcpTimestampFrequency", TCH_PEN, 1047, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_NULL
 };
 

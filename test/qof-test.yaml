@@ -52,5 +52,7 @@ template:
     - reverseMaxTcpRwin
     - meanTcpRwin
     - reverseMeanTcpRwin
+    - tcpTimestampFrequency
+    - reverseTcpTimestampFrequency
 #source-net:
 #    - 130.216.0.0/16
