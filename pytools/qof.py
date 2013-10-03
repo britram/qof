@@ -21,6 +21,14 @@ TCP_RST = 0x04
 TCP_SYN = 0x02
 TCP_FIN = 0x01
 
+# Characteristics constants
+QOF_WS = 0x40
+QOF_SACK = 0x20
+QOF_TS = 0x10
+QOF_CE = 0x04
+QOF_ECT1 = 0x02
+QOF_ECT0 = 0x01
+
 # Flow end reasons
 END_IDLE = 0x01
 END_ACTIVE = 0x02
@@ -151,14 +159,14 @@ def derive_nets(df, v4_prefix=16, v6_prefix=64):
     return df
 
 def flag_string(flagnum):
-    flags = ((128, 'C'),
-             (64, 'E'),
-             (32, 'U'),
-             (16, 'A'),
-             (8,  'P'),
-             (4,  'R'),
-             (2,  'S'),
-             (1,  'F'))
+    flags = ((TCP_CWR, 'C'),
+             (TCP_ECE, 'E'),
+             (TCP_URG, 'U'),
+             (TCP_ACK, 'A'),
+             (TCP_PSH, 'P'),
+             (TCP_RST, 'R'),
+             (TCP_SYN, 'S'),
+             (TCP_FIN, 'F'))
     
     flagstr = ""
     for flag in flags: 
@@ -184,12 +192,12 @@ def derive_flag_strings(df):
             pass
 
 def tcpchar_string(charnum):
-    chars = ((64, 'Ws'),
-             (32, 'Sa'),
-             (16, 'Ts'),
-             (4,  'Ce'),
-             (2,  'E1'),
-             (1,  'E0'))
+    chars = ((QOF_WS, 'Ws'),
+             (QOF_SACK, 'Sa'),
+             (QOF_TS, 'Ts'),
+             (QOF_CE,  'Ce'),
+             (QOF_ECT1,  'E1'),
+             (QOF_ECT0,  'E0'))
     
     charstr = ""
     for char in chars: 
