@@ -74,7 +74,10 @@ def drop_lossy(df):
     """
     try:
         lossy = df['tcpSequenceLossCount'] + df['reverseTcpSequenceLossCount'] > 0
-        return df[lossy == False]
+        out = df[lossy == False]
+        del(out['tcpSequenceLossCount'])
+        del(out['reverseTcpSequenceLossCount'])
+        return out
     except KeyError:
         return df
 
