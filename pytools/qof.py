@@ -10,6 +10,7 @@ import bz2
 
 from ipaddress import ip_network
 from datetime import datetime, timedelta
+from itertools import izip_longest
 
 # Flags constants
 TCP_CWR = 0x80
@@ -50,16 +51,22 @@ DEFAULT_QOF_IES = [  "flowStartMilliseconds",
                         "flowEndReason"
                          ]
 
-def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES):
+def iter_group(iterable, n, fillvalue=None):
+    args = [iter(iterable)] * n
+    return izip_longest(*args, fillvalue=fillvalue)
+
+def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=10000):
     """ 
     read an IPFIX file into a dataframe, selecting only records
-    containing all the named IEs
+    containing all the named IEs. uses chunked reading from the ipfix iterator
+    to reduce memory requirements on read.
      
     """
     ielist = ipfix.ie.spec_list(ienames)
     
     with open(filename, mode="rb") as f:
         r = ipfix.reader.from_stream(f)
+        
         df = pd.DataFrame.from_records(
             [rec for rec in r.tuple_iterator(ielist)],
             columns = [ie.name for ie in ielist])            
