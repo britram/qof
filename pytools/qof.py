@@ -3,7 +3,9 @@
 # and some QoF-specific tools
 
 import ipfix
+import ipfix.reader
 import pandas as pd
+import numpy as np
 import collections
 import bz2
 
@@ -52,15 +54,18 @@ DEFAULT_QOF_IES = [  "flowStartMilliseconds",
                         "flowEndReason"
                          ]
 
-def iter_group(iterable, n, fillvalue=None):
+def iter_group(iterable, n, fillvalue=np.nan):
     args = [iter(iterable)] * n
     return zip_longest(*args, fillvalue=fillvalue)
 
-def _dataframe_iterator(tuple_iterator, columns, chunksize=10000):
+def _dataframe_iterator(tuple_iterator, columns, chunksize=100000):
+    dfcount = 0
     for group in iter_group(tuple_iterator, chunksize):
-        yield pd.DataFrame.from_records([rec for rec in group], columns=columns)
-
-def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=10000):
+        print("yielding record "+str(dfcount * chunksize))
+        dfcount += 1
+        yield pd.DataFrame.from_records([rec for rec in group], columns=columns).dropna()
+        
+def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000):
     """ 
     read an IPFIX file into a dataframe, selecting only records
     containing all the named IEs. uses chunked reading from the ipfix iterator
