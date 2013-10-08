@@ -59,10 +59,7 @@ def iter_group(iterable, n, fillvalue=None):
     return zip_longest(*args, fillvalue=fillvalue)
 
 def _dataframe_iterator(tuple_iterator, columns, chunksize=100000):
-    dfcount = 0
     for group in iter_group(tuple_iterator, chunksize):
-        print("yielding record "+str(dfcount * chunksize))
-        dfcount += 1
         yield pd.DataFrame.from_records([rec for rec in 
                   filter(lambda a: a is not None, group)], columns=columns)
         
