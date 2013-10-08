@@ -43,6 +43,7 @@ void qfTimestampSegment(qfTsOpt_t   *ts,
         ts->ltslms = lms;
         ts->ltsval = val;
     }
+    
 }
 
 uint32_t qfTimestampHz(qfTsOpt_t *ts)

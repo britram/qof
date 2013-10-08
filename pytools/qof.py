@@ -54,7 +54,7 @@ DEFAULT_QOF_IES = [  "flowStartMilliseconds",
                         "flowEndReason"
                          ]
 
-def iter_group(iterable, n, fillvalue=np.nan):
+def iter_group(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
     return zip_longest(*args, fillvalue=fillvalue)
 
@@ -63,7 +63,8 @@ def _dataframe_iterator(tuple_iterator, columns, chunksize=100000):
     for group in iter_group(tuple_iterator, chunksize):
         print("yielding record "+str(dfcount * chunksize))
         dfcount += 1
-        yield pd.DataFrame.from_records([rec for rec in group], columns=columns).dropna()
+        yield pd.DataFrame.from_records([rec for rec in 
+                  filter(lambda a: a is not None, group)], columns=columns)
         
 def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000):
     """ 
