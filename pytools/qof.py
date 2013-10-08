@@ -2,15 +2,14 @@
 # generic IPFIX to pandas dataframe
 # and some QoF-specific tools
 
-import ipfix.ie
-import ipfix.reader
+import ipfix
 import pandas as pd
 import collections
 import bz2
 
 from ipaddress import ip_network
 from datetime import datetime, timedelta
-from itertools import izip_longest
+from itertools import zip_longest
 
 # Flags constants
 TCP_CWR = 0x80
@@ -37,6 +36,8 @@ END_FIN = 0x03
 END_FORCED = 0x04
 END_RESOURCE = 0x05
 
+# Default IEs are the same you get with QoF if you don't configure it.
+# Not super useful but kind of works as My First Flowmeter :)
 DEFAULT_QOF_IES = [  "flowStartMilliseconds",
                         "flowEndMilliseconds",
                         "sourceIPv4Address",
@@ -53,7 +54,11 @@ DEFAULT_QOF_IES = [  "flowStartMilliseconds",
 
 def iter_group(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
-    return izip_longest(*args, fillvalue=fillvalue)
+    return zip_longest(*args, fillvalue=fillvalue)
+
+def _dataframe_iterator(tuple_iterator, columns, chunksize=10000):
+    for group in iter_group(tuple_iterator, chunksize):
+        yield pd.DataFrame.from_records([rec for rec in group], columns=columns)
 
 def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=10000):
     """ 
@@ -65,12 +70,17 @@ def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=10000):
     ielist = ipfix.ie.spec_list(ienames)
     
     with open(filename, mode="rb") as f:
+        # get a stream to read from
         r = ipfix.reader.from_stream(f)
         
-        df = pd.DataFrame.from_records(
-            [rec for rec in r.tuple_iterator(ielist)],
-            columns = [ie.name for ie in ielist])            
-        return df    
+        # get column names
+        columns = [ie.name for ie in ielist]
+
+        # concatenate chunks from a dataframe iterator wrapped around
+        # the 
+        return pd.concat(_dataframe_iterator(r.tuple_iterator(ielist), 
+                                             columns, chunksize),
+                         ignore_index=True)
 
 def drop_lossy(df):
     """

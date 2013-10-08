@@ -20,18 +20,26 @@
 
 /** Receiver window statistics structure */
 typedef struct qfTsOpt_st {
-    /** Timestamp frequency min/mean/max (in Hz) */
-    sstMean_t        hz;
-    /** Last timestamp value */
-    uint32_t         tsval;
-    /** Last timestamp time (milliseconds) */
-    uint32_t         tslms;
+    /** First timestamp value */
+    uint32_t         itsval;
+    /** First timestamp time (milliseconds) */
+    uint32_t         itslms;
+    /** Most recent timestamp value */
+    uint32_t         ltsval;
+    /** Most recent timestamp time (milliseconds) */
+    uint32_t         ltslms;
+    /** Timestamp wrap counter */
+    uint32_t         valwrap;
+    /** Time wrap counter */
+    uint32_t         lmswrap;
 } qfTsOpt_t;
 
 void qfTimestampSegment(qfTsOpt_t   *ts,
                         uint32_t    val,
                         uint32_t    ecr,
                         uint32_t    lms);
+
+uint32_t qfTimestampHz(qfTsOpt_t *ts);
 
 
 #endif /* idem */

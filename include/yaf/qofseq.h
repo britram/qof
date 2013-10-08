@@ -57,7 +57,7 @@ void qfSeqFirstSegment(qfSeq_t *qs,
                        uint32_t oct,
                        uint32_t ms);
 
-void qfSeqSegment(qfSeq_t *qs,
+int qfSeqSegment(qfSeq_t *qs,
                   uint8_t flags,
                   uint32_t seq,
                   uint32_t oct,

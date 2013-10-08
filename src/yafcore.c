@@ -1030,8 +1030,8 @@ gboolean yfWriteFlow(
         rec.reverseMeanTcpRwin = (uint32_t)rval->tcprwin.val.mean;
         rec.maxTcpRwin = val->tcprwin.val.max;
         rec.reverseMaxTcpRwin = rval->tcprwin.val.max;
-        rec.tcpTimestampFrequency = (uint32_t)val->tsopt.hz.mean;
-        rec.reverseTcpTimestampFrequency = (uint32_t)rval->tsopt.hz.mean;
+        rec.tcpTimestampFrequency = qfTimestampHz(&val->tsopt);
+        rec.reverseTcpTimestampFrequency =  qfTimestampHz(&rval->tsopt);
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
