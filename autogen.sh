@@ -7,9 +7,9 @@ if [ $? != 0 ]; then
 fi
 
 if hash glibtoolize 2>/dev/null; then
-	glibtoolize --ltdl -i
+	glibtoolize -i
 else
-	libtoolize --ltdl -i
+	libtoolize -i
 fi
 if [ $? != 0 ]; then
 	echo "ERROR: there was an error while libtoolizing qof."

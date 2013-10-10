@@ -15,23 +15,59 @@
 #define _YAF_SOURCE_
 #include <yaf/qofts.h>
 
+static const uint64_t k2e32 = 1L << 32;
+
 void qfTimestampSegment(qfTsOpt_t   *ts,
                         uint32_t    val,
                         uint32_t    ecr,
                         uint32_t    lms)
 {
-    if (!ts->tslms && !ts->tsval) {
+    if (!ts->itslms && !ts->itsval) {
         /* initialize */
-        ts->tslms = lms;
-        ts->tsval = val;
+        ts->itslms = lms;
+        ts->itsval = val;
     } else {
-        /* take frequency sample (silly expensive) */
-        sstMeanAdd(&ts->hz,
-                   (uint32_t)((double)(val - ts->tsval) /
-                             ((double)(lms - ts->tslms) / 1000.0)));
-    
+        /* track most recent timestamp
+           NOTE wrap detection assumes this is only called on
+           empty segment or sequence number advance */
+
+        /* increment wrap counters if necessary */
+        if (val < ts->ltsval) {
+            ts->valwrap++;
+        }
+        if (lms < ts->ltslms) {
+            ts->lmswrap++;
+        }
+        
         /* save current values */
-        ts->tslms = lms;
-        ts->tsval = val;
+        ts->ltslms = lms;
+        ts->ltsval = val;
+        
+        /* debug */
+//        fprintf(stderr, "tshz debug Hz: %10u"
+//                        "\n\titsval %10u ltsval %10u valwrap %2u diff %llu"
+//                        "\n\titslms %10u ltslms %10u lmswrap %2u diff %llu"
+//                        "\n",
+//                        qfTimestampHz(ts),
+//                        ts->itsval, ts->ltsval, ts->valwrap,
+//                    (((uint64_t)ts->valwrap * k2e32) + ts->ltsval - ts->itsval),
+//                        ts->itslms, ts->ltslms, ts->lmswrap,
+//                    (((uint64_t)ts->lmswrap * k2e32) + ts->ltslms - ts->itslms)
+//                        );
+    }
+    
+}
+
+uint32_t qfTimestampHz(qfTsOpt_t *ts)
+{
+    uint64_t val_interval =
+        (((uint64_t)ts->valwrap * k2e32) + ts->ltsval - ts->itsval);
+    uint64_t lms_interval =
+        (((uint64_t)ts->lmswrap * k2e32) + ts->ltslms - ts->itslms);
+
+    if (lms_interval) {
+        return (uint32_t)(val_interval * 1000 / lms_interval);
+    } else {
+        return 0;
     }
 }

@@ -177,9 +177,9 @@ void qfSeqFirstSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct, u
     qs->advlms = ms;
 }
 
-void qfSeqSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct, uint32_t ms, gboolean do_iat) {
+int qfSeqSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct, uint32_t ms, gboolean do_iat) {
     /* Empty segments don't count */
-    if (!oct) return;
+    if (!oct) return 0;
     
     if (qfWrapCompare(seq, qs->nsn) < 0) {
         /* Sequence less than NSN: push */
@@ -195,7 +195,13 @@ void qfSeqSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct, uint32
         /* count interarrival time of advancing segments */
         if (do_iat) sstMeanAdd(&qs->seg_iat, ms - qs->advlms);
         qs->advlms = ms;
+        
+        /* signal advance */
+        return 1;
     }
+    
+    /* if we're here, we didn't advance */
+    return 0;
 }
 
 uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags) {
