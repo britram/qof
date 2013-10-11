@@ -118,7 +118,6 @@
 		F51922201672388F00514165 /* picq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = picq.c; sourceTree = "<group>"; };
 		F51922211672388F00514165 /* qofifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofifmap.c; sourceTree = "<group>"; };
 		F51922221672388F00514165 /* ring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ring.c; sourceTree = "<group>"; };
-		F51922241672388F00514165 /* yaf.pod */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yaf.pod; sourceTree = "<group>"; };
 		F51922251672388F00514165 /* yaf.pod.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yaf.pod.in; sourceTree = "<group>"; };
 		F51922261672388F00514165 /* yafcap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafcap.c; sourceTree = "<group>"; };
 		F51922271672388F00514165 /* yafcap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafcap.h; sourceTree = "<group>"; };
@@ -141,7 +140,6 @@
 		F51922581672389900514165 /* decode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = decode.h; sourceTree = "<group>"; };
 		F51922591672389900514165 /* picq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = picq.h; sourceTree = "<group>"; };
 		F519225A1672389900514165 /* ring.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ring.h; sourceTree = "<group>"; };
-		F519225B1672389900514165 /* stamp-h1 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "stamp-h1"; sourceTree = "<group>"; };
 		F519225C1672389900514165 /* TCH_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCH_IE.h; sourceTree = "<group>"; };
 		F519225D1672389900514165 /* yafcore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafcore.h; sourceTree = "<group>"; };
 		F519225E1672389900514165 /* yafrag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafrag.h; sourceTree = "<group>"; };
@@ -275,7 +273,6 @@
 				F51922221672388F00514165 /* ring.c */,
 				D3282A601708CF2100B2ABA4 /* bitmap.c */,
 				D3E1D8BE1712764700E94E6D /* streamstat.c */,
-				F51922241672388F00514165 /* yaf.pod */,
 				F51922251672388F00514165 /* yaf.pod.in */,
 				F51922261672388F00514165 /* yafcap.c */,
 				F51922271672388F00514165 /* yafcap.h */,
@@ -330,7 +327,6 @@
 				F519225A1672389900514165 /* ring.h */,
 				D3282A621708CF8400B2ABA4 /* bitmap.h */,
 				D3E1D8C017127BDF00E94E6D /* streamstat.h */,
-				F519225B1672389900514165 /* stamp-h1 */,
 				F519225C1672389900514165 /* TCH_IE.h */,
 				D39F5C34170D03150094B103 /* IANA_IE.h */,
 				F51922551672389900514165 /* CERT_IE.h */,

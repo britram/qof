@@ -42,18 +42,6 @@ void qfTimestampSegment(qfTsOpt_t   *ts,
         /* save current values */
         ts->ltslms = lms;
         ts->ltsval = val;
-        
-        /* debug */
-//        fprintf(stderr, "tshz debug Hz: %10u"
-//                        "\n\titsval %10u ltsval %10u valwrap %2u diff %llu"
-//                        "\n\titslms %10u ltslms %10u lmswrap %2u diff %llu"
-//                        "\n",
-//                        qfTimestampHz(ts),
-//                        ts->itsval, ts->ltsval, ts->valwrap,
-//                    (((uint64_t)ts->valwrap * k2e32) + ts->ltsval - ts->itsval),
-//                        ts->itslms, ts->ltslms, ts->lmswrap,
-//                    (((uint64_t)ts->lmswrap * k2e32) + ts->ltslms - ts->itslms)
-//                        );
     }
     
 }
