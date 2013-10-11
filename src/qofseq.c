@@ -171,32 +171,73 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     
 }
 
-void qfSeqFirstSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct, uint32_t ms) {
+void qfSeqFirstSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct,
+                       uint32_t ms, uint32_t tsval, gboolean do_ts) {
     qs->isn = seq;
     qs->nsn = seq + oct + ((flags & YF_TF_SYN) ? 1 : 0) ;
     qs->advlms = ms;
+    if (do_ts && tsval) {
+        qs->initlms = ms;
+        qs->initsval = tsval;
+    }
+
+    
 }
 
-int qfSeqSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct, uint32_t ms, gboolean do_iat) {
+int qfSeqSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct,
+                 uint32_t ms, uint32_t tsval, gboolean do_ts, gboolean do_iat) {
+
+    uint32_t lastms = 0;
+    
     /* Empty segments don't count */
     if (!oct) return 0;
     
     if (qfWrapCompare(seq, qs->nsn) < 0) {
-        /* Sequence less than NSN: push */
+        /* Sequence less than NSN: fill */
         if (seq - qs->nsn > qs->maxooo) {
             qs->maxooo = seq - qs->nsn;
         }
         qfSeqGapFill(qs, seq, seq + oct);
     } else {
+        /* Sequence beyond NSN: push */
         if (seq != qs->nsn) qfSeqGapPush(qs, qs->nsn, seq);
+        
+        /* Detect wrap */
         if (seq + oct < qs->nsn) qs->wrapct++;
+        
+        /* Determine next sequence number */
         qs->nsn = seq + oct;
         
-        /* count interarrival time of advancing segments */
-        if (do_iat) sstMeanAdd(&qs->seg_iat, ms - qs->advlms);
+        /* track timestamp frequency */
+        if (do_ts && tsval) {
+            /* increment wrap counters if necessary */
+            if (tsval < qs->advtsval) {
+                qs->tsvalwrap++;
+            }
+            if (ms < qs->advlms) {
+                qs->lmswrap++;
+            }
+
+            /* save current value */
+            qs->advtsval = tsval;
+        }
+
+        /* and advance time */
+        lastms = qs->advlms;
         qs->advlms = ms;
+
+        /* calculate interarrival/interdeparture time of advancing segments */
+        if (do_iat) {
+            uint32_t iat = 0, idt = 0, hz = 0;
+            
+            iat = ms - lastms;
+            sstMeanAdd(&qs->seg_iat, iat);
+            if (do_ts && tsval && (hz = qfTimestampHz(qs))) {
+                idt = (1000 * (tsval - qs->advtsval)) / hz;
+                sstMeanAdd(&qs->seg_variat, iat - idt);
+            }
+        }
         
-        /* signal advance */
         return 1;
     }
     
@@ -230,4 +271,18 @@ uint32_t qfSeqCountLost(qfSeq_t *qs) {
 
     return qs->seqlost;
 
+}
+
+uint32_t qfTimestampHz(qfSeq_t *qs)
+{
+    uint64_t val_interval =
+    (((uint64_t)qs->tsvalwrap * k2e32) + qs->advtsval - qs->initsval);
+    uint64_t lms_interval =
+    (((uint64_t)qs->lmswrap * k2e32) + qs->advlms - qs->initlms);
+    
+    if (lms_interval) {
+        return (uint32_t)(val_interval * 1000 / lms_interval);
+    } else {
+        return 0;
+    }
 }

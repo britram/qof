@@ -39,7 +39,6 @@ void qfTimestampSegment(qfTsOpt_t   *ts,
                         uint32_t    ecr,
                         uint32_t    lms);
 
-uint32_t qfTimestampHz(qfTsOpt_t *ts);
 
 
 #endif /* idem */

@@ -19,10 +19,10 @@
 
 #include <yaf/autoinc.h>
 typedef struct sstMean_st {
-    uint32_t    last;
-    uint32_t    n;
-    uint32_t    min;
-    uint32_t    max;
+    int         last;
+    int         n;
+    int         min;
+    int         max;
     double      mean;
     double      s;
 } sstMean_t;
@@ -37,7 +37,7 @@ typedef struct sstLinSmooth_st {
 
 
 void sstMeanInit(sstMean_t *v);
-void sstMeanAdd(sstMean_t *v, uint32_t x);
+void sstMeanAdd(sstMean_t *v, int x);
 double sstVariance(sstMean_t *v);
 double sstStdev(sstMean_t *v);
 

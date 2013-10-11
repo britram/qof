@@ -782,7 +782,9 @@ static void yfFlowPktTCP(
         val->uflags |= tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
             seqadv = qfSeqSegment(&val->tcpseq, tcpinfo->flags,
-                                  tcpinfo->seq, (uint32_t) datalen, lms,
+                                  tcpinfo->seq, (uint32_t) datalen,
+                                  lms, tcpinfo->tsval,
+                                  flowtab->tcp_ts_enable,
                                   flowtab->tcp_iat_enable);
         }
     } else {
@@ -790,7 +792,8 @@ static void yfFlowPktTCP(
         val->iflags = tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
             qfSeqFirstSegment(&val->tcpseq, tcpinfo->flags,
-                              tcpinfo->seq, (uint32_t) datalen, lms);
+                              tcpinfo->seq, (uint32_t) datalen,
+                              lms, flowtab->tcp_ts_enable, tcpinfo->tsval);
         }
     }
     
@@ -811,11 +814,6 @@ static void yfFlowPktTCP(
     if (flowtab->tcp_rwin_enable) {
         if (tcpinfo->ws) qfRwinScale(&val->tcprwin, tcpinfo->ws);
         qfRwinSegment(&val->tcprwin, tcpinfo->rwin);
-    }
-    
-    /* Track timestamp frequency (only on advances or empty packets) */
-    if (flowtab->tcp_ts_enable && tcpinfo->tsval && (seqadv | !datalen)) {
-        qfTimestampSegment(&val->tsopt, tcpinfo->tsval, tcpinfo->tsecr, lms);
     }
     
     /* Store information from options */

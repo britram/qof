@@ -18,13 +18,13 @@
 #include <yaf/streamstat.h>
 #include <math.h>
 
-static const uint32_t kDefaultAlpha = 8;
+static const int kDefaultAlpha = 8;
 
 void sstMeanInit(sstMean_t *v) {
     memset(v, 0, sizeof(*v));
 }
 
-void sstMeanAdd(sstMean_t *v, uint32_t x) {
+void sstMeanAdd(sstMean_t *v, int x) {
     double pmean;
     
     v->last = x;

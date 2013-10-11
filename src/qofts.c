@@ -46,16 +46,3 @@ void qfTimestampSegment(qfTsOpt_t   *ts,
     
 }
 
-uint32_t qfTimestampHz(qfTsOpt_t *ts)
-{
-    uint64_t val_interval =
-        (((uint64_t)ts->valwrap * k2e32) + ts->ltsval - ts->itsval);
-    uint64_t lms_interval =
-        (((uint64_t)ts->lmswrap * k2e32) + ts->ltslms - ts->itslms);
-
-    if (lms_interval) {
-        return (uint32_t)(val_interval * 1000 / lms_interval);
-    } else {
-        return 0;
-    }
-}

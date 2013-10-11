@@ -31,14 +31,26 @@ typedef struct qfSeq_st {
     qfSeqGap_t      gaps[QF_SEQGAP_CT];
     /* Non-empty segment interarrival time tracking */
     sstMean_t       seg_iat;
+    /* Non-empty segment IAT/IDT variance tracking */
+    sstMean_t       seg_variat;
+    /** Initial advance time */
+    uint32_t        initlms;
+    /** Initial timestamp value */
+    uint32_t        initsval;
     /** Time of last sequence number advance */
     uint32_t        advlms;
+    /** Timestamp at last advance */
+    uint32_t        advtsval;
     /** Initial sequence number */
     uint32_t        isn;
     /** Next sequence number expected */
     uint32_t        nsn;
-    /** Wraparound count */
+    /** sequence wrap counter */
     uint32_t        wrapct;
+    /** low bits ms wrap counter */
+    uint32_t         lmswrap;
+    /** Timestamp wrap counter */
+    uint32_t         tsvalwrap;
     /** Retransmitted segment count */
     uint32_t        rtx;
     /** Segment reorder count */
@@ -55,15 +67,22 @@ void qfSeqFirstSegment(qfSeq_t *qs,
                        uint8_t flags,
                        uint32_t seq,
                        uint32_t oct,
-                       uint32_t ms);
+                       uint32_t ms,
+                       uint32_t tsval,
+                       gboolean do_ts);
 
 int qfSeqSegment(qfSeq_t *qs,
                   uint8_t flags,
                   uint32_t seq,
                   uint32_t oct,
                   uint32_t ms,
+                  uint32_t tsval,
+                  gboolean do_ts,
                   gboolean do_iat);
 
 uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags);
 
 uint32_t qfSeqCountLost(qfSeq_t *qs);
+
+uint32_t qfTimestampHz(qfSeq_t *qs);
+

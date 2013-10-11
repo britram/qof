@@ -272,8 +272,6 @@ typedef struct yfFlowVal_st {
     qfAck_t     tcpack;
     /** TCP receiver window tracking */
     qfRwin_t    tcprwin;
-    /** TCP timestamp tracking */
-    qfTsOpt_t     tsopt;
     /** Option information tracking */
     qfOpt_t     opts;
     /** minimum ttl */
