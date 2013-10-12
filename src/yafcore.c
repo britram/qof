@@ -1030,12 +1030,12 @@ gboolean yfWriteFlow(
         rec.reverseObservedTcpMss = rval->opts.mss;
         rec.declaredTcpMss = val->opts.mss_opt;
         rec.reverseDeclaredTcpMss = rval->opts.mss_opt;
-        rec.minTcpRwin = val->tcprwin.val.min;
-        rec.reverseMinTcpRwin = rval->tcprwin.val.min;
+        rec.minTcpRwin = val->tcprwin.val.mm.min;
+        rec.reverseMinTcpRwin = rval->tcprwin.val.mm.min;
         rec.meanTcpRwin = (uint32_t)val->tcprwin.val.mean;
         rec.reverseMeanTcpRwin = (uint32_t)rval->tcprwin.val.mean;
-        rec.maxTcpRwin = val->tcprwin.val.max;
-        rec.reverseMaxTcpRwin = rval->tcprwin.val.max;
+        rec.maxTcpRwin = val->tcprwin.val.mm.max;
+        rec.reverseMaxTcpRwin = rval->tcprwin.val.mm.max;
         rec.tcpReceiverStallCount = val->tcprwin.stall;
         rec.reverseTcpReceiverStallCount = rval->tcprwin.stall;
         rec.tcpTimestampFrequency = qfTimestampHz(&val->tcpseq);
@@ -1048,7 +1048,7 @@ gboolean yfWriteFlow(
                                                 could invent something that 
                                                 makes sense, too) */
             rec.lastTcpRttMilliseconds = flow->rtt.val.val;
-            rec.minTcpRttMilliseconds = flow->rtt.val.min;
+            rec.minTcpRttMilliseconds = flow->rtt.val.mm.min;
             rec.tcpRttSampleCount = flow->rtt.val.n;
         }
     }

@@ -114,7 +114,6 @@
 #include <yaf/qofseq.h>
 #include <yaf/qofack.h>
 #include <yaf/qofrwin.h>
-#include <yaf/qofts.h>
 
 /**
  * This is the CERT Private Enterprise Number (PEN) assigned by
