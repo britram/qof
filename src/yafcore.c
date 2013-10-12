@@ -1016,53 +1016,61 @@ gboolean yfWriteFlow(
     /* TCP flow; copy TCP data and enable export */
     if (key->proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
-        rec.tcpSequenceCount = qfSeqCount(&val->tcp->seq,
-                               val->iflags | val->uflags);
-        rec.reverseTcpSequenceCount = qfSeqCount(&rval->tcp->seq,
-                                      rval->iflags | rval->uflags);
-        rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcp->seq);
-        rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcp->seq);
-        rec.tcpRetransmitCount = val->tcp->seq.rtx;
-        rec.reverseTcpRetransmitCount = rval->tcp->seq.rtx;
-        rec.tcpRtxBurstCount = 0; /* FIXME make burst loss work again */
-        rec.reverseTcpRtxBurstCount = 0; /* FIXME make burst loss work again */
-        rec.tcpOutOfOrderCount = val->tcp->seq.ooo;
-        rec.reverseTcpOutOfOrderCount = rval->tcp->seq.ooo;
-        rec.maxTcpSequenceJump = val->tcp->seq.maxooo;
-        rec.reverseMaxTcpSequenceJump = rval->tcp->seq.maxooo;
-        rec.tcpDupAckCount = val->tcp->ack.dup_ct;
-        rec.reverseTcpDupAckCount = rval->tcp->ack.dup_ct;
-        rec.tcpSelAckCount = val->tcp->ack.sel_ct;
-        rec.reverseTcpSelAckCount = rval->tcp->ack.sel_ct;
-        rec.qofTcpCharacteristics = val->tcp->opts.flags;
-        rec.reverseQofTcpCharacteristics = rval->tcp->opts.flags;
-        rec.tcpSequenceNumber = val->tcp->seq.isn;
-        rec.reverseTcpSequenceNumber = rval->tcp->seq.isn;
+
         rec.initialTCPFlags = val->iflags;
         rec.reverseInitialTCPFlags = rval->iflags;
         rec.unionTCPFlags = val->uflags;
         rec.reverseUnionTCPFlags = rval->uflags;
         rec.tcpControlBits = val->iflags | val->uflags;
         rec.reverseTcpControlBits = rval->iflags | rval->uflags;
-        rec.observedTcpMss = val->tcp->opts.mss;
-        rec.reverseObservedTcpMss = rval->tcp->opts.mss;
-        rec.declaredTcpMss = val->tcp->opts.mss_opt;
-        rec.reverseDeclaredTcpMss = rval->tcp->opts.mss_opt;
-        rec.minTcpRwin = val->tcp->rwin.val.mm.min;
-        rec.reverseMinTcpRwin = rval->tcp->rwin.val.mm.min;
-        rec.meanTcpRwin = (uint32_t)val->tcp->rwin.val.mean;
-        rec.reverseMeanTcpRwin = (uint32_t)rval->tcp->rwin.val.mean;
-        rec.maxTcpRwin = val->tcp->rwin.val.mm.max;
-        rec.reverseMaxTcpRwin = rval->tcp->rwin.val.mm.max;
-        rec.tcpReceiverStallCount = val->tcp->rwin.stall;
-        rec.reverseTcpReceiverStallCount = rval->tcp->rwin.stall;
-        rec.minTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.min;
-        rec.reverseMinTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.min;
-        rec.maxTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.max;
-        rec.reverseMaxTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.max;
         
-        if ((hz = qfTimestampHz(&val->tcp->seq)) ||
-            (rhz = qfTimestampHz(&rval->tcp->seq)))
+        if (val->tcp) {
+            rec.tcpSequenceCount = qfSeqCount(&val->tcp->seq,
+                                              val->iflags | val->uflags);
+            rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcp->seq);
+            rec.tcpRetransmitCount = val->tcp->seq.rtx;
+            rec.tcpRtxBurstCount = 0; /* FIXME make burst loss work again */
+            rec.tcpOutOfOrderCount = val->tcp->seq.ooo;
+            rec.maxTcpSequenceJump = val->tcp->seq.maxooo;
+            rec.tcpDupAckCount = val->tcp->ack.dup_ct;
+            rec.tcpSelAckCount = val->tcp->ack.sel_ct;
+            rec.qofTcpCharacteristics = val->tcp->opts.flags;
+            rec.tcpSequenceNumber = val->tcp->seq.isn;
+            rec.observedTcpMss = val->tcp->opts.mss;
+            rec.declaredTcpMss = val->tcp->opts.mss_opt;
+            rec.minTcpRwin = val->tcp->rwin.val.mm.min;
+            rec.meanTcpRwin = (uint32_t)val->tcp->rwin.val.mean;
+            rec.maxTcpRwin = val->tcp->rwin.val.mm.max;
+            rec.tcpReceiverStallCount = val->tcp->rwin.stall;
+            rec.minTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.min;
+            rec.maxTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.max;
+        }
+        
+        if (rval->tcp) {
+            rec.reverseTcpSequenceCount = qfSeqCount(&rval->tcp->seq,
+                                          rval->iflags | rval->uflags);
+            rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcp->seq);
+            rec.reverseTcpRetransmitCount = rval->tcp->seq.rtx;
+            rec.reverseTcpRtxBurstCount = 0; /* FIXME make burst loss work again */
+            rec.reverseTcpOutOfOrderCount = rval->tcp->seq.ooo;
+            rec.reverseMaxTcpSequenceJump = rval->tcp->seq.maxooo;
+            rec.reverseTcpDupAckCount = rval->tcp->ack.dup_ct;
+            rec.reverseTcpSelAckCount = rval->tcp->ack.sel_ct;
+            rec.reverseQofTcpCharacteristics = rval->tcp->opts.flags;
+            rec.reverseTcpSequenceNumber = rval->tcp->seq.isn;
+            rec.reverseObservedTcpMss = rval->tcp->opts.mss;
+            rec.reverseDeclaredTcpMss = rval->tcp->opts.mss_opt;
+            rec.reverseMinTcpRwin = rval->tcp->rwin.val.mm.min;
+            rec.reverseMeanTcpRwin = (uint32_t)rval->tcp->rwin.val.mean;
+            rec.reverseMaxTcpRwin = rval->tcp->rwin.val.mm.max;
+            rec.reverseTcpReceiverStallCount = rval->tcp->rwin.stall;
+            rec.reverseMinTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.min;
+            rec.reverseMaxTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.max;
+        }
+        
+        if (val->tcp && rval->tcp &&
+            ((hz = qfTimestampHz(&val->tcp->seq)) ||
+            (rhz = qfTimestampHz(&rval->tcp->seq))))
         {
             wtid |= YTF_TSV;
             rec.tcpTimestampFrequency = qfTimestampHz(&val->tcp->seq);
@@ -1073,7 +1081,6 @@ gboolean yfWriteFlow(
             rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.max;
 
         }
-        
 
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
