@@ -40,8 +40,11 @@ static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("tcpReceiverStallCount", TCH_PEN, 1045, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("tcpRttSampleCount", TCH_PEN, 1046, 4, FB_IE_F_ENDIAN),
      FB_IE_INIT("tcpTimestampFrequency", TCH_PEN, 1047, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
-     FB_IE_INIT("minTcpChirpMilliseconds", TCH_PEN, 1048, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
-     FB_IE_INIT("maxTcpChirpMilliseconds", TCH_PEN, 1049, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("minTcpChirpMilliseconds", TCH_PEN, 1048, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("maxTcpChirpMilliseconds", TCH_PEN, 1049, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("minTcpIOTMilliseconds", TCH_PEN, 1050, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("maxTcpIOTMilliseconds", TCH_PEN, 1051, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+    
 };
 
 #endif

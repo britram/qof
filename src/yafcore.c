@@ -184,8 +184,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSelAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
-    { "maxTcpSequenceJump",                  4, YTF_TCP },
-    { "reverseMaxTcpSequenceJump",           4, YTF_TCP | YTF_BIF},
+    { "maxTcpSequenceJump",                 4, YTF_TCP },
+    { "reverseMaxTcpSequenceJump",          4, YTF_TCP | YTF_BIF},
     { "qofTcpCharacteristics",              4, YTF_TCP },
     { "reverseQofTcpCharacteristics",       4, YTF_TCP | YTF_BIF},
     { "minTcpRwin",                         4, YTF_TCP },
@@ -205,6 +205,14 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseDeclaredTcpMss",              2, YTF_TCP | YTF_BIF },
     { "observedTcpMss",                     2, YTF_TCP },
     { "reverseObservedTcpMss",              2, YTF_TCP | YTF_BIF },
+    { "minTcpIOTMilliseconds",              4, YTF_TCP },
+    { "reverseMinTcpIOTMilliseconds",       4, YTF_TCP | YTF_BIF},
+    { "maxTcpIOTMilliseconds",              4, YTF_TCP },
+    { "reverseMaxTcpIOTMilliseconds",       4, YTF_TCP | YTF_BIF},
+    { "minTcpChirpMilliseconds",            2, YTF_TCP },
+    { "reverseMinTcpChirpMilliseconds",     2, YTF_TCP | YTF_BIF},
+    { "maxTcpChirpMilliseconds",            2, YTF_TCP },
+    { "reverseMaxTcpChirpMilliseconds",     2, YTF_TCP | YTF_BIF},
     /* First-packet RTT (for all biflows) */
     { "reverseFlowDeltaMilliseconds",       4, YTF_BIF },
     /* port, protocol, flow status, interfaces */
@@ -314,6 +322,14 @@ typedef struct yfIpfixFlow_st {
     uint16_t    reverseDeclaredTcpMss;
     uint16_t    observedTcpMss;
     uint16_t    reverseObservedTcpMss;
+    uint32_t    minTcpIOTMilliseconds;
+    uint32_t    reverseMinTcpIOTMilliseconds;
+    uint32_t    maxTcpIOTMilliseconds;
+    uint32_t    reverseMaxTcpIOTMilliseconds;
+    int16_t     minTcpChirpMilliseconds;
+    int16_t     reverseMinTcpChirpMilliseconds;
+    int16_t     maxTcpChirpMilliseconds;
+    int16_t     reverseMaxTcpChirpMilliseconds;
     /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
@@ -448,6 +464,14 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseDeclaredTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,observedTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,reverseObservedTcpMss);
+    CHECK_OFFSET(yfIpfixFlow_t,minTcpIOTMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMinTcpIOTMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpIOTMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpIOTMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,minTcpChirpMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMinTcpChirpMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpChirpMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpChirpMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,reverseFlowDeltaMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,sourceTransportPort);
     CHECK_OFFSET(yfIpfixFlow_t,destinationTransportPort);
@@ -1034,6 +1058,15 @@ gboolean yfWriteFlow(
         rec.reverseTcpReceiverStallCount = rval->tcprwin.stall;
         rec.tcpTimestampFrequency = qfTimestampHz(&val->tcpseq);
         rec.reverseTcpTimestampFrequency =  qfTimestampHz(&rval->tcpseq);
+        rec.minTcpIOTMilliseconds = val->tcpseq.seg_iat.mm.min;
+        rec.reverseMinTcpIOTMilliseconds = rval->tcpseq.seg_iat.mm.min;
+        rec.maxTcpIOTMilliseconds = val->tcpseq.seg_iat.mm.max;
+        rec.reverseMaxTcpIOTMilliseconds = rval->tcpseq.seg_iat.mm.max;
+        rec.minTcpChirpMilliseconds = (int16_t)val->tcpseq.seg_variat.mm.min;
+        rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcpseq.seg_variat.mm.min;
+        rec.maxTcpChirpMilliseconds = (int16_t)val->tcpseq.seg_variat.mm.max;
+        rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcpseq.seg_variat.mm.max;
+
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
