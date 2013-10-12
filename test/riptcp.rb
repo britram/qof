@@ -27,7 +27,7 @@ def fixread(c)
     
     puts ["fid","l3pkt","l7pkt",
           "l3oct","l4oct","l7oct",
-          "rtx","ooo","maxooo","maxflight",
+          "rtx","ooo","maxooo",
           "minrtt","rtt","mss"].map { |s| "%7s"%(s) }.join(", ")
 
     # iterate over records
@@ -63,7 +63,6 @@ def fixread(c)
             h[:tcpRetransmitCount],
             h[:tcpOutOfOrderCount],
             h[:maxTcpReorderSize],
-            h[:maxTcpFlightSize],
             h[:minTcpRttMilliseconds],
             h[:tcpRttMilliseconds],
             h[:observedTcpMss]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
@@ -80,7 +79,6 @@ def fixread(c)
             h[:reverseTcpRetransmitCount],
             h[:reverseTcpOutOfOrderCount],
             h[:reverseMaxTcpReorderSize],
-            h[:reverseMaxTcpFlightSize],
             h[:reverseMinTcpRttMilliseconds],
             h[:reverseTcpRttMilliseconds],
             h[:reverseObservedTcpMss]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")

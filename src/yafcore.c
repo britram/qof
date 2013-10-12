@@ -184,8 +184,6 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSelAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
-    { "maxTcpFlightSize",                   4, YTF_RTT },
-    { "reverseMaxTcpFlightSize",            4, YTF_RTT },
     { "maxTcpReorderSize",                  4, YTF_TCP },
     { "reverseMaxTcpReorderSize",           4, YTF_TCP | YTF_BIF},
     { "qofTcpCharacteristics",              4, YTF_TCP },
@@ -295,8 +293,6 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSelAckCount;
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
-    uint32_t    maxTcpFlightSize;
-    uint32_t    reverseMaxTcpFlightSize;
     uint32_t    maxTcpReorderSize;
     uint32_t    reverseMaxTcpReorderSize;
     uint32_t    qofTcpCharacteristics;
@@ -431,8 +427,6 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSelAckCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceNumber);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceNumber);
-    CHECK_OFFSET(yfIpfixFlow_t,maxTcpFlightSize);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpFlightSize);
     CHECK_OFFSET(yfIpfixFlow_t,maxTcpReorderSize);
     CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpReorderSize);
     CHECK_OFFSET(yfIpfixFlow_t,qofTcpCharacteristics);
@@ -1043,10 +1037,6 @@ gboolean yfWriteFlow(
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
-            rec.maxTcpFlightSize = 0; /* FIXME make flight size export work again */
-            rec.reverseMaxTcpFlightSize = 0; /* FIXME (would be nice if we 
-                                                could invent something that 
-                                                makes sense, too) */
             rec.lastTcpRttMilliseconds = flow->rtt.val.val;
             rec.minTcpRttMilliseconds = flow->rtt.val.mm.min;
             rec.tcpRttSampleCount = flow->rtt.val.n;
