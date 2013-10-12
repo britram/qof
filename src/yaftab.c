@@ -490,6 +490,9 @@ static void yfFlowFree(
     yfFlowNode_t        *fn)
 {
     /* free flow */
+    if (fn->f.val.tcp) yg_slice_free(qfTcpVal_t, fn->f.val.tcp);
+    if (fn->f.rval.tcp) yg_slice_free(qfTcpVal_t, fn->f.rval.tcp);
+    
 #if YAF_ENABLE_COMPACT_IP4
     if (fn->f.key.version == 4) {
         yg_slice_free(yfFlowNodeIPv4_t, (yfFlowNodeIPv4_t *)fn);
@@ -781,17 +784,20 @@ static void yfFlowPktTCP(
         /* Not the first packet. Union flags, track sequence number */
         val->uflags |= tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
-            seqadv = qfSeqSegment(&val->tcpseq, tcpinfo->flags,
+            seqadv = qfSeqSegment(&val->tcp->seq, tcpinfo->flags,
                                   tcpinfo->seq, (uint32_t) datalen,
                                   lms, tcpinfo->tsval,
                                   flowtab->tcp_ts_enable,
                                   flowtab->tcp_iat_enable);
         }
     } else {
-        /* First packet. Initial flags, start sequence number tracking */
+        /* First packet. Allocate a TCP structure for this direction */
+        val->tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
+         
+        /* Initial flags, start sequence number tracking */
         val->iflags = tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
-            qfSeqFirstSegment(&val->tcpseq, tcpinfo->flags,
+            qfSeqFirstSegment(&val->tcp->seq, tcpinfo->flags,
                               tcpinfo->seq, (uint32_t) datalen,
                               lms, flowtab->tcp_ts_enable, tcpinfo->tsval);
         }
@@ -799,7 +805,7 @@ static void yfFlowPktTCP(
     
     /* track ACK dynamics */
     if (tcpinfo->flags & YF_TF_ACK && flowtab->tcp_ack_enable) {
-        qfAckSegment(&val->tcpack, tcpinfo->ack, tcpinfo->sack,
+        qfAckSegment(&val->tcp->ack, tcpinfo->ack, tcpinfo->sack,
                      (uint32_t) datalen, lms);
     }
         
@@ -812,12 +818,12 @@ static void yfFlowPktTCP(
     
     /* Track receiver window dynamics */
     if (flowtab->tcp_rwin_enable) {
-        if (tcpinfo->ws) qfRwinScale(&val->tcprwin, tcpinfo->ws);
-        qfRwinSegment(&val->tcprwin, tcpinfo->rwin);
+        if (tcpinfo->ws) qfRwinScale(&val->tcp->rwin, tcpinfo->ws);
+        qfRwinSegment(&val->tcp->rwin, tcpinfo->rwin);
     }
     
     /* Store information from options */
-    qfOptSegment(&val->opts, tcpinfo, ipinfo, (uint32_t) datalen);
+    qfOptSegment(&val->tcp->opts, tcpinfo, ipinfo, (uint32_t) datalen);
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {

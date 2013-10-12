@@ -252,11 +252,25 @@ typedef struct qfOpt_st {
     uint16_t    mss;
 } qfOpt_t;
 
+/** TCP structure collection */
+typedef struct qfTcpVal_st {
+    /** TCP sequence number tracking */
+    qfSeq_t     seq;
+    /** TCP acknowledgment tracking */
+    qfAck_t     ack;
+    /** TCP receiver window tracking */
+    qfRwin_t    rwin;
+    /** Option information tracking */
+    qfOpt_t     opts;
+} qfTcpVal_t;
+
 /**
  * A YAF uniflow value. Contains directional packet header fields and counters;
  * two of these are used to build a biflow.
  */
 typedef struct yfFlowVal_st {
+    /** TCP value structure pointer */
+    qfTcpVal_t  *tcp;
     /** IP-layer octet count */
     uint64_t    oct;
     /** Application-layer octet count */
@@ -265,14 +279,6 @@ typedef struct yfFlowVal_st {
     uint64_t    pkt;
     /** Non-empty packet count */
     uint64_t    apppkt;
-    /** TCP sequence number tracking */
-    qfSeq_t     tcpseq;
-    /** TCP acknowledgment tracking */
-    qfAck_t     tcpack;
-    /** TCP receiver window tracking */
-    qfRwin_t    tcprwin;
-    /** Option information tracking */
-    qfOpt_t     opts;
     /** minimum ttl */
     uint8_t     minttl;
     /** maximum ttl */
