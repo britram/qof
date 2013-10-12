@@ -98,7 +98,7 @@
 #define YTF_BIF         0x0001  /* Biflow */
 #define YTF_TCP         0x0002  /* TCP and extended TCP */
 #define YTF_RTT         0x0004  /* valid RTT information available */
-#define YTF_PHY         0x0008  /* PHY layer information */
+#define YTF_TSV         0x0008  /* valid timestamp information available */
 
 /* Special dimensions -- one of each group must be present */
 #define YTF_IP4         0x0010  /* IPv4 addresses */
@@ -196,8 +196,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMaxTcpRwin",                  4, YTF_TCP | YTF_BIF},
     { "tcpReceiverStallCount",              4, YTF_TCP },
     { "reverseTcpReceiverStallCount",       4, YTF_TCP | YTF_BIF},
-    { "tcpTimestampFrequency",              4, YTF_TCP },
-    { "reverseTcpTimestampFrequency",       4, YTF_TCP | YTF_BIF},
+    { "tcpTimestampFrequency",              4, YTF_TCP | YTF_TSV },
+    { "reverseTcpTimestampFrequency",       4, YTF_TCP | YTF_TSV | YTF_BIF},
     { "tcpRttSampleCount",                  4, YTF_RTT },
     { "lastTcpRttMilliseconds",             2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
@@ -209,10 +209,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMinTcpIOTMilliseconds",       4, YTF_TCP | YTF_BIF},
     { "maxTcpIOTMilliseconds",              4, YTF_TCP },
     { "reverseMaxTcpIOTMilliseconds",       4, YTF_TCP | YTF_BIF},
-    { "minTcpChirpMilliseconds",            2, YTF_TCP },
-    { "reverseMinTcpChirpMilliseconds",     2, YTF_TCP | YTF_BIF},
-    { "maxTcpChirpMilliseconds",            2, YTF_TCP },
-    { "reverseMaxTcpChirpMilliseconds",     2, YTF_TCP | YTF_BIF},
+    { "minTcpChirpMilliseconds",            2, YTF_TCP | YTF_TSV},
+    { "reverseMinTcpChirpMilliseconds",     2, YTF_TCP | YTF_TSV | YTF_BIF},
+    { "maxTcpChirpMilliseconds",            2, YTF_TCP | YTF_TSV },
+    { "reverseMaxTcpChirpMilliseconds",     2, YTF_TCP | YTF_TSV | YTF_BIF},
     /* First-packet RTT (for all biflows) */
     { "reverseFlowDeltaMilliseconds",       4, YTF_BIF },
     /* port, protocol, flow status, interfaces */
@@ -220,8 +220,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "destinationTransportPort",           2, 0 },
     { "protocolIdentifier",                 1, 0 },
     { "flowEndReason",                      1, 0 },
-    { "ingressInterface",                   1, YTF_PHY },
-    { "egressInterface",                    1, YTF_PHY },
+    { "ingressInterface",                   1, 0 },
+    { "egressInterface",                    1, 0 },
     /* Layer 2 information */
     { "sourceMacAddress",                   6, 0 },
     { "destinationMacAddress",              6, 0 },
@@ -931,8 +931,8 @@ gboolean yfWriteFlow(
 {
     yfIpfixFlow_t       rec;
     uint16_t            wtid;
-    uint16_t            etid = 0; /* extra templates */
-
+    uint32_t            hz, rhz;
+    
     yfFlowVal_t         *val, *rval;
     yfFlowKey_t         kbuf, *key;
     
@@ -1056,16 +1056,24 @@ gboolean yfWriteFlow(
         rec.reverseMaxTcpRwin = rval->tcprwin.val.mm.max;
         rec.tcpReceiverStallCount = val->tcprwin.stall;
         rec.reverseTcpReceiverStallCount = rval->tcprwin.stall;
-        rec.tcpTimestampFrequency = qfTimestampHz(&val->tcpseq);
-        rec.reverseTcpTimestampFrequency =  qfTimestampHz(&rval->tcpseq);
         rec.minTcpIOTMilliseconds = val->tcpseq.seg_iat.mm.min;
         rec.reverseMinTcpIOTMilliseconds = rval->tcpseq.seg_iat.mm.min;
         rec.maxTcpIOTMilliseconds = val->tcpseq.seg_iat.mm.max;
         rec.reverseMaxTcpIOTMilliseconds = rval->tcpseq.seg_iat.mm.max;
-        rec.minTcpChirpMilliseconds = (int16_t)val->tcpseq.seg_variat.mm.min;
-        rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcpseq.seg_variat.mm.min;
-        rec.maxTcpChirpMilliseconds = (int16_t)val->tcpseq.seg_variat.mm.max;
-        rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcpseq.seg_variat.mm.max;
+        
+        if ((hz = qfTimestampHz(&val->tcpseq)) ||
+            (rhz = qfTimestampHz(&rval->tcpseq)))
+        {
+            wtid |= YTF_TSV;
+            rec.tcpTimestampFrequency = qfTimestampHz(&val->tcpseq);
+            rec.reverseTcpTimestampFrequency =  qfTimestampHz(&rval->tcpseq);
+            rec.minTcpChirpMilliseconds = (int16_t)val->tcpseq.seg_variat.mm.min;
+            rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcpseq.seg_variat.mm.min;
+            rec.maxTcpChirpMilliseconds = (int16_t)val->tcpseq.seg_variat.mm.max;
+            rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcpseq.seg_variat.mm.max;
+
+        }
+        
 
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
@@ -1086,16 +1094,11 @@ gboolean yfWriteFlow(
     rec.ingressInterface = val->netIf;
     rec.egressInterface = rval->netIf;
 
-    if (rec.ingressInterface || rec.egressInterface) {
-        wtid |= YTF_PHY;    
-    }
-
     /* Set flags based on exported record properties */
     
     /* Set biflow flag */
     if (rec.reversePacketCount) {
         wtid |= YTF_BIF;
-        etid = YTF_BIF;
     }
     
     /* Set RLE flag */
