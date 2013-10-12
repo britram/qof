@@ -241,7 +241,7 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
 FB_IESPEC_NULL
 };
 
-#define QOF_EXPORT_SPEC_SZ 86
+#define QOF_EXPORT_SPEC_SZ 96
 static fbInfoElementSpec_t qof_export_spec[QOF_EXPORT_SPEC_SZ];
 static size_t qof_export_spec_count = 0;
 
