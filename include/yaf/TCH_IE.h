@@ -21,7 +21,7 @@
 static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("tcpSequenceCount", TCH_PEN, 1024, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("tcpRetransmitCount", TCH_PEN, 1025, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
-     FB_IE_INIT("maxTcpReorderSize", TCH_PEN, 1026, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("maxTcpSequenceJump", TCH_PEN, 1026, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("minTcpRttMilliseconds", TCH_PEN, 1029, 4, FB_IE_F_ENDIAN),
      FB_IE_INIT("lastTcpRttMilliseconds", TCH_PEN, 1030, 4, FB_IE_F_ENDIAN),
      FB_IE_INIT("ectMarkCount", TCH_PEN, 1031, 8, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),

@@ -62,7 +62,7 @@ def fixread(c)
             h[:tcpSequenceCount],
             h[:tcpRetransmitCount],
             h[:tcpOutOfOrderCount],
-            h[:maxTcpReorderSize],
+            h[:maxTcpSequenceJump],
             h[:minTcpRttMilliseconds],
             h[:tcpRttMilliseconds],
             h[:observedTcpMss]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")
@@ -78,7 +78,7 @@ def fixread(c)
             h[:reverseTcpSequenceCount],
             h[:reverseTcpRetransmitCount],
             h[:reverseTcpOutOfOrderCount],
-            h[:reverseMaxTcpReorderSize],
+            h[:reverseMaxTcpSequenceJump],
             h[:reverseMinTcpRttMilliseconds],
             h[:reverseTcpRttMilliseconds],
             h[:reverseObservedTcpMss]].map { |s| s ? "%7u"%(s) : "     na" }.join(", ")

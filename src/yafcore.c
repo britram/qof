@@ -184,8 +184,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSelAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
-    { "maxTcpReorderSize",                  4, YTF_TCP },
-    { "reverseMaxTcpReorderSize",           4, YTF_TCP | YTF_BIF},
+    { "maxTcpSequenceJump",                  4, YTF_TCP },
+    { "reverseMaxTcpSequenceJump",           4, YTF_TCP | YTF_BIF},
     { "qofTcpCharacteristics",              4, YTF_TCP },
     { "reverseQofTcpCharacteristics",       4, YTF_TCP | YTF_BIF},
     { "minTcpRwin",                         4, YTF_TCP },
@@ -293,8 +293,8 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSelAckCount;
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
-    uint32_t    maxTcpReorderSize;
-    uint32_t    reverseMaxTcpReorderSize;
+    uint32_t    maxTcpSequenceJump;
+    uint32_t    reverseMaxTcpSequenceJump;
     uint32_t    qofTcpCharacteristics;
     uint32_t    reverseQofTcpCharacteristics;
     uint32_t    minTcpRwin;
@@ -427,8 +427,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSelAckCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceNumber);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceNumber);
-    CHECK_OFFSET(yfIpfixFlow_t,maxTcpReorderSize);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpReorderSize);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpSequenceJump);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpSequenceJump);
     CHECK_OFFSET(yfIpfixFlow_t,qofTcpCharacteristics);
     CHECK_OFFSET(yfIpfixFlow_t,reverseQofTcpCharacteristics);
     CHECK_OFFSET(yfIpfixFlow_t,minTcpRwin);
@@ -1004,8 +1004,8 @@ gboolean yfWriteFlow(
         rec.reverseTcpRtxBurstCount = 0; /* FIXME make burst loss work again */
         rec.tcpOutOfOrderCount = val->tcpseq.ooo;
         rec.reverseTcpOutOfOrderCount = rval->tcpseq.ooo;
-        rec.maxTcpReorderSize = val->tcpseq.maxooo; /* FIXME rename this */
-        rec.reverseMaxTcpReorderSize = rval->tcpseq.maxooo; /* FIXME rename this */
+        rec.maxTcpSequenceJump = val->tcpseq.maxooo;
+        rec.reverseMaxTcpSequenceJump = rval->tcpseq.maxooo;
         rec.tcpDupAckCount = val->tcpack.dup_ct;
         rec.reverseTcpDupAckCount = rval->tcpack.dup_ct;
         rec.tcpSelAckCount = val->tcpack.sel_ct;

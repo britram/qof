@@ -67,7 +67,7 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"destinationMacAddress",   CFG_OFF(enable_mac), QF_CONFIG_BOOL},
     {"vlanId",                  CFG_OFF(enable_mac), QF_CONFIG_BOOL},
     {"tcpSequenceCount",        CFG_OFF(enable_seq), QF_CONFIG_BOOL},
-    {"maxTcpReorderSize",       CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"maxTcpSequenceJump",       CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpSequenceLossCount",    CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpRetransmitCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpOutOfOrderCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
