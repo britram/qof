@@ -97,7 +97,7 @@ static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b) {
 
 }
 
-static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
+static int qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     int i;
     uint32_t rtxoct = 0, nexa, nexb;
 
@@ -167,8 +167,15 @@ static void qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     /* Done. Count retransmit */
     if (rtxoct) {
         qs->rtx++;
+        return 1;
+    } else {
+        return 0;
     }
     
+}
+
+static void qfLossBurst(qfSeq_t *qs, qfRtt_t *rtt,
+                        uint32_t ms, unsigned count) {
 }
 
 void qfSeqFirstSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct,
@@ -184,8 +191,10 @@ void qfSeqFirstSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct,
     
 }
 
-int qfSeqSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct,
-                 uint32_t ms, uint32_t tsval, gboolean do_ts, gboolean do_iat) {
+int qfSeqSegment(qfSeq_t *qs, qfRtt_t *rtt, uint16_t mss,
+                 uint8_t flags, uint32_t seq, uint32_t oct,
+                 uint32_t ms, uint32_t tsval,
+                 gboolean do_ts, gboolean do_iat) {
 
     uint32_t lastms = 0;
     
@@ -197,10 +206,22 @@ int qfSeqSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct,
         if (seq - qs->nsn > qs->maxooo) {
             qs->maxooo = seq - qs->nsn;
         }
-        qfSeqGapFill(qs, seq, seq + oct);
+        if (qfSeqGapFill(qs, seq, seq + oct)) {
+            qfLossBurst(qs, rtt, ms, 1);
+        }
     } else {
         /* Sequence beyond NSN: push */
-        if (seq != qs->nsn) qfSeqGapPush(qs, qs->nsn, seq);
+        if (seq != qs->nsn) {
+            qfSeqGapPush(qs, qs->nsn, seq);
+
+            /* signal loss for burst tracking */
+            qfLossBurst(qs, rtt, ms, ((seq - qs->nsn) / mss + 1) + 1);
+            
+            /* track max out of order */
+            if (seq - qs->nsn > qs->maxooo) {
+                qs->maxooo = seq - qs->nsn;
+            }
+        }
         
         /* Detect wrap */
         if (seq + oct < qs->nsn) qs->wrapct++;

@@ -784,7 +784,8 @@ static void yfFlowPktTCP(
         /* Not the first packet. Union flags, track sequence number */
         val->uflags |= tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
-            seqadv = qfSeqSegment(&val->tcp->seq, tcpinfo->flags,
+            seqadv = qfSeqSegment(&val->tcp->seq, &fn->f.rtt,
+                                  val->tcp->opts.mss, tcpinfo->flags,
                                   tcpinfo->seq, (uint32_t) datalen,
                                   lms, tcpinfo->tsval,
                                   flowtab->tcp_ts_enable,

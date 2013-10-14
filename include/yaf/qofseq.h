@@ -18,6 +18,7 @@
 
 #include <yaf/autoinc.h>
 #include <yaf/streamstat.h>
+#include <yaf/qofrtt.h>
 
 #define QF_SEQGAP_CT 8
 
@@ -71,14 +72,10 @@ void qfSeqFirstSegment(qfSeq_t *qs,
                        uint32_t tsval,
                        gboolean do_ts);
 
-int qfSeqSegment(qfSeq_t *qs,
-                  uint8_t flags,
-                  uint32_t seq,
-                  uint32_t oct,
-                  uint32_t ms,
-                  uint32_t tsval,
-                  gboolean do_ts,
-                  gboolean do_iat);
+int qfSeqSegment(qfSeq_t *qs, qfRtt_t *rtt, uint16_t mss,
+                 uint8_t flags, uint32_t seq, uint32_t oct,
+                 uint32_t ms, uint32_t tsval,
+                 gboolean do_ts, gboolean do_iat);
 
 uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags);
 
