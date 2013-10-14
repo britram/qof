@@ -160,8 +160,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "tcpRtxBurstCount",                   8, YTF_TCP | YTF_FLE },
-    { "reverseTcpRtxBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
+    { "tcpLossBurstCount",                   8, YTF_TCP | YTF_FLE },
+    { "reverseTcpLossBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
     { "tcpOutOfOrderCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpOutOfOrderCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpDupAckCount",                     8, YTF_TCP | YTF_FLE | YTF_BIF },
@@ -174,8 +174,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpRtxBurstCount",                   4, YTF_TCP | YTF_RLE },
-    { "reverseTcpRtxBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpLossBurstCount",                   4, YTF_TCP | YTF_RLE },
+    { "reverseTcpLossBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpOutOfOrderCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpOutOfOrderCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpDupAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
@@ -291,8 +291,8 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSequenceLossCount;
     uint64_t    tcpRetransmitCount;
     uint64_t    reverseTcpRetransmitCount;
-    uint64_t    tcpRtxBurstCount;
-    uint64_t    reverseTcpRtxBurstCount;
+    uint64_t    tcpLossBurstCount;
+    uint64_t    reverseTcpLossBurstCount;
     uint64_t    tcpOutOfOrderCount;
     uint64_t    reverseTcpOutOfOrderCount;
     uint64_t    tcpDupAckCount;
@@ -433,8 +433,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceLossCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpRetransmitCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRetransmitCount);
-    CHECK_OFFSET(yfIpfixFlow_t,tcpRtxBurstCount);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRtxBurstCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpLossBurstCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpLossBurstCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpOutOfOrderCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpOutOfOrderCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpDupAckCount);
@@ -1029,9 +1029,9 @@ gboolean yfWriteFlow(
                                               val->iflags | val->uflags);
             rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcp->seq);
             rec.tcpRetransmitCount = val->tcp->seq.rtx;
-            rec.tcpRtxBurstCount = 0; /* FIXME make burst loss work again */
             rec.tcpOutOfOrderCount = val->tcp->seq.ooo;
             rec.maxTcpSequenceJump = val->tcp->seq.maxooo;
+            rec.tcpLossBurstCount = val->tcp->seq.burstct;
             rec.tcpDupAckCount = val->tcp->ack.dup_ct;
             rec.tcpSelAckCount = val->tcp->ack.sel_ct;
             rec.qofTcpCharacteristics = val->tcp->opts.flags;
@@ -1051,9 +1051,9 @@ gboolean yfWriteFlow(
                                           rval->iflags | rval->uflags);
             rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcp->seq);
             rec.reverseTcpRetransmitCount = rval->tcp->seq.rtx;
-            rec.reverseTcpRtxBurstCount = 0; /* FIXME make burst loss work again */
             rec.reverseTcpOutOfOrderCount = rval->tcp->seq.ooo;
             rec.reverseMaxTcpSequenceJump = rval->tcp->seq.maxooo;
+            rec.reverseTcpLossBurstCount = rval->tcp->seq.burstct;
             rec.reverseTcpDupAckCount = rval->tcp->ack.dup_ct;
             rec.reverseTcpSelAckCount = rval->tcp->ack.sel_ct;
             rec.reverseQofTcpCharacteristics = rval->tcp->opts.flags;

@@ -60,6 +60,10 @@ typedef struct qfSeq_st {
     uint32_t        maxooo;
     /** Sequence loss count */
     uint32_t        seqlost;
+    /** Burst loss count */
+    uint32_t        burstct;
+    /** Burst loss last start */
+    uint32_t        burstlms;
 } qfSeq_t;
 
 #endif /* idem */

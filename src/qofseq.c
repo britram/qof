@@ -83,8 +83,8 @@ static uint32_t qfSeqGapUnshift(qfSeqGap_t *sg, unsigned i) {
     return lost;
 }
 
-static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b) {
-    qs->ooo++;
+static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b, uint16_t mss) {
+    qs->ooo += ((b - a) / (mss + 1)) + 1;
     if (!qfSeqGapEmpty(qs->gaps, 0) && (a == qs->gaps[0].a)) {
         /* Special case: extend an existing gap */
         qs->gaps[0].b = b;
@@ -174,8 +174,11 @@ static int qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     
 }
 
-static void qfLossBurst(qfSeq_t *qs, qfRtt_t *rtt,
-                        uint32_t ms, unsigned count) {
+static void qfLossBurst(qfSeq_t *qs, qfRtt_t *rtt, uint32_t ms) {
+    if (ms > (qs->burstlms + rtt->val.val)) {
+        qs->burstlms = ms;
+        qs->burstct++;
+    }
 }
 
 void qfSeqFirstSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct,
@@ -187,8 +190,6 @@ void qfSeqFirstSegment(qfSeq_t *qs, uint8_t flags, uint32_t seq, uint32_t oct,
         qs->initlms = ms;
         qs->initsval = tsval;
     }
-
-    
 }
 
 int qfSeqSegment(qfSeq_t *qs, qfRtt_t *rtt, uint16_t mss,
@@ -207,15 +208,15 @@ int qfSeqSegment(qfSeq_t *qs, qfRtt_t *rtt, uint16_t mss,
             qs->maxooo = seq - qs->nsn;
         }
         if (qfSeqGapFill(qs, seq, seq + oct)) {
-            qfLossBurst(qs, rtt, ms, 1);
+            qfLossBurst(qs, rtt, ms);
         }
     } else {
         /* Sequence beyond NSN: push */
         if (seq != qs->nsn) {
-            qfSeqGapPush(qs, qs->nsn, seq);
+            qfSeqGapPush(qs, qs->nsn, seq, mss);
 
             /* signal loss for burst tracking */
-            qfLossBurst(qs, rtt, ms, ((seq - qs->nsn) / mss + 1) + 1);
+            qfLossBurst(qs, rtt, ms);
             
             /* track max out of order */
             if (seq - qs->nsn > qs->maxooo) {
