@@ -136,18 +136,18 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseOctetDeltaCount",             8, YTF_FLE | YTF_BIF },
     { "packetDeltaCount",                   8, YTF_FLE },
     { "reversePacketDeltaCount",            8, YTF_FLE | YTF_BIF },
-    { "initiatorOctets",                    8, YTF_FLE },
-    { "responderOctets",                    8, YTF_FLE | YTF_BIF },
-    { "initiatorPackets",                   8, YTF_FLE },
-    { "responderPackets",                   8, YTF_FLE | YTF_BIF },
+    { "transportOctetDeltaCount",                    8, YTF_FLE },
+    { "reverseTransportOctetDeltaCount",                    8, YTF_FLE | YTF_BIF },
+    { "transportPacketDeltaCount",                   8, YTF_FLE },
+    { "reverseTransportPacketDeltaCount",                   8, YTF_FLE | YTF_BIF },
     { "octetDeltaCount",                    4, YTF_RLE },
     { "reverseOctetDeltaCount",             4, YTF_RLE | YTF_BIF },
     { "packetDeltaCount",                   4, YTF_RLE },
     { "reversePacketDeltaCount",            4, YTF_RLE | YTF_BIF },
-    { "initiatorOctets",                    4, YTF_RLE },
-    { "responderOctets",                    4, YTF_RLE | YTF_BIF },
-    { "initiatorPackets",                   4, YTF_RLE },
-    { "responderPackets",                   4, YTF_RLE | YTF_BIF },
+    { "transportOctetDeltaCount",                    4, YTF_RLE },
+    { "reverseTransportOctetDeltaCount",                    4, YTF_RLE | YTF_BIF },
+    { "transportPacketDeltaCount",                   4, YTF_RLE },
+    { "reverseTransportPacketDeltaCount",                   4, YTF_RLE | YTF_BIF },
     /* Addresses */
     { "sourceIPv4Address",                  4, YTF_IP4 },
     { "destinationIPv4Address",             4, YTF_IP4 },
@@ -256,10 +256,10 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseOctetCount;
     uint64_t    packetCount;
     uint64_t    reversePacketCount;
-    uint64_t    initiatorOctets;
-    uint64_t    responderOctets;
-    uint64_t    initiatorPackets;
-    uint64_t    responderPackets;
+    uint64_t    transportOctetDeltaCount;
+    uint64_t    reverseTransportOctetDeltaCount;
+    uint64_t    transportPacketDeltaCount;
+    uint64_t    reverseTransportPacketDeltaCount;
     /* Addresses */
     uint32_t    sourceIPv4Address;
     uint32_t    destinationIPv4Address;
@@ -387,10 +387,10 @@ void yfAlignmentCheck()
     RUN_CHECKS(yfIpfixFlow_t,reverseOctetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,packetCount,1);
     RUN_CHECKS(yfIpfixFlow_t,reversePacketCount,1);
-    RUN_CHECKS(yfIpfixFlow_t,initiatorOctets,1);
-    RUN_CHECKS(yfIpfixFlow_t,responderOctets,1);
-    RUN_CHECKS(yfIpfixFlow_t,initiatorPackets,1);
-    RUN_CHECKS(yfIpfixFlow_t,responderPackets,1);
+    RUN_CHECKS(yfIpfixFlow_t,transportOctetDeltaCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTransportOctetDeltaCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,transportPacketDeltaCount,1);
+    RUN_CHECKS(yfIpfixFlow_t,reverseTransportPacketDeltaCount,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceIPv4Address,1);
     RUN_CHECKS(yfIpfixFlow_t,destinationIPv4Address,1);
     RUN_CHECKS(yfIpfixFlow_t,sourceIPv6Address,0); // arrays don't need alignment
@@ -942,10 +942,10 @@ gboolean yfWriteFlow(
     rec.reverseOctetCount = rval->oct;
     rec.packetCount = val->pkt;
     rec.reversePacketCount = rval->pkt;
-    rec.initiatorOctets = val->appoct;
-    rec.responderOctets = rval->appoct;
-    rec.initiatorPackets = val->apppkt;
-    rec.responderPackets = rval->apppkt;
+    rec.transportOctetDeltaCount = val->appoct;
+    rec.reverseTransportOctetDeltaCount = rval->appoct;
+    rec.transportPacketDeltaCount = val->apppkt;
+    rec.reverseTransportPacketDeltaCount = rval->apppkt;
     
     /* set ingress and egress interface from map if not already set */
     if (yaf_core_ifmap) {

@@ -14,10 +14,10 @@ template:
     - reversePacketDeltaCount
     - octetDeltaCount
     - reverseOctetDeltaCount
-    - initiatorOctets
-    - responderOctets
-    - initiatorPackets
-    - responderPackets
+    - transportOctetDeltaCount
+    - reverseTransportOctetDeltaCount
+    - transportPacketDeltaCount
+    - reverseTransportPacketDeltaCount
     - tcpSequenceCount
     - reverseTcpSequenceCount
     - tcpSequenceLossCount
