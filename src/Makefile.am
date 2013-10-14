@@ -46,7 +46,7 @@ bin_PROGRAMS = qof
 
 libqof_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c \
                     bitmap.c streamstat.c qofifmap.c qofmaclist.c \
-                    qofseq.c qofack.c qofrtt.c qofrwin.c qofopt.c qofts.c
+                    qofseq.c qofack.c qofrtt.c qofrwin.c qofopt.c
 
 if CYGWIN
 libqof_la_SOURCES += yafcygwin.c

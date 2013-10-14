@@ -25,8 +25,8 @@ template:
     - reverseTcpSequenceLossCount
     - tcpRetransmitCount
     - reverseTcpRetransmitCount
-    - tcpRtxBurstCount
-    - reverseTcpRtxBurstCount
+    - tcpLossBurstCount
+    - reverseTcpLossBurstCount
     - tcpOutOfOrderCount
     - reverseTcpOutOfOrderCount
     - tcpDupAckCount
@@ -56,5 +56,14 @@ template:
     - reverseTcpReceiverStallCount
     - tcpTimestampFrequency
     - reverseTcpTimestampFrequency
+    - minTcpChirpMilliseconds
+    - reverseMinTcpChirpMilliseconds
+    - maxTcpChirpMilliseconds
+    - reverseMaxTcpChirpMilliseconds
+    - minTcpIOTMilliseconds
+    - reverseMinTcpIOTMilliseconds
+    - maxTcpIOTMilliseconds
+    - reverseMaxTcpIOTMilliseconds
+
 #source-net:
 #    - 130.216.0.0/16

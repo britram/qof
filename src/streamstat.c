@@ -18,29 +18,36 @@
 #include <yaf/streamstat.h>
 #include <math.h>
 
-static const uint32_t kDefaultAlpha = 8;
+static const int kDefaultAlpha = 8;
+
+void sstMinMaxInit(sstMinMax_t *v) {
+    memset(v, 0, sizeof(*v));
+}
+
+void sstMinMaxAdd(sstMinMax_t *v, int x) {
+    if (x > v->max) {
+        v->max = x;
+    } else if (x < v->min) {
+        v->min = x;
+    }    
+}
 
 void sstMeanInit(sstMean_t *v) {
     memset(v, 0, sizeof(*v));
 }
 
-void sstMeanAdd(sstMean_t *v, uint32_t x) {
+void sstMeanAdd(sstMean_t *v, int x) {
     double pmean;
     
     v->last = x;
     v->n++;
     
     if (v->n == 1) {
-        v->max = v->min = x;
+        v->mm.max = v->mm.min = x;
         v->mean = x;
         v->s = 0.0;
     } else {
-        if (x > v->max) {
-            v->max = x;
-        } else if (x < v->min) {
-            v->min = x;
-        }
-        
+        sstMinMaxAdd(&v->mm, x);
         pmean = v->mean;
         v->mean = v->mean + ((x - v->mean) / v->n);
         v->s = v->s + ((x - pmean) * (x - v->mean));
@@ -60,17 +67,14 @@ void sstLinSmoothInit(sstLinSmooth_t *v) {
     memset(v, 0, sizeof(*v));
 }
 
-void sstLinSmoothAdd(sstLinSmooth_t *v, uint32_t x) {
-    if (!v->val && !v->min && !v->max) {
-        v->val = v->max = v->min = x;
+void sstLinSmoothAdd(sstLinSmooth_t *v, int x) {
+    if (!v->val && !v->mm.min && !v->mm.max) {
+        v->val = v->mm.max = v->mm.min = x;
         if (!v->alpha) v->alpha = kDefaultAlpha;
     } else {
-        if (x > v->max) {
-            v->max = x;
-        } else if (x < v->min) {
-            v->min = x;
-        }
+        sstMinMaxAdd(&v->mm, x);
         v->val = ((v->val * (v->alpha - 1)) + x) / v->alpha;
     }
     ++v->n;
 }
+

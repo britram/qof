@@ -98,7 +98,7 @@
 #define YTF_BIF         0x0001  /* Biflow */
 #define YTF_TCP         0x0002  /* TCP and extended TCP */
 #define YTF_RTT         0x0004  /* valid RTT information available */
-#define YTF_PHY         0x0008  /* PHY layer information */
+#define YTF_TSV         0x0008  /* valid timestamp information available */
 
 /* Special dimensions -- one of each group must be present */
 #define YTF_IP4         0x0010  /* IPv4 addresses */
@@ -160,8 +160,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "tcpRtxBurstCount",                   8, YTF_TCP | YTF_FLE },
-    { "reverseTcpRtxBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
+    { "tcpLossBurstCount",                   8, YTF_TCP | YTF_FLE },
+    { "reverseTcpLossBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
     { "tcpOutOfOrderCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpOutOfOrderCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpDupAckCount",                     8, YTF_TCP | YTF_FLE | YTF_BIF },
@@ -174,8 +174,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpRtxBurstCount",                   4, YTF_TCP | YTF_RLE },
-    { "reverseTcpRtxBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpLossBurstCount",                   4, YTF_TCP | YTF_RLE },
+    { "reverseTcpLossBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpOutOfOrderCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpOutOfOrderCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpDupAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
@@ -184,10 +184,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSelAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSequenceNumber",                  4, YTF_TCP },
     { "reverseTcpSequenceNumber",           4, YTF_TCP | YTF_BIF },
-    { "maxTcpFlightSize",                   4, YTF_RTT },
-    { "reverseMaxTcpFlightSize",            4, YTF_RTT },
-    { "maxTcpReorderSize",                  4, YTF_TCP },
-    { "reverseMaxTcpReorderSize",           4, YTF_TCP | YTF_BIF},
+    { "maxTcpSequenceJump",                 4, YTF_TCP },
+    { "reverseMaxTcpSequenceJump",          4, YTF_TCP | YTF_BIF},
     { "qofTcpCharacteristics",              4, YTF_TCP },
     { "reverseQofTcpCharacteristics",       4, YTF_TCP | YTF_BIF},
     { "minTcpRwin",                         4, YTF_TCP },
@@ -198,8 +196,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMaxTcpRwin",                  4, YTF_TCP | YTF_BIF},
     { "tcpReceiverStallCount",              4, YTF_TCP },
     { "reverseTcpReceiverStallCount",       4, YTF_TCP | YTF_BIF},
-    { "tcpTimestampFrequency",              4, YTF_TCP },
-    { "reverseTcpTimestampFrequency",       4, YTF_TCP | YTF_BIF},
+    { "tcpTimestampFrequency",              4, YTF_TCP | YTF_TSV },
+    { "reverseTcpTimestampFrequency",       4, YTF_TCP | YTF_TSV | YTF_BIF},
     { "tcpRttSampleCount",                  4, YTF_RTT },
     { "lastTcpRttMilliseconds",             2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
@@ -207,6 +205,14 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseDeclaredTcpMss",              2, YTF_TCP | YTF_BIF },
     { "observedTcpMss",                     2, YTF_TCP },
     { "reverseObservedTcpMss",              2, YTF_TCP | YTF_BIF },
+    { "minTcpIOTMilliseconds",              4, YTF_TCP },
+    { "reverseMinTcpIOTMilliseconds",       4, YTF_TCP | YTF_BIF},
+    { "maxTcpIOTMilliseconds",              4, YTF_TCP },
+    { "reverseMaxTcpIOTMilliseconds",       4, YTF_TCP | YTF_BIF},
+    { "minTcpChirpMilliseconds",            2, YTF_TCP | YTF_TSV},
+    { "reverseMinTcpChirpMilliseconds",     2, YTF_TCP | YTF_TSV | YTF_BIF},
+    { "maxTcpChirpMilliseconds",            2, YTF_TCP | YTF_TSV },
+    { "reverseMaxTcpChirpMilliseconds",     2, YTF_TCP | YTF_TSV | YTF_BIF},
     /* First-packet RTT (for all biflows) */
     { "reverseFlowDeltaMilliseconds",       4, YTF_BIF },
     /* port, protocol, flow status, interfaces */
@@ -214,8 +220,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "destinationTransportPort",           2, 0 },
     { "protocolIdentifier",                 1, 0 },
     { "flowEndReason",                      1, 0 },
-    { "ingressInterface",                   1, YTF_PHY },
-    { "egressInterface",                    1, YTF_PHY },
+    { "ingressInterface",                   1, 0 },
+    { "egressInterface",                    1, 0 },
     /* Layer 2 information */
     { "sourceMacAddress",                   6, 0 },
     { "destinationMacAddress",              6, 0 },
@@ -235,7 +241,7 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
 FB_IESPEC_NULL
 };
 
-#define QOF_EXPORT_SPEC_SZ 86
+#define QOF_EXPORT_SPEC_SZ 96
 static fbInfoElementSpec_t qof_export_spec[QOF_EXPORT_SPEC_SZ];
 static size_t qof_export_spec_count = 0;
 
@@ -285,8 +291,8 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSequenceLossCount;
     uint64_t    tcpRetransmitCount;
     uint64_t    reverseTcpRetransmitCount;
-    uint64_t    tcpRtxBurstCount;
-    uint64_t    reverseTcpRtxBurstCount;
+    uint64_t    tcpLossBurstCount;
+    uint64_t    reverseTcpLossBurstCount;
     uint64_t    tcpOutOfOrderCount;
     uint64_t    reverseTcpOutOfOrderCount;
     uint64_t    tcpDupAckCount;
@@ -295,10 +301,8 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSelAckCount;
     uint32_t    tcpSequenceNumber;
     uint32_t    reverseTcpSequenceNumber;
-    uint32_t    maxTcpFlightSize;
-    uint32_t    reverseMaxTcpFlightSize;
-    uint32_t    maxTcpReorderSize;
-    uint32_t    reverseMaxTcpReorderSize;
+    uint32_t    maxTcpSequenceJump;
+    uint32_t    reverseMaxTcpSequenceJump;
     uint32_t    qofTcpCharacteristics;
     uint32_t    reverseQofTcpCharacteristics;
     uint32_t    minTcpRwin;
@@ -318,6 +322,14 @@ typedef struct yfIpfixFlow_st {
     uint16_t    reverseDeclaredTcpMss;
     uint16_t    observedTcpMss;
     uint16_t    reverseObservedTcpMss;
+    uint32_t    minTcpIOTMilliseconds;
+    uint32_t    reverseMinTcpIOTMilliseconds;
+    uint32_t    maxTcpIOTMilliseconds;
+    uint32_t    reverseMaxTcpIOTMilliseconds;
+    int16_t     minTcpChirpMilliseconds;
+    int16_t     reverseMinTcpChirpMilliseconds;
+    int16_t     maxTcpChirpMilliseconds;
+    int16_t     reverseMaxTcpChirpMilliseconds;
     /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
@@ -421,8 +433,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceLossCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpRetransmitCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRetransmitCount);
-    CHECK_OFFSET(yfIpfixFlow_t,tcpRtxBurstCount);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRtxBurstCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpLossBurstCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpLossBurstCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpOutOfOrderCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpOutOfOrderCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpDupAckCount);
@@ -431,10 +443,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSelAckCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceNumber);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceNumber);
-    CHECK_OFFSET(yfIpfixFlow_t,maxTcpFlightSize);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpFlightSize);
-    CHECK_OFFSET(yfIpfixFlow_t,maxTcpReorderSize);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpReorderSize);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpSequenceJump);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpSequenceJump);
     CHECK_OFFSET(yfIpfixFlow_t,qofTcpCharacteristics);
     CHECK_OFFSET(yfIpfixFlow_t,reverseQofTcpCharacteristics);
     CHECK_OFFSET(yfIpfixFlow_t,minTcpRwin);
@@ -454,6 +464,14 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseDeclaredTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,observedTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,reverseObservedTcpMss);
+    CHECK_OFFSET(yfIpfixFlow_t,minTcpIOTMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMinTcpIOTMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpIOTMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpIOTMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,minTcpChirpMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMinTcpChirpMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,maxTcpChirpMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpChirpMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,reverseFlowDeltaMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,sourceTransportPort);
     CHECK_OFFSET(yfIpfixFlow_t,destinationTransportPort);
@@ -913,8 +931,8 @@ gboolean yfWriteFlow(
 {
     yfIpfixFlow_t       rec;
     uint16_t            wtid;
-    uint16_t            etid = 0; /* extra templates */
-
+    uint32_t            hz, rhz;
+    
     yfFlowVal_t         *val, *rval;
     yfFlowKey_t         kbuf, *key;
     
@@ -998,57 +1016,77 @@ gboolean yfWriteFlow(
     /* TCP flow; copy TCP data and enable export */
     if (key->proto == YF_PROTO_TCP) {
         wtid |= YTF_TCP;
-        rec.tcpSequenceCount = qfSeqCount(&val->tcpseq,
-                               val->iflags | val->uflags);
-        rec.reverseTcpSequenceCount = qfSeqCount(&rval->tcpseq,
-                                      rval->iflags | rval->uflags);
-        rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcpseq);
-        rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcpseq);
-        rec.tcpRetransmitCount = val->tcpseq.rtx;
-        rec.reverseTcpRetransmitCount = rval->tcpseq.rtx;
-        rec.tcpRtxBurstCount = 0; /* FIXME make burst loss work again */
-        rec.reverseTcpRtxBurstCount = 0; /* FIXME make burst loss work again */
-        rec.tcpOutOfOrderCount = val->tcpseq.ooo;
-        rec.reverseTcpOutOfOrderCount = rval->tcpseq.ooo;
-        rec.maxTcpReorderSize = val->tcpseq.maxooo; /* FIXME rename this */
-        rec.reverseMaxTcpReorderSize = rval->tcpseq.maxooo; /* FIXME rename this */
-        rec.tcpDupAckCount = val->tcpack.dup_ct;
-        rec.reverseTcpDupAckCount = rval->tcpack.dup_ct;
-        rec.tcpSelAckCount = val->tcpack.sel_ct;
-        rec.reverseTcpSelAckCount = rval->tcpack.sel_ct;
-        rec.qofTcpCharacteristics = val->opts.flags;
-        rec.reverseQofTcpCharacteristics = rval->opts.flags;
-        rec.tcpSequenceNumber = val->tcpseq.isn;
-        rec.reverseTcpSequenceNumber = rval->tcpseq.isn;
+
         rec.initialTCPFlags = val->iflags;
         rec.reverseInitialTCPFlags = rval->iflags;
         rec.unionTCPFlags = val->uflags;
         rec.reverseUnionTCPFlags = rval->uflags;
         rec.tcpControlBits = val->iflags | val->uflags;
         rec.reverseTcpControlBits = rval->iflags | rval->uflags;
-        rec.observedTcpMss = val->opts.mss;
-        rec.reverseObservedTcpMss = rval->opts.mss;
-        rec.declaredTcpMss = val->opts.mss_opt;
-        rec.reverseDeclaredTcpMss = rval->opts.mss_opt;
-        rec.minTcpRwin = val->tcprwin.val.min;
-        rec.reverseMinTcpRwin = rval->tcprwin.val.min;
-        rec.meanTcpRwin = (uint32_t)val->tcprwin.val.mean;
-        rec.reverseMeanTcpRwin = (uint32_t)rval->tcprwin.val.mean;
-        rec.maxTcpRwin = val->tcprwin.val.max;
-        rec.reverseMaxTcpRwin = rval->tcprwin.val.max;
-        rec.tcpReceiverStallCount = val->tcprwin.stall;
-        rec.reverseTcpReceiverStallCount = rval->tcprwin.stall;
-        rec.tcpTimestampFrequency = qfTimestampHz(&val->tsopt);
-        rec.reverseTcpTimestampFrequency =  qfTimestampHz(&rval->tsopt);
+        
+        if (val->tcp) {
+            rec.tcpSequenceCount = qfSeqCount(&val->tcp->seq,
+                                              val->iflags | val->uflags);
+            rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcp->seq);
+            rec.tcpRetransmitCount = val->tcp->seq.rtx;
+            rec.tcpOutOfOrderCount = val->tcp->seq.ooo;
+            rec.maxTcpSequenceJump = val->tcp->seq.maxooo;
+            rec.tcpLossBurstCount = val->tcp->seq.burstct;
+            rec.tcpDupAckCount = val->tcp->ack.dup_ct;
+            rec.tcpSelAckCount = val->tcp->ack.sel_ct;
+            rec.qofTcpCharacteristics = val->tcp->opts.flags;
+            rec.tcpSequenceNumber = val->tcp->seq.isn;
+            rec.observedTcpMss = val->tcp->opts.mss;
+            rec.declaredTcpMss = val->tcp->opts.mss_opt;
+            rec.minTcpRwin = val->tcp->rwin.val.mm.min;
+            rec.meanTcpRwin = (uint32_t)val->tcp->rwin.val.mean;
+            rec.maxTcpRwin = val->tcp->rwin.val.mm.max;
+            rec.tcpReceiverStallCount = val->tcp->rwin.stall;
+            rec.minTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.min;
+            rec.maxTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.max;
+        }
+        
+        if (rval->tcp) {
+            rec.reverseTcpSequenceCount = qfSeqCount(&rval->tcp->seq,
+                                          rval->iflags | rval->uflags);
+            rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcp->seq);
+            rec.reverseTcpRetransmitCount = rval->tcp->seq.rtx;
+            rec.reverseTcpOutOfOrderCount = rval->tcp->seq.ooo;
+            rec.reverseMaxTcpSequenceJump = rval->tcp->seq.maxooo;
+            rec.reverseTcpLossBurstCount = rval->tcp->seq.burstct;
+            rec.reverseTcpDupAckCount = rval->tcp->ack.dup_ct;
+            rec.reverseTcpSelAckCount = rval->tcp->ack.sel_ct;
+            rec.reverseQofTcpCharacteristics = rval->tcp->opts.flags;
+            rec.reverseTcpSequenceNumber = rval->tcp->seq.isn;
+            rec.reverseObservedTcpMss = rval->tcp->opts.mss;
+            rec.reverseDeclaredTcpMss = rval->tcp->opts.mss_opt;
+            rec.reverseMinTcpRwin = rval->tcp->rwin.val.mm.min;
+            rec.reverseMeanTcpRwin = (uint32_t)rval->tcp->rwin.val.mean;
+            rec.reverseMaxTcpRwin = rval->tcp->rwin.val.mm.max;
+            rec.reverseTcpReceiverStallCount = rval->tcp->rwin.stall;
+            rec.reverseMinTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.min;
+            rec.reverseMaxTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.max;
+        }
+        
+        if (val->tcp && rval->tcp &&
+            ((hz = qfTimestampHz(&val->tcp->seq)) ||
+            (rhz = qfTimestampHz(&rval->tcp->seq))))
+        {
+            wtid |= YTF_TSV;
+            rec.tcpTimestampFrequency = qfTimestampHz(&val->tcp->seq);
+            rec.reverseTcpTimestampFrequency =  qfTimestampHz(&rval->tcp->seq);
+            rec.minTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.min;
+            rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.min;
+            rec.maxTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.max;
+            rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.max;
+
+        }
+
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
-            rec.maxTcpFlightSize = 0; /* FIXME make flight size export work again */
-            rec.reverseMaxTcpFlightSize = 0; /* FIXME (would be nice if we 
-                                                could invent something that 
-                                                makes sense, too) */
             rec.lastTcpRttMilliseconds = flow->rtt.val.val;
-            rec.minTcpRttMilliseconds = flow->rtt.val.min;
+            rec.minTcpRttMilliseconds = flow->rtt.val.mm.min;
             rec.tcpRttSampleCount = flow->rtt.val.n;
         }
     }
@@ -1063,16 +1101,11 @@ gboolean yfWriteFlow(
     rec.ingressInterface = val->netIf;
     rec.egressInterface = rval->netIf;
 
-    if (rec.ingressInterface || rec.egressInterface) {
-        wtid |= YTF_PHY;    
-    }
-
     /* Set flags based on exported record properties */
     
     /* Set biflow flag */
     if (rec.reversePacketCount) {
         wtid |= YTF_BIF;
-        etid = YTF_BIF;
     }
     
     /* Set RLE flag */

@@ -67,7 +67,7 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"destinationMacAddress",   CFG_OFF(enable_mac), QF_CONFIG_BOOL},
     {"vlanId",                  CFG_OFF(enable_mac), QF_CONFIG_BOOL},
     {"tcpSequenceCount",        CFG_OFF(enable_seq), QF_CONFIG_BOOL},
-    {"maxTcpReorderSize",       CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"maxTcpSequenceJump",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpSequenceLossCount",    CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpRetransmitCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpOutOfOrderCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
@@ -79,6 +79,12 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"meanTcpRwin",             CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
     {"maxTcpRwin",              CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
     {"tcpTimestampFrequency",   CFG_OFF(enable_ts), QF_CONFIG_BOOL},
+    {"minTcpChirpMilliseconds", CFG_OFF(enable_ts), QF_CONFIG_BOOL},
+    {"maxTcpChirpMilliseconds", CFG_OFF(enable_ts), QF_CONFIG_BOOL},
+    {"minTcpIOTMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
+    {"maxTcpIOTMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
+    {"minTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
+    {"maxTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"tcpRttMilliseconds",      CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"qofTcpCharacteristics",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
@@ -88,6 +94,8 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"maxTcpRwin",              CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"tcpSelAckCount",          CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"tcpTimestampFrequency",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"minTcpChirpMilliseconds", CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"maxTcpChirpMilliseconds", CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
 };
 
