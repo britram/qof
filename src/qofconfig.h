@@ -30,6 +30,7 @@ typedef struct qfConfig_st {
     /* Features enabled explicitly */
     gboolean    enable_silk;    // SiLK compatibility mode
     gboolean    enable_gre;     // GRE decap mode
+    gboolean    enable_biforce; // force biflow export
     /* Flow state configuration */
     uint32_t    ato_ms;
     uint32_t    ito_ms;

@@ -449,6 +449,12 @@ gboolean yfWriterClose(
  * FIXME doc
  */
 
+void yfWriterForceBiflowExport(gboolean biforce_mode);
+
+/**
+ * FIXME doc
+ */
+
 void yfWriterExportMappedV6(gboolean map_mode);
 
 /**
