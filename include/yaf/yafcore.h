@@ -248,7 +248,7 @@ typedef struct qfOpt_st {
     uint32_t    flags;
     /* Advertised maximum segment size */
     uint16_t    mss_opt;
-    /* Observed maximum segment size */
+    /** Observed maximum segment size */
     uint16_t    mss;
 } qfOpt_t;
 

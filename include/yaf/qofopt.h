@@ -32,6 +32,6 @@
 void qfOptSegment(qfOpt_t *qo,
                   yfTCPInfo_t *tcpinfo,
                   yfIPInfo_t *ipinfo,
-                  uint32_t oct);
+                  uint16_t oct);
 
 #endif

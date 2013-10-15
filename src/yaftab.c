@@ -184,6 +184,7 @@ struct yfFlowTab_st {
     gboolean        tcp_ack_enable;
     gboolean        tcp_rtt_enable;
     gboolean        tcp_rwin_enable;
+    gboolean        tcp_opt_enable;
     gboolean        tcp_ts_enable;
     gboolean        tcp_iat_enable;
     /* Statistics */
@@ -584,6 +585,7 @@ yfFlowTab_t *yfFlowTabAlloc(
     gboolean        tcp_ack_enable,
     gboolean        tcp_rtt_enable,
     gboolean        tcp_rwin_enable,
+    gboolean        tcp_opt_enable,
     gboolean        tcp_ts_enable,
     gboolean        tcp_iat_enable)
 {
@@ -608,6 +610,7 @@ yfFlowTab_t *yfFlowTabAlloc(
     flowtab->tcp_ack_enable = tcp_ack_enable;
     flowtab->tcp_rtt_enable = tcp_rtt_enable;
     flowtab->tcp_rwin_enable = tcp_rwin_enable;
+    flowtab->tcp_opt_enable = tcp_opt_enable;
     flowtab->tcp_ts_enable = tcp_ts_enable,
     flowtab->tcp_iat_enable = tcp_iat_enable;
 
@@ -751,6 +754,7 @@ static void yfFlowPktIP( yfFlowTab_t                 *flowtab,
     if (ipinfo->ttl > val->maxttl) {
         val->maxttl = ipinfo->ttl;
     }
+    
 }
 
 /**
@@ -792,9 +796,17 @@ static void yfFlowPktTCP(
                                   flowtab->tcp_iat_enable);
         }
     } else {
-        /* First packet. Allocate a TCP structure for this direction */
-        val->tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
-         
+        /* First packet. Allocate a TCP structure for this direction,
+           if necessary */
+        if (flowtab->tcp_seq_enable ||
+            flowtab->tcp_ack_enable ||
+            flowtab->tcp_rwin_enable ||
+            flowtab->tcp_opt_enable ||
+            flowtab->tcp_ts_enable ||
+            flowtab->tcp_iat_enable) {
+            val->tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
+        }
+        
         /* Initial flags, start sequence number tracking */
         val->iflags = tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
@@ -824,7 +836,9 @@ static void yfFlowPktTCP(
     }
     
     /* Store information from options */
-    qfOptSegment(&val->tcp->opts, tcpinfo, ipinfo, (uint32_t) datalen);
+    if (flowtab->tcp_opt_enable) {
+        qfOptSegment(&val->tcp->opts, tcpinfo, ipinfo, (uint16_t)datalen);
+    }
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {

@@ -81,8 +81,8 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"tcpTimestampFrequency",   CFG_OFF(enable_ts), QF_CONFIG_BOOL},
     {"minTcpChirpMilliseconds", CFG_OFF(enable_ts), QF_CONFIG_BOOL},
     {"maxTcpChirpMilliseconds", CFG_OFF(enable_ts), QF_CONFIG_BOOL},
-    {"minTcpIOTMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
-    {"maxTcpIOTMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
+    {"minTcpIOTMilliseconds",   CFG_OFF(enable_iat), QF_CONFIG_BOOL},
+    {"maxTcpIOTMilliseconds",   CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"minTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"maxTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
@@ -970,6 +970,7 @@ void qfContextSetup(qfContext_t *ctx) {
                                   ctx->cfg.enable_ack,
                                   ctx->cfg.enable_rtt,
                                   ctx->cfg.enable_rwin,
+                                  ctx->cfg.enable_tcpopt,
                                   ctx->cfg.enable_ts,
                                   ctx->cfg.enable_iat);
     
