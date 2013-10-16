@@ -374,6 +374,7 @@ typedef struct yfIpfixStats_st {
 
 /* Core library configuration variables */
 static gboolean yaf_core_map_ipv6 = FALSE;
+static gboolean yaf_core_force_biflow = FALSE;
 static qfIfMap_t *yaf_core_ifmap = NULL;
 static qfNetList_t *yaf_source_netlist = NULL;
 static qfMacList_t *yaf_source_maclist = NULL;
@@ -496,6 +497,14 @@ void qfInternalTemplateCheck() {
 #undef EO_STRING
 #undef CHECK_OFFSET
 }
+
+
+void yfWriterForceBiflowExport(
+    gboolean            biforce_mode)
+{
+    yaf_core_force_biflow = biforce_mode;
+}
+
 
 void yfWriterExportMappedV6(
     gboolean            map_mode)
@@ -1104,7 +1113,7 @@ gboolean yfWriteFlow(
     /* Set flags based on exported record properties */
     
     /* Set biflow flag */
-    if (rec.reversePacketCount) {
+    if (yaf_core_force_biflow || rec.reversePacketCount) {
         wtid |= YTF_BIF;
     }
     
