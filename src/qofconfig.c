@@ -287,9 +287,9 @@ static gboolean qfYamlParseBool(yaml_parser_t      *parser,
     if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
     
     if (valbuf[0] == '0') {
-        val = FALSE;
+        *val = FALSE;
     } else {
-        val = TRUE;
+        *val = TRUE;
     }
     
     return TRUE;
