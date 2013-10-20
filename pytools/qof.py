@@ -118,8 +118,9 @@ def drop_incomplete(df):
     try:
         with_syn = ((df["initialTCPFlags"] & TCP_SYN) > 0) &\
                    ((df["reverseInitialTCPFlags"] & TCP_SYN) > 0)
+        df = df[with_syn]
         with_fin = (df["flowEndReason"] == END_FIN)
-        return df[with_syn & with_fin]
+        df = df[with_fin]
     except KeyError:
         return df
 
