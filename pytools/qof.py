@@ -62,6 +62,24 @@ def _dataframe_iterator(tuple_iterator, columns, chunksize=100000):
     for group in iter_group(tuple_iterator, chunksize):
         yield pd.DataFrame.from_records([rec for rec in 
                   filter(lambda a: a is not None, group)], columns=columns)
+
+def dataframe_from_ipfix_stream(stream, ienames=DEFAULT_QOF_IES, chunksize=100000):
+    """ 
+    read an IPFIX stream into a dataframe, selecting only records
+    containing all the named IEs. uses chunked reading from the ipfix iterator
+    to reduce memory requirements on read.
+     
+    """
+    ielist = ipfix.ie.spec_list(ienames)
+    columns = [ie.name for ie in ielist]
+    r = ipfix.reader.from_stream(stream)
+    
+    
+    # concatenate chunks from a dataframe iterator wrapped around
+    # the stream's tuple iterator
+    return pd.concat(_dataframe_iterator(r.tuple_iterator(ielist), 
+                                         columns, chunksize),
+                     ignore_index=True)
         
 def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000):
     """ 
@@ -69,22 +87,11 @@ def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000):
     containing all the named IEs. uses chunked reading from the ipfix iterator
     to reduce memory requirements on read.
      
-    """
-    ielist = ipfix.ie.spec_list(ienames)
-    
+    """    
     with open(filename, mode="rb") as f:
         # get a stream to read from
-        r = ipfix.reader.from_stream(f)
-        
-        # get column names
-        columns = [ie.name for ie in ielist]
-
-        # concatenate chunks from a dataframe iterator wrapped around
-        # the 
-        return pd.concat(_dataframe_iterator(r.tuple_iterator(ielist), 
-                                             columns, chunksize),
-                         ignore_index=True)
-
+        return dataframe_from_ipfix_stream(f, ienames, chunksize)
+ 
 def drop_lossy(df):
     """
     Filter out any rows for which observation loss was detected.
