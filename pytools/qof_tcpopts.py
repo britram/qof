@@ -92,6 +92,7 @@ def opts_report_stream(ipfix_stream):
     print_proportion("ECT0+ECT1", ecn_ect0_s & ecn_ect1_s)
     print_proportion("ECT0+CE", ecn_ce_s & ecn_ect0_s)
     print_proportion("ECT1+CE", ecn_ce_s & ecn_ect1_s)
+    print_proportion("any ECx", ecn_ce_s | ecn_ect0_s | ecn_ect1_s)
     print_proportion("all ECx", ecn_ce_s & ecn_ect0_s & ecn_ect1_s)
     print()
         
@@ -114,6 +115,10 @@ def opts_report_stream(ipfix_stream):
     sack_sources = ip4_sources_characteristic(df, qof.QOF_SACK)
     print("SACK observed from %8u sources (%8.5f%%)" % 
           (len(sack_sources), len(sack_sources) * 100 / len(all_sources)))
+
+    nego_sources = ip4_sources_given(df, ecn_nego_s, ecn_nego_s)
+    print("ECN nego involved %8u sources (%8.5f%%)" % 
+          (len(nego_sources), len(nego_sources) * 100 / len(all_sources)))
 
 parse_args()
 init_ipfix(args.spec)
