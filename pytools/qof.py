@@ -7,11 +7,11 @@ import ipfix.reader
 import pandas as pd
 import numpy as np
 import collections
+import itertools
 import bz2
 
 from ipaddress import ip_network
 from datetime import datetime, timedelta
-from itertools import zip_longest
 
 # Flags constants
 TCP_CWR = 0x80
@@ -56,14 +56,14 @@ DEFAULT_QOF_IES = [  "flowStartMilliseconds",
 
 def iter_group(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
-    return zip_longest(*args, fillvalue=fillvalue)
+    return itertools.zip_longest(*args, fillvalue=fillvalue)
 
 def _dataframe_iterator(tuple_iterator, columns, chunksize=100000):
     for group in iter_group(tuple_iterator, chunksize):
         yield pd.DataFrame.from_records([rec for rec in 
                   filter(lambda a: a is not None, group)], columns=columns)
 
-def dataframe_from_ipfix_stream(stream, ienames=DEFAULT_QOF_IES, chunksize=100000):
+def dataframe_from_ipfix_stream(stream, ienames=DEFAULT_QOF_IES, chunksize=100000, count=None):
     """ 
     read an IPFIX stream into a dataframe, selecting only records
     containing all the named IEs. uses chunked reading from the ipfix iterator
@@ -73,15 +73,16 @@ def dataframe_from_ipfix_stream(stream, ienames=DEFAULT_QOF_IES, chunksize=10000
     ielist = ipfix.ie.spec_list(ienames)
     columns = [ie.name for ie in ielist]
     r = ipfix.reader.from_stream(stream)
-    
+    i = r.tuple_iterator(ielist)
+    if count:
+        i = itertools.islice(i, count)
     
     # concatenate chunks from a dataframe iterator wrapped around
     # the stream's tuple iterator
-    return pd.concat(_dataframe_iterator(r.tuple_iterator(ielist), 
-                                         columns, chunksize),
+    return pd.concat(_dataframe_iterator(i, columns, chunksize),
                      ignore_index=True)
         
-def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000):
+def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000, count=None):
     """ 
     read an IPFIX file into a dataframe, selecting only records
     containing all the named IEs. uses chunked reading from the ipfix iterator
@@ -90,7 +91,7 @@ def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000):
     """    
     with open(filename, mode="rb") as f:
         # get a stream to read from
-        return dataframe_from_ipfix_stream(f, ienames, chunksize)
+        return dataframe_from_ipfix_stream(f, ienames, chunksize, count)
  
 def drop_lossy(df):
     """
