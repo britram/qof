@@ -663,9 +663,9 @@ static fbSession_t *yfInitExporterSession(
     if (!fbSessionAddTemplate(session, TRUE, YAF_FLOW_FULL_TID, tmpl, err)) {
         return NULL;
     }
-    if (!fbSessionAddTemplate(session, FALSE, YAF_FLOW_FULL_TID, tmpl, err)) {
-        return NULL;
-    }
+//    if (!fbSessionAddTemplate(session, FALSE, YAF_FLOW_FULL_TID, tmpl, err)) {
+//        return NULL;
+//    }
 
     /* Create the Statistics Template */
     /* FIXME check that the template looks like the structure */
