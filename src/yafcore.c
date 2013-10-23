@@ -160,10 +160,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "tcpLossBurstCount",                   8, YTF_TCP | YTF_FLE },
-    { "reverseTcpLossBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
-    { "tcpOutOfOrderCount",                 8, YTF_TCP | YTF_FLE },
-    { "reverseTcpOutOfOrderCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "tcpLossEventCount",                   8, YTF_TCP | YTF_FLE },
+    { "reverseTcpLossEventCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
+    { "tcpSequenceJumpCount",                 8, YTF_TCP | YTF_FLE },
+    { "reverseTcpSequenceJumpCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpDupAckCount",                     8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "reverseTcpDupAckCount",              8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSelAckCount",                     8, YTF_TCP | YTF_FLE | YTF_BIF },
@@ -174,10 +174,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpLossBurstCount",                   4, YTF_TCP | YTF_RLE },
-    { "reverseTcpLossBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpOutOfOrderCount",                 4, YTF_TCP | YTF_RLE },
-    { "reverseTcpOutOfOrderCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpLossEventCount",                   4, YTF_TCP | YTF_RLE },
+    { "reverseTcpLossEventCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpSequenceJumpCount",                 4, YTF_TCP | YTF_RLE },
+    { "reverseTcpSequenceJumpCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpDupAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "reverseTcpDupAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSelAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
@@ -291,10 +291,10 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSequenceLossCount;
     uint64_t    tcpRetransmitCount;
     uint64_t    reverseTcpRetransmitCount;
-    uint64_t    tcpLossBurstCount;
-    uint64_t    reverseTcpLossBurstCount;
-    uint64_t    tcpOutOfOrderCount;
-    uint64_t    reverseTcpOutOfOrderCount;
+    uint64_t    tcpLossEventCount;
+    uint64_t    reverseTcpLossEventCount;
+    uint64_t    tcpSequenceJumpCount;
+    uint64_t    reverseTcpSequenceJumpCount;
     uint64_t    tcpDupAckCount;
     uint64_t    reverseTcpDupAckCount;
     uint64_t    tcpSelAckCount;
@@ -434,10 +434,10 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceLossCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpRetransmitCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRetransmitCount);
-    CHECK_OFFSET(yfIpfixFlow_t,tcpLossBurstCount);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpLossBurstCount);
-    CHECK_OFFSET(yfIpfixFlow_t,tcpOutOfOrderCount);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpOutOfOrderCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpLossEventCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpLossEventCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceJumpCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceJumpCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpDupAckCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpDupAckCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpSelAckCount);
@@ -1038,9 +1038,9 @@ gboolean yfWriteFlow(
                                               val->iflags | val->uflags);
             rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcp->seq);
             rec.tcpRetransmitCount = val->tcp->seq.rtx;
-            rec.tcpOutOfOrderCount = val->tcp->seq.ooo;
+            rec.tcpSequenceJumpCount = val->tcp->seq.ooo;
             rec.maxTcpSequenceJump = val->tcp->seq.maxooo;
-            rec.tcpLossBurstCount = val->tcp->seq.burstct;
+            rec.tcpLossEventCount = val->tcp->seq.lossct;
             rec.tcpDupAckCount = val->tcp->ack.dup_ct;
             rec.tcpSelAckCount = val->tcp->ack.sel_ct;
             rec.qofTcpCharacteristics = val->tcp->opts.flags;
@@ -1060,9 +1060,9 @@ gboolean yfWriteFlow(
                                           rval->iflags | rval->uflags);
             rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcp->seq);
             rec.reverseTcpRetransmitCount = rval->tcp->seq.rtx;
-            rec.reverseTcpOutOfOrderCount = rval->tcp->seq.ooo;
+            rec.reverseTcpSequenceJumpCount = rval->tcp->seq.ooo;
             rec.reverseMaxTcpSequenceJump = rval->tcp->seq.maxooo;
-            rec.reverseTcpLossBurstCount = rval->tcp->seq.burstct;
+            rec.reverseTcpLossEventCount = rval->tcp->seq.lossct;
             rec.reverseTcpDupAckCount = rval->tcp->ack.dup_ct;
             rec.reverseTcpSelAckCount = rval->tcp->ack.sel_ct;
             rec.reverseQofTcpCharacteristics = rval->tcp->opts.flags;
