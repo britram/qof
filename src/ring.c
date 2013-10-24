@@ -57,7 +57,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/ring.h>
+#include <qof/ring.h>
 
 struct rgaRing_st {
     size_t          elt_sz;

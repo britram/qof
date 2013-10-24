@@ -120,9 +120,9 @@
 #ifndef _YAF_TAB_H_
 #define _YAF_TAB_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/yafcore.h>
-#include <yaf/decode.h>
+#include <qof/autoinc.h>
+#include <qof/yafcore.h>
+#include <qof/decode.h>
 
 
 struct yfFlowTab_st;

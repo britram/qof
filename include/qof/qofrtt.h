@@ -15,8 +15,8 @@
 #ifndef _QOF_RTT_H_
 #define _QOF_RTT_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/streamstat.h>
+#include <qof/autoinc.h>
+#include <qof/streamstat.h>
 
 typedef struct qfRttDir_st {
     /** Next ack/tsecr expected in this direction */

@@ -15,7 +15,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/streamstat.h>
+#include <qof/streamstat.h>
 #include <math.h>
 
 static const int kDefaultAlpha = 8;

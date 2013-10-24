@@ -1,0 +1,829 @@
+=pod
+
+=head1 NAME
+
+B<qof> - Quality of Flow (yet another yet another flowmeter)
+
+=head1 SYNOPSIS
+
+    qof     [--in LIBTRACE_URI] [--out OUTPUT_SPECIFIER]
+            [--ipfix TRANSPORT_PROTOCOL]
+            [--yaml CONFIG_FILE]
+            [--filter BPF_FILTER]
+            [--rotate ROTATE_DELAY] [--lock]
+            [--stats INTERVAL][--no-stats]
+            [--gre-decode] [--no-frag]
+            [--template-refresh TEMPLATE_TIMEOUT]
+            [--flow-stats]
+            [--observation-domain DOMAIN_ID]
+            [--ipfix-port PORT] [--tls] [--tls-ca CA_PEM_FILE]
+            [--tls-cert CERT_PEM_FILE] [--tls-key KEY_PEM_FILE]
+            [--become-user UNPRIVILEGED_USER]
+            [--become-group UNPRIVILEGED_GROUP]
+            [--log LOG_SPECIFIER] [--loglevel LOG_LEVEL]
+            [--verbose] [--version]
+
+=head1 DESCRIPTION
+
+B<qof> is an IPFIX (B<RFC 7011>) flow meter with an emphasis on passive
+TCP performance measurement. It is based on a fork of the B<yaf> flow meter.
+It reads packet data using B<libtrace>, which allows it to read from many 
+dumpfile formats as well as a variety of capture devices, generates flows 
+from these packets, and exports flow records via IPFIX over SCTP, TCP or UDP,
+or into B<RFC 5655> IPFIX Files on the local file system.
+
+Since B<qof> is designed to be deployed on white-box sensors attached to local
+network segments or span ports at symmetric routing points, it supports
+bidirectional flow assembly natively. Biflow export is done via the export
+method specified in B<RFC 5103> Bidirectional Flow Export using IPFIX. See the
+B<OUTPUT> section below for information on this format.
+
+As of this release, B<qof> is prerelease software. The command-line options,
+configuration interface, and output format may change wildly before a 
+1.0 release.
+
+=head1 OPTIONS
+
+=head2 Input Options
+
+These options control where B<qof> will take its input from.
+=over 4
+
+=item B<--in> I<LIBTRACE_URI>
+
+I<LIBTRACE_URI> is a libtrace URI. If no scheme is given, 
+assumes C<pcapfile:> to read from a named pcap dumpfile. 
+If not given, reads pcap dumpfiles from standard input.
+
+=item B<--filter> I<BPF_FILTER>
+
+If present, enable Berkeley Packet Filtering (BPF) in B<qof> with I<FILTER_EXPRESSION> as the incoming traffic filter.  The syntax of I<FILTER_EXPRESSION> follows the expression format described in the B<tcpdump(1)> man page.
+
+=back
+
+=head2 Output Options
+
+These options control where B<qof> will send its output. B<qof> can write flows
+to an IPFIX file or export flows to an IPFIX collector over SCTP, TCP, UDP, or Spread.
+By default, if no output options are given, B<qof> writes an IPFIX file to
+standard output.
+
+=over 4
+
+=item B<--out> I<OUTPUT_SPECIFIER>
+
+I<OUTPUT_SPECIFIER> is an output specifier. If B<--ipfix> is present,
+the I<OUTPUT_SPECIFIER> specifies the hostname or IP address of the
+collector to which the flows will be exported. Otherwise, I<OUTPUT_SPECIFIER> 
+is a filename in which the flows will be written; the string B<-> 
+may be used to write to standard output (the default).
+
+=back
+
+=item B<--ipfix> I<TRANSPORT_PROTOCOL>
+
+If present, causes B<qof> to operate as an IPFIX exporter, sending
+IPFIX Messages via the specified transport protocol to the collector (e.g.,
+SiLK's rwflowpack or flowcap facilities) named in the I<OUTPUT_SPECIFIER>.
+Valid I<TRANSPORT_PROTOCOL> values are B<tcp>, B<udp> or B<sctp>.
+B<sctp> is only available if B<qof> was built with SCTP support. 
+UDP is not recommended, as it is not a reliable transport protocol, 
+and cannot guarantee delivery of messages.  As per the recommendations in 
+RFC 5101, B<qof> will retransmit templates three times within the template 
+timeout period (configurable using B<--template-refresh>). Use the
+B<--ipfix-port>, B<--tls>, B<--tls-ca>, B<--tls-cert>, and B<--tls-key>
+options to further configure the connection to the
+IPFIX collector.
+
+=item B<--rotate> I<ROTATE_DELAY>
+
+If present, causes B<qof> to write output to multiple files, opening a new output
+file every I<ROTATE_DELAY> seconds in the input data. Rotated files are named
+using the prefix given in the I<OUTPUT_SPECIFIER>, followed by a suffix
+containing a timestamp in C<YYYYMMDDhhmmss> format, a decimal serial number,
+and the file extension B<.yaf>.
+
+=item B<--lock>
+
+Use lockfiles for concurrent file access protection on output files.
+This is recommended for interoperating with the Airframe filedaemon
+facility.
+
+=item B<--stats> I<INTERVAL>
+
+If present, causes B<qof> to export process statistics in an IPFIX Options
+Record inline in the output stream every I<INTERVAL> seconds.
+If I<INTERVAL> is set to zero, stats will not be exported; 
+the default is not to export stats.
+
+=back
+
+=head2 IPFIX Connection Options
+
+These options are used to configure the connection to an IPFIX collector.
+
+=over 4
+
+=item B<--ipfix-port> I<PORT>
+
+If B<--ipfix> is present, export flows to TCP, UDP, or SCTP port I<PORT>.
+If not present, the default IPFIX port 4739 is used. If B<--tls> is also
+present, the default secure IPFIX port 4740 is used.
+
+=item B<--tls>
+
+If B<--ipfix> is present, use TLS to secure the connection to the
+IPFIX collector. Requires the I<TRANSPORT_PROTOCOL> to be B<tcp>, as DTLS over
+UDP or SCTP is not yet supported. Requires the B<--tls-ca>, B<--tls-cert>, and
+B<--tls-key> options to specify the X.509 certificate and TLS key information.
+
+=item B<--tls-ca> I<CA_PEM_FILE>
+
+Use the Certificate Authority or Authorities in I<CA_PEM_FILE> to verify the
+remote IPFIX Collecting Process' X.509 certificate. The connection to the
+Collecting Process will fail if its certificate was not signed by this CA
+(or by a certificate signed by this CA, recursively); this prevents export to
+unauthorized Collecting Processes. Required if B<--tls> is present.
+
+=item B<--tls-cert> I<CERT_PEM_FILE>
+
+Use the X.509 certificate in I<CERT_PEM_FILE> to identify this IPFIX Exporting
+Process. This certificate should contain the public part of the private key in
+I<KEY_PEM_FILE>. Required if B<--tls> is present.
+
+=item B<--tls-key> I<KEY_PEM_FILE>
+
+Use the private key in I<KEY_PEM_FILE> for this IPFIX Exporting Process. This
+key should contain the private part of the public key in
+I<CERT_PEM_FILE>. Required if B<--tls> is present. If the key is encrypted,
+the password must be present in the QOF_TLS_PASS environment variable.
+
+=item B<--template-refresh> I<TEMPLATE_RTX_TIME>
+
+Set UDP template refresh time in seconds.
+When set, every active template will be transmitted each I<TEMPLATE_RTX_TIME> seconds.
+Defaults to 0 (no template retransmit) unless B<--ipfix udp> is present, 
+in which case the default is 60 (1 minute).
+
+=back
+
+=head2 Privilege Options
+
+These options are used to cause B<qof> to drop privileges when running as root
+for live capture purposes.
+
+=over 4
+
+=item B<--become-user> I<UNPRIVILEGED_USER>
+
+After opening inputs, drop
+privilege to the named user. Using B<--become-user> requires B<qof> to
+be run  as root or setuid root. This option will cause all files
+written by B<qof> to be owned by the user I<UNPRIVILEGED_USER> and the
+user's primary group; use B<--become-group> as well to change the group
+B<qof> runs as for output purposes. If running as root for live capture purposes 
+and B<--become-user> is not present, B<qof> will warn that privilege is not being 
+dropped. We highly recommend the use of this option, especially in production
+environments, for security purposes.
+
+=item B<--become-group> I<UNPRIVILEGED_GROUP>
+
+B<--become-group> can be used to change the group from the default of
+the user given in B<--become-user>.  This option has no effect if
+given without the B<--become-user> option as well.
+
+=back
+
+=head2 Logging Options
+
+These options are used to specify how log messages are routed. B<qof> can
+log to standard error, regular files, or the UNIX syslog facility.
+
+=over 4
+
+=item B<--log> I<LOG_SPECIFIER>
+
+Specifies destination for log messages. I<LOG_SPECIFIER> can be a syslog(3)
+facility name, the special value B<stderr> for standard error, or the
+I<absolute> path to a file for file logging. The default log
+specifier is B<stderr> if available, B<user> otherwise.
+
+=item B<--loglevel> I<LOG_LEVEL>
+
+Specify minimum level for logged messages. In increasing levels of verbosity,
+the supported log levels are B<quiet>, B<error>, B<critical>, B<warning>,
+B<message>, B<info>, and B<debug>. The default logging level is B<warning>.
+
+=item B<--verbose>
+
+Equivalent to B<--loglevel debug>.
+
+=item B<--version>
+
+If present, print version and copyright information to standard error and exit.
+
+=back
+
+=head1 CONFIGURATION FILE FORMAT
+
+The behavior of the B<qof> flow table and IPFIX export is defined by a 
+YAML configuration file, the path to which is given on the B<qof> 
+command line by the B<--yaml> option. If no configuration file is given, it is
+as if an empty configuration file is given, and the default value for each 
+of the configuration keys is taken.
+
+The YAML configuration file is a mapping of configuration keys to values; 
+the configuration keys are as follows:
+
+=over 4
+
+=item B<template>: I<TEMPLATE_LIST>
+
+[TODO describe]
+
+=item B<interface-map>: I<IFMAP_LIST>
+
+[TODO describe]
+
+=over 2
+
+=item B<ip4-net>: I<IP4_CIDR>
+
+[TODO describe]
+
+=item B<ip6-net>: I<IP6_CIDR>
+
+[TODO describe]
+
+=item B<ingress>: I<INTERFACE_NUMBER>
+
+[TODO describe]
+
+=item B<egress>: I<INTERFACE_NUMBER>
+
+=back
+
+=item B<source-mac>: I<MACADDR_LIST>
+
+[TODO describe]
+
+=item B<source-ip>: I<IPADDR_LIST>
+
+[TODO describe]
+
+=item B<idle-timeout>: I<IDLE_TIMEOUT>
+
+Set flow idle timeout in seconds. Flows are considered idle and flushed
+from the flow table if no packets are received for I<IDLE_TIMEOUT> seconds.
+The default flow idle timeout is 30 seconds.
+
+=item B<active-timeout>: I<ACTIVE_TIMEOUT>
+
+Set flow active timeout in seconds. Any flow lasting longer than
+I<ACTIVE_TIMEOUT> seconds will be flushed from the flow table.
+The default flow active timeout is 300 seconds (5 minutes).
+
+=item B<max-flows>: I<FLOW_TABLE_MAX>
+
+If present, limit the number of open flows in the flow table to
+I<FLOW_TABLE_MAX> by prematurely expiring the flows with the least
+recently received packets; this is analogous to an adaptive idle
+timeout. This option is provided to limit B<qof> resource usage when
+operating on data from large networks. By default, there is no flow
+table limit, and the flow table can grow to resource exhaustion.
+
+=item B<max-frags>: I<FRAG_TABLE_MAX>
+
+If present, limit the number of outstanding, not-yet reassembled fragments
+in the fragment table to I<FRAG_TABLE_MAX> by prematurely expiring fragments
+from the table. This option is provided to limit B<qof> resource usage when
+operating on data from very large networks or networks with abnormal
+fragmentation. The fragment table may exceed this limit slightly due
+to limits on how often B<qof> prunes the fragment table (every 5 seconds).
+By default, there is no fragment table limit, and the fragment
+table can grow to resource exhaustion.
+
+=item B<active-timeout-octets>: I<MAX_FLOW_OCTETS>
+
+Not implemented.
+
+=item B<active-timeout-packets>: I<MAX_FLOW_PACKETS>
+
+Not implemented.
+
+=item B<active-timeout-rtts>: I<MAX_FLOW_PACKETS>
+
+Not implemented.
+
+=item B<active-timeout-rtts>: I<MAX_FLOW_PACKETS>
+
+Not implemented.
+
+=item B<force-biflow>: I<FLAG>
+
+If present and I<FLAG> is anything except "0", export reverse Information 
+Elements for all flows, even those with only one observed direction.
+
+=item B<gre-decap>: I<FLAG>
+
+If present and I<FLAG> is anything except "0", 
+attempt to decode GRE version 0 encapsulated packets. Flows will
+be created from packets within the GRE tunnels. Undecodeable GRE packets will
+be dropped. Without this option, GRE traffic is exported as IP protocol 47
+flows. This option is presently experimental.
+
+=item B<silk-compatible>: I<FLAG>
+
+If present and I<FLAG> is anything except "0",
+export flows in "SiLK mode". This flag must be used when
+exporting to SiLK for it to collect TCP flow information.  
+This also introduces the following incompatibilities
+with standard IPFIX export:
+
+=over 4
+
+=item *
+
+octetDeltaCount and reverseOctetDeltaCount are clamped to 32 bits. Any packet
+that would cause either of these counters to overflow 32 bits will cause the
+flow to close with flowEndReason 0x02 (active timeout), and will become the
+first packet of a new flow. This is analogous to forcing an active timeout
+when the octet counters overflow.
+
+=item *
+
+The high-order bit of the flowEndReason IE is set on any flow created on a
+counter overflow, as above.
+
+=item *
+
+The high-order bit of the flowEndReason IE is set on any flow created on an
+active timeout.
+
+=back
+
+Since this changes the semantics of the exported flowEndReason IE, it should
+only be used when generating flows and exporting to rwflowpack, flowcap, or
+writing files for processing with rwipfix2silk.
+
+=back 
+
+=head1 OUTPUT X<OUTPUT>
+
+[NOTE: Documentation rewrite is in progress from this point.]
+
+=head2 Basic Flow Record
+
+B<qof>'s output consists of an IPFIX message stream. B<qof> uses a variety of
+templates for IPFIX data records; the information elements that may appear
+in these templates are enumerated below. For further information about the IPFIX
+information model and IPFIX message stream, see B<RFC 5102>, B<RFC 5101>, and
+B<RFC 5103>.  As of B<qof> 2.0, B<qof> nests some templates in an IPFIX
+subTemplateMultiList.  In order to retain compatibility with the SiLK Tools,
+use B<--silk> to prevent B<qof> from nesting TCP Information Elements.  Below
+are descriptions of each of the templates B<qof> will export.  See the
+Internet-Draft B<Export of Structured Data in IPFIX> for more information on IPFIX lists.
+
+B<qof> assigns information element numbers to reverse flow elements in biflow
+capture based on the standard IPFIX PEN 29305.  This applies only for
+information elements defined in the standard IPFIX Information Model
+(B<RFC 5102>) that do not have a reverse information element already defined.
+For information elements defined under the CERT PEN, a standard method is
+used to calculate their reverse element identifier.  The method is that
+bit fourteen is set to one in the IE field, (e.g. 16384 + the forward IE number.)
+
+=over 4
+
+=item B<flowStartMilliseconds> IE 152, 8 octets, unsigned
+
+Flow start time in milliseconds since 1970-01-01 00:00:00 UTC. Always present.
+
+=item B<flowEndMilliseconds> IE 153, 8 octets, unsigned
+
+Flow end time in milliseconds since 1970-01-01 00:00:00 UTC. Always present.
+
+=item B<octetTotalCount> IE 85, 8 octets, unsigned
+
+Number of octets in packets in forward direction of flow. Always present.
+May be encoded in 4 octets using IPFIX reduced-length encoding.
+
+=item B<reverseOctetTotalCount> Reverse (PEN 29305) IE 85, 8 octets, unsigned
+
+Number of octets in packets in reverse direction of flow. Present if flow
+has a reverse direction. May be encoded in 4 octets using IPFIX
+reduced-length encoding.
+
+=item B<packetTotalCount> IE 86, 8 octets, unsigned
+
+Number of packets in forward direction of flow. Always present.
+May be encoded in 4 octets using IPFIX reduced-length encoding.
+
+=item B<reversePacketTotalCount> Reverse (PEN 29305) IE 86, 8 octets, unsigned
+
+Number of packets in reverse direction of flow. Present if flow has a
+reverse direction. May be encoded in 4 octets using IPFIX reduced-length
+encoding.
+
+=item B<reverseFlowDeltaMilliseconds> CERT (PEN 6871) IE 21, 4 octets, unsigned
+
+Difference in time in milliseconds between first packet in forward direction
+and first packet in reverse direction. Correlates with (but does not
+necessarily represent) round-trip time. Present if flow has a reverse
+direction.
+
+=item B<sourceIPv4Address> IE 8, 4 octets, unisigned
+
+IPv4 address of flow source or biflow initiator. Present for IPv4
+flows without IPv6-mapped addresses only.
+
+=item B<destinationIPv4Address> IE 12, 4 octets, unsigned
+
+IPv4 address of flow source or biflow responder. Present for IPv4
+flows without IPv6-mapped addresses only.
+
+=item B<sourceIPv6Address> IE 27, 16 octets, unsigned
+
+IPv6 address of flow source or biflow initiator. Present for IPv6
+flows or IPv6-mapped IPv4 flows only.
+
+=item B<destinationIPv6Address> IE 28, 16 octets, unsigned
+
+IPv6 address of flow source or biflow responder. Present for IPv6
+flows or IPv6-mapped IPv4 flows only.
+
+=item B<sourceTransportPort> IE 7, 2 octets, unsigned
+
+TCP or UDP port on the flow source or biflow initiator endpoint.
+Always present.
+
+=item B<destinationTransportPort> IE 11, 2 octets, usigned
+
+TCP or UDP port on the flow destination or biflow responder endpoint.
+Always present. For ICMP flows, contains ICMP type * 256 + ICMP code.
+This is non-standard, and an open issue in B<qof>.
+
+=item B<flowAttributes> CERT (PEN 6871) IE 40, 2 octets, unsigned
+
+Miscellaneous flow attributes for the forward direction of the flow.
+Always present (B<qof> 2.1 or later).  Current flag values:
+
+=over 2
+
+=item Bit 1: All packets in the forward direction have fixed size
+
+=item Bit 2: Packet(s) in the forward direction was received out-of-sequence
+
+=back
+
+=item B<reverseFlowAttributes> CERT (PEN 6871) IE 16424, 2 octets, unsigned
+
+Miscellaneous flow attributes for the reverse direction of the flow.
+Always present (B<qof> 2.1 or later).  Current flag values:
+
+=over 2
+
+=item Bit 1: All packets in the reverse direction have fixed size
+
+=item Bit 2: Packet(s) in the reverse direction was received out-of-sequence
+
+=back
+
+=item B<protocolIdentifier> IE 4, 1 octet, unsigned
+
+IP protocol of the flow. Always present.
+
+=item B<flowEndReason> IE 136, 1 octet, unsigned
+
+Flow end reason code, as defined by the IPFIX Information Model.
+Always present. In B<--silk> mode, the high-order bit is set if the flow
+was created by continuation.
+
+=item B<silkAppLabel> CERT (PEN 6871) IE 33, 2 octets, unsigned
+
+Application label, defined as the primary well-known port associated
+with a given application. Present if the application labeler is
+enabled, and was able to determine the application protocol used
+within the flow.
+
+=item B<vlanId> IE 58, 2 octets, unsigned
+
+802.1q VLAN tag of the first packet in the forward direction of the flow.
+
+=item B<reverseVlanId> Reverse (PEN 29305) IE 58, 2 octets, unsigned
+
+802.1q VLAN tag of the first packet in the reverse direction of the flow.
+Present if the flow has a reverse direction.
+
+=item B<ingressInterface> IE 10, 4 octets, unsigned
+
+The index of the IP interface where packets of this flow are being received.
+Use --ingress, --napatech-interface, --dag-interface or configure B<qof> with
+bivio for this field to be present in the flow template.  Use --ingress to
+manually set this field.
+
+=item B<egressInterface> IE 14, 4 octets, unsigned
+
+The index of the IP interface where packets of this flow are being received.
+Use --egress, --napatech-interface, --dag-interface or configure B<qof> with
+bivio for this field to be present in the flow template. If using napatech, dag,
+or bivio, C<egressinterface> will be the physical interface | 0x100.  Use --egress
+to manually set this field.
+
+=item B<subTemplateMultiList> IE 293, variable length
+
+Represents a list of zero or more instances of a structured data type, where
+the data type of each list element can be different and corresponds with
+different template definitions.  The Information Element Number will change
+upon updates to the IPFIX lists specification and libfixbuf releases.
+
+=back
+
+=head2 TCP Flow Template
+
+The following six Information Elements will be exported as a template
+within the subTemplateMultiList unless B<--silk> is used.
+
+=over 4
+
+=item B<tcpSequenceNumber> IE 184, 4 octets, unsigned
+
+Initial sequence number of the forward direction of the flow. Present if
+the flow's protocolIdentifier is 6 (TCP).  This element is contained in the
+B<qof> TCP template within the subTemplateMultiList unless B<--silk> is used.
+
+=item B<reverseTcpSequenceNumber> Reverse (PEN 29305) IE 184, 4 octets, unsigned
+
+Initial sequence number of the reverse direction of the flow. Present if the
+flow's protocolIdentifier is 6 (TCP) and the flow has a reverse direction.
+This element is contained in the B<qof> TCP template within the subTemplateMultiList unless B<--silk> is used.
+
+=item B<initialTCPFlags> CERT (PEN 6871) IE 14, 1 octet, unsigned
+
+TCP flags of initial packet in the forward direction of the flow.
+Present if the flow's protocolIdentifier is 6 (TCP). This element is contained
+in the B<qof> TCP template within the subTemplateMultiList unless B<--silk> is used.
+
+=item B<unionTCPFlags> CERT (PEN 6871) IE 15, 1 octet, unsigned
+
+Union of TCP flags of all packets other than the initial packet
+in the forward direction of the flow. Present if the flow's
+protocolIdentifier is 6 (TCP). This element is contained in the
+B<qof> TCP template within the subTemplateMultiList unless B<--silk> is used.
+
+=item B<reverseInitialTCPFlags> CERT (PEN 6871) IE 16398, 1 octet, unsigned
+
+TCP flags of initial packet in the reverse direction of the flow.
+Present if the flow's protocolIdentifier is 6 (TCP) and the flow
+has a reverse direction. This element is contained in the
+B<qof> TCP template within the subTemplateMultiList unless B<--silk> is used.
+
+=item B<reverseUnionTCPFlags> CERT (PEN 6871) IE 16399, 1 octet, unsigned
+
+Union of TCP flags of all packets other than the initial packet
+in the reverse direction of the flow. Present if the flow's
+protocolIdentifier is 6 (TCP) and the flow has a reverse direction.
+This element is contained in the B<qof> TCP template within the subTemplateMultiList unless B<--silk> is used.
+
+=back
+
+=head2 MAC Flow Template
+
+The following two Information Elements will be exported as a template
+within the subTemplateMultiList.
+
+=over 4
+
+=item B<sourceMacAddress>, IE 56, 6 octets, unsigned
+
+Source MAC Address of the first packet in the forward direction of the flow.
+This element is contained in the B<qof> MAC template within the subTemplateMultiList.
+
+=item B<destinationMacAddress>, IE 80, 6 octets, unsigned
+
+Destination MAC Address of the first packet in the reverse direction of the flow. This element is contained in the B<qof> MAC template within the subTemplateMultiList.
+
+=back
+
+=head2 Payload Flow Template
+
+The following two Information Elements will be exported as a template
+within the subTemplateMultiList.
+
+=over 4
+
+=item B<payload> CERT (PEN 6871) IE 18, variable-length
+
+Initial I<n> bytes of forward direction of flow payload.
+Present if payload collection is enabled and payload is present
+in the forward direction of the flow. This element is contained in the
+B<qof> Payload template within the subTemplateMultiList.
+
+=item B<reversePayload> CERT (PEN 6871) IE 16402, variable-length
+
+Initial I<n> bytes of reverse direction of flow payload.
+Present if payload collection is enabled and payload is present
+in the reverse direction of the flow. This element is contained in the B<qof>
+Payload template within the subTemplateMultiList.
+
+=back
+
+=head2 Entropy Flow Template
+
+The following two Information Elements will be exported as a template
+within the subTemplateMultiList.
+
+=over 4
+
+=item B<payloadEntropy> CERT (PEN 6871) IE 35, 1 octet, unsigned
+
+Shannon Entropy calculation of the forward payload data. This element is
+contained in the B<qof> Entropy template within the subTemplateMultiList.
+
+=item B<reversePayloadEntropy> CERT (PEN 6871) IE 16419, 1 octet, unsigned
+
+Shannon Entropy calculation of the reverse payload data.  This element is
+contained in the B<qof> Entropy template within the subTemplateMultiList.
+
+=back
+
+=head2 Statistics Option Template
+
+B<qof> will export information about its process periodically
+using IPFIX Options Template Record.  This record gives information
+about the status of the flow and fragment table, as well as decoding
+information.  This can be turned off using the B<--no-stats> option.
+The following Information Elements will be exported:
+
+=over 4
+
+=item B<systemInitTimeMilliseconds> IE 161, 8 octets, unsigned
+
+The time in milliseconds of the last (re-)initialization of B<qof>.
+
+=item B<exportedFlowRecordTotalCount> IE 42, 8 octets, unsigned
+
+Total amount of exported flows from B<qof> start time.
+
+=item B<packetTotalCount> IE 86, 8 octets, unsigned
+
+Total amount of packets processed by B<qof> from B<qof> start time.
+
+=item B<droppedPacketTotalCount> IE 135, 8 octets, unsigned
+
+Total amount of dropped packets according to statistics given
+by libpcap, libdag, or libpcapexpress.
+
+=item B<ignoredPacketTotalCount> IE 164, 8 octets, unsigned
+
+Total amount of packets ignored by the B<qof> packet decoder, such as
+unsupported packet types and incomplete headers, from B<qof>
+start time.
+
+=item B<notSentPacketTotalCount> IE 167, 8 octets, unsigned
+
+Total amount of packets rejected by B<qof> because they were received
+out of sequence.
+
+=item B<expiredFragmentCount> CERT (PEN 6871) IE 100, 4 octets, unsigned
+
+Total amount of fragments that have been expired since B<qof>
+start time.
+
+=item B<assembledFragmentCount> CERT (PEN 6871) IE 101, 4 octets, unsigned
+
+Total number of packets that been assembled from a series of
+fragments since B<qof> start time.
+
+=item B<flowTableFlushEventCount> CERT (PEN 6871) IE 104, 4 octets, unsigned
+
+Total number of times the B<qof> flow table has been flushed
+since B<qof> start time.
+
+=item B<flowTablePeakCount> CERT (PEN 6871) IE 105, 4 octets, unsigned
+
+The maximum number of flows in the B<qof> flow table at any
+one time since B<qof> start time.
+
+=item B<exporterIPv4Address> IE 130, 4 octets, unsigned
+
+The IPv4 Address of the B<qof> flow sensor.
+
+=item B<exportingProcessId> IE 144, 4 octets, unsigned
+
+Set the ID of the B<qof> flow sensor by giving a value to
+B<--observation-domain>.  The default is 0.
+
+=item B<meanFlowRate> CERT (PEN 6871) IE 102, 4 octets, unsigned
+
+The mean flow rate of the B<qof> flow sensor since B<qof> start time,
+rounded to the nearest integer.
+
+=item B<meanPacketRate> CERT (PEN 6871) IE 103, 4 octets, unsigned
+
+The mean packet rate of the B<qof> flow sensor since B<qof> start time,
+rounded to the nearest integer.
+
+=back
+
+=head1 SIGNALS
+
+B<qof> responds to B<SIGINT> or B<SIGTERM> by terminating input processing,
+flushing any pending flows to the current output, and exiting. If B<--verbose>
+is given, B<qof> responds to B<SIGUSR1> by printing present flow and fragment table
+statistics to its log.  All other signals are handled by the C runtimes in
+the default manner on the platform on which B<qof> is currently operating.
+
+=head1 EXAMPLES
+
+To generate flows from an pcap file into an IPFIX file:
+
+C<yaf --in packets.pcap --out flows.yaf>
+
+To capture flows from a pcap interface and export them to files in the
+current directory rotated hourly:
+
+C<yaf --live pcap --in en1 --out en1_capture --rotate 3600>
+
+To capture flows from an Endace DAG card and export them via IPFIX over TCP:
+
+C<yaf --live dag --in dag0 --ipfix tcp --out my-collector.example.com>
+
+To convert a pcap formatted packet capture and convert that into IPFIX:
+
+C<yaf E<lt>packets.pcap E<gt>flows.yaf>
+
+To publish to spread group B<TST_SPRD> for a spread daemon running locally on port 4803:
+
+C<yaf --live pcap --in eth1 --out 4803@localhost --ipfix spread --group TST_SPRD>
+
+To publish to spread groups based on application label for spread daemon running locally on port 4803:
+
+C<yaf --live pcap --in eth1 --out 4803@localhost --ipfix spread --group "SPRD_CATCHALL, SPRD_DNS:53, SPRD_HTTP:80, SPRD_SMTP:25" --groupby applabel --applabel --max-payload=400>
+
+To run B<qof> with application labeling enabled and export via IPFIX over TCP:
+
+C<yaf --live pcap --in eth1 --out 127.0.0.1 --ipfix tcp --ipfix-port=18001 --applabel --applabel-rules=/usr/local/etc/yafApplabelRules.conf --max-payload=300>
+
+To run B<qof> with BPF on UDP Port 53
+
+C<yaf --live pcap --in en1 --out /path/to/dst/ --rotate 120 --filter="udp port 53">
+
+To run B<qof> with Deep Packet Inspection enabled for HTTP, IMAP, and DNS:
+
+C<yaf --in packets.pcap --out flows.yaf --applabel --max-payload=400 --plugin-name=/usr/local/lib/dpacketplugin.la --plugin-opts="80 143 53">
+
+To run B<qof> with Deep Packet Inspection and DHCP Fingerprinting:
+
+C<yaf --in packets.pcap --out flows.yaf --applabel --max-payload=1000 --plugin-name=/usr/local/lib/dpacketplugin.la,/usr/local/lib/dhcp_fp_plugin.la>
+
+To run B<qof> with pcap generation:
+
+C<yaf --in eth0 --live pcap --out localhost --ipfix tcp --ipfix-port=18001 --pcap /data/pcap --pcap-meta-file=/data/pcap_info.txt>
+
+=head1 KNOWN ISSUES
+
+YAF BPF Filtering does not operate with the Bivio Zero-Copy Library.
+
+YAF BPF Filtering is ignored when using B<--live> I<dag> or I<napatech>
+because libpcap is not used.
+
+YAF PCAP Export options are ignored when using B<--live> I<dag> or I<napatech>.
+
+YAF 2.x requires libfixbuf 1.0.0 or later.
+
+YAF 2.0 will not interoperate with the SiLK tools unless B<--silk> is used, due
+to the TCP Information Elements being nested in the subTemplateMultiList.
+YAF 2.0 must be used with an IPFIX Collecting Process that can handle IPFIX lists elements, especially the subTemplateMultiList Information Element in order to retrieve certain flow information.  Older versions of YAF can read YAF 2.0 flow files, but will ignore anything contained in the subTemplateMultiList.
+
+The plugin infrastructure has been modified in YAF 2.0 to export templates
+in YAF's subTemplateMultiList element.
+
+YAF 2.0 will export statistics in an Options Template and Options Data Records
+unless the B<--no-stats> switch is given.  The IPFIX Collecting Process should be
+able to differentiate between options records and flow records in order to
+prevent incorrect transcoding of statistics records into flow records.
+
+YAF will not rotate output files if it is not seeing any flow data.  However,
+it will continue to write process statistics messages at the configured
+interval time to the most recent output file.
+
+Presently, the B<destinationTransportPort> information element contains
+ICMP type and code information for ICMP or ICMP6 flows; this is nonstandard
+and may not be interoperable with other IPFIX implementations.
+
+Bug reports and feature requests may be sent via email to
+E<lt>netsa-help@cert.orgE<gt>.
+
+=head1 AUTHORS
+
+Brian Trammell
+
+Based on YAF by Chris Inacio, Michael Duggan, Emily Sarneso, Dan Ruef,
+and the CERT Network Situational Awareness Group Engineering Team,
+E<lt>http://www.cert.org/netsaE<gt>.
+
+=head1 SEE ALSO
+
+B<libtrace(3)>
+
+=cut

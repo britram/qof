@@ -58,14 +58,14 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include <airframe/logconfig.h>
 #include <airframe/privconfig.h>
 #include <airframe/airutil.h>
 #include <airframe/airopt.h>
-#include <yaf/yafcore.h>
-#include <yaf/yaftab.h>
-#include <yaf/yafrag.h>
+#include <qof/yafcore.h>
+#include <qof/yaftab.h>
+#include <qof/yafrag.h>
 
 #include "qofltrace.h"
 #include "yafstat.h"

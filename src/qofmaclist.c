@@ -14,7 +14,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/qofmaclist.h>
+#include <qof/qofmaclist.h>
 
 #define MAC_SZ 6
 

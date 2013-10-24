@@ -13,8 +13,8 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/qofopt.h>
-#include <yaf/decode.h>
+#include <qof/qofopt.h>
+#include <qof/decode.h>
 
 void qfOptSegment(qfOpt_t *qo,
                   yfTCPInfo_t *tcpinfo,

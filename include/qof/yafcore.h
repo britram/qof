@@ -104,16 +104,16 @@
 #ifndef _YAF_CORE_H_
 #define _YAF_CORE_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include <fixbuf/public.h>
 #include <stdlib.h>
 #include <math.h>
 
-#include <yaf/ring.h>
-#include <yaf/qofrtt.h>
-#include <yaf/qofseq.h>
-#include <yaf/qofack.h>
-#include <yaf/qofrwin.h>
+#include <qof/ring.h>
+#include <qof/qofrtt.h>
+#include <qof/qofseq.h>
+#include <qof/qofack.h>
+#include <qof/qofrwin.h>
 
 /**
  * This is the CERT Private Enterprise Number (PEN) assigned by

@@ -15,9 +15,9 @@
 #ifndef _QOF_OPT_H_
 #define _QOF_OPT_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/yafcore.h>
-#include <yaf/decode.h>
+#include <qof/autoinc.h>
+#include <qof/yafcore.h>
+#include <qof/decode.h>
 
 #define QF_OPT_ECT0             0x00000001 /* observed an ECT(0) codepoint */
 #define QF_OPT_ECT1             0x00000002 /* observed an ECT(1) codepoint */

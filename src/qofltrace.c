@@ -15,11 +15,11 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 
-#include <yaf/yafcore.h>
-#include <yaf/yaftab.h>
-#include <yaf/decode.h>
+#include <qof/yafcore.h>
+#include <qof/yaftab.h>
+#include <qof/decode.h>
 #include "yafout.h"
 #include "yaflush.h"
 #include "yafstat.h"

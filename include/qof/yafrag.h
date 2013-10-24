@@ -67,9 +67,9 @@
 #ifndef _YAF_FRAG_H_
 #define _YAF_FRAG_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/decode.h>
-#include <yaf/yafcore.h>
+#include <qof/autoinc.h>
+#include <qof/decode.h>
+#include <qof/yafcore.h>
 
 struct yfFragTab_st;
 /**

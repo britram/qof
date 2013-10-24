@@ -76,8 +76,8 @@
 #ifndef _YAF_DECODE_H_
 #define _YAF_DECODE_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/yafcore.h>
+#include <qof/autoinc.h>
+#include <qof/yafcore.h>
 
 #include <libtrace.h>
 

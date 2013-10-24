@@ -58,9 +58,9 @@
 
 #define _YAF_SOURCE_
 #include "yafstat.h"
-#include <yaf/yaftab.h>
-#include <yaf/yafrag.h>
-#include <yaf/decode.h>
+#include <qof/yaftab.h>
+#include <qof/yafrag.h>
+#include <qof/decode.h>
 
 static uint32_t yaf_do_stat = 0;
 static GTimer *yaf_fft = NULL;

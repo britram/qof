@@ -16,9 +16,9 @@
 #ifndef _QOF_MACLIST_H_
 #define _QOF_MACLIST_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/yafcore.h>
-#include <yaf/yaftab.h>
+#include <qof/autoinc.h>
+#include <qof/yafcore.h>
+#include <qof/yaftab.h>
 
 struct qfMacList_st {
     /* IPv4 addresses */

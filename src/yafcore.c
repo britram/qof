@@ -63,10 +63,10 @@
 #include "qofconfig.h"
 #include "yafstat.h"
 
-#include <yaf/yafcore.h>
-#include <yaf/decode.h>
+#include <qof/yafcore.h>
+#include <qof/decode.h>
 #include <airframe/airutil.h>
-#include <yaf/yafrag.h>
+#include <qof/yafrag.h>
 
 /** These are the template IDs for the templates that YAF uses to
     select the output. Template IDs are maintained for a set of
@@ -119,9 +119,9 @@
 #define QOF_MIN_RTT_COUNT 1
 
 /** include enterprise-specific Information Elements for YAF */
-#include "yaf/CERT_IE.h"
-#include "yaf/TCH_IE.h"
-#include "yaf/IANA_IE.h"
+#include <qof/CERT_IE.h>
+#include <qof/TCH_IE.h>
+#include <qof/IANA_IE.h>
 
 static uint64_t yaf_start_time = 0;
 
@@ -663,9 +663,7 @@ static fbSession_t *yfInitExporterSession(
     if (!fbSessionAddTemplate(session, TRUE, YAF_FLOW_FULL_TID, tmpl, err)) {
         return NULL;
     }
-//    if (!fbSessionAddTemplate(session, FALSE, YAF_FLOW_FULL_TID, tmpl, err)) {
-//        return NULL;
-//    }
+
 
     /* Create the Statistics Template */
     /* FIXME check that the template looks like the structure */
@@ -844,6 +842,47 @@ static gboolean yfSetExportTemplate(
     return fBufSetExportTemplate(fbuf, tid, err);
 }
 
+static gboolean yfEnsureStatsTemplate(fBuf_t *fbuf, GError **err) {
+    fbInfoModel_t   *model = yfInfoModel();
+    fbSession_t     *session = fBufGetSession(fbuf);
+    fbTemplate_t    *tmpl = NULL;
+    
+    static gboolean stats_template_initialized = FALSE;
+    
+    /* Create the Statistics Template if we need to */
+    if (!stats_template_initialized) {
+        /* FIXME check that the template looks like the structure */
+        tmpl = fbTemplateAlloc(model);
+        if (!fbTemplateAppendSpecArray(tmpl, yaf_stats_option_spec, 0, err))
+        {
+            return FALSE;
+        }
+        
+        /* Scope fields are exporterIPv4Address and exportingProcessID */
+        fbTemplateSetOptionsScope(tmpl, 2);
+        if (!fbSessionAddTemplate(session, TRUE, YAF_OPTIONS_TID, tmpl, err))
+        {
+            return FALSE;
+        }
+        if (!fbSessionAddTemplate(session, FALSE, YAF_OPTIONS_TID, tmpl, err))
+        {
+            return FALSE;
+        }
+        stats_template_initialized = TRUE;
+    }
+    
+    /* Set Internal Template for Buffer to Options TID */
+    if (!fBufSetInternalTemplate(fbuf, YAF_OPTIONS_TID, err))
+        return FALSE;
+    
+    /* Set Export Template for Buffer to Options TMPL */
+    if (!yfSetExportTemplate(fbuf, YAF_OPTIONS_TID, err)) {
+        return FALSE;
+    }
+    
+    return TRUE;
+}
+
 /**
  *yfWriteStatsRec
  *
@@ -905,15 +944,11 @@ gboolean yfWriteStatsRec(
 
     rec.systemInitTimeMilliseconds = yaf_start_time;
     
-    /* Set Internal Template for Buffer to Options TID */
-    if (!fBufSetInternalTemplate(fbuf, YAF_OPTIONS_TID, err))
-        return FALSE;
-
-    /* Set Export Template for Buffer to Options TMPL */
-    if (!yfSetExportTemplate(fbuf, YAF_OPTIONS_TID, err)) {
+    /* Initialize stats export templates if necessary */
+    if (!yfEnsureStatsTemplate(fbuf, err)) {
         return FALSE;
     }
-
+    
     /* Append Record */
     if (!fBufAppend(fbuf, (uint8_t *)&rec, sizeof(rec), err)) {
         return FALSE;

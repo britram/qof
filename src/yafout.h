@@ -59,7 +59,7 @@
 #ifndef _YAF_OUT_H_
 #define _YAF_OUT_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include <airframe/airlock.h>
 #include <fixbuf/public.h>
 #include "qofconfig.h"

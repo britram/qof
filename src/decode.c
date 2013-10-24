@@ -59,8 +59,8 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/autoinc.h>
-#include <yaf/decode.h>
+#include <qof/autoinc.h>
+#include <qof/decode.h>
 #include <airframe/airutil.h>
 
 /* Definitions of the various headers the decoder understands */

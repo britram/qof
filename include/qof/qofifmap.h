@@ -16,9 +16,9 @@
 #ifndef _QOF_IFMAP_H_
 #define _QOF_IFMAP_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/yafcore.h>
-#include <yaf/yaftab.h>
+#include <qof/autoinc.h>
+#include <qof/yafcore.h>
+#include <qof/yaftab.h>
 
 struct qfIfMapEntry4_st;
 typedef struct qfIfMapEntry4_st qfIfMapEntry4_t;

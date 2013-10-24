@@ -59,7 +59,7 @@
 /* idem hack */
 #ifndef _YAF_RING_H_
 #define _YAF_RING_H_
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 
 struct rgaRing_st;
 typedef struct rgaRing_st rgaRing_t;

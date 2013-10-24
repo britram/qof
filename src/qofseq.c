@@ -14,11 +14,11 @@
 
 #define _YAF_SOURCE_
 
-#include <yaf/qofseq.h>
-#include <yaf/decode.h>
+#include <qof/qofseq.h>
+#include <qof/decode.h>
 
 #if QF_DEBUG_SEQ
-#include <yaf/streamstat.h>
+#include <qof/streamstat.h>
 
 static sstMean_t gapstack_high;
 static int debug_init = 0;

@@ -14,7 +14,7 @@
 
 #define _YAF_SOURCE_
 
-#include <yaf/qofack.h>
+#include <qof/qofack.h>
 
 static int qfWrapCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;

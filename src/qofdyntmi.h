@@ -1,7 +1,7 @@
 #ifndef _QOF_DYNTMI_H_
 #define _QOF_DYNTMI_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 
 void qfDynTmiOpen(const char *filename);
 

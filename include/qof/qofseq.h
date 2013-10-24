@@ -16,9 +16,9 @@
 #ifndef _QOF_SEQ_H_
 #define _QOF_SEQ_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/streamstat.h>
-#include <yaf/qofrtt.h>
+#include <qof/autoinc.h>
+#include <qof/streamstat.h>
+#include <qof/qofrtt.h>
 
 #define QF_SEQGAP_CT 8
 

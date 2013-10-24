@@ -16,7 +16,7 @@
 #ifndef _QOF_ACK_H_
 #define _QOF_ACK_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 
 /** Acknowledgment tracking structure */
 typedef struct qfAck_st {

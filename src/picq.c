@@ -57,7 +57,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/picq.h>
+#include <qof/picq.h>
 
 typedef struct _PicQNode {
     struct _PicQNode    *p;

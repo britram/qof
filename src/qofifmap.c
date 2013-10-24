@@ -14,7 +14,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/qofifmap.h>
+#include <qof/qofifmap.h>
 
 #include <arpa/inet.h>
 

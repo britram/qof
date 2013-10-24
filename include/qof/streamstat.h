@@ -17,7 +17,7 @@
 #ifndef _QOF_STREAMSTAT_H_
 #define _QOF_STREAMSTAT_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 
 typedef struct sstMinMax_st {
     int         min;

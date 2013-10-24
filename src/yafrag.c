@@ -57,10 +57,10 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/yafcore.h>
-#include <yaf/decode.h>
-#include <yaf/picq.h>
-#include <yaf/yafrag.h>
+#include <qof/yafcore.h>
+#include <qof/decode.h>
+#include <qof/picq.h>
+#include <qof/yafrag.h>
 
 /* max ip is 60, max tcp is 60, 14 for l2 */
 #define YF_FRAG_L4H_MAX 134

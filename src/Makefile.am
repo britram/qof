@@ -12,9 +12,9 @@
 ## ------------------------------------------------------------------------
 
 
-PODFILES = yaf.pod
-man1_MANS = yaf.1
-HTMLFILES = yaf.html
+PODFILES = qof.pod
+man1_MANS = qof.1
+HTMLFILES = qof.html
 
 WARN_CFLAGS = -g -DDEBUG -Wall -W -Wmissing-prototypes -Wformat=2 -Wdeclaration-after-statement -Wpointer-arith -Wshadow
 
@@ -47,10 +47,6 @@ bin_PROGRAMS = qof
 libqof_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c \
                     bitmap.c streamstat.c qofifmap.c qofmaclist.c \
                     qofseq.c qofack.c qofrtt.c qofrwin.c qofopt.c
-
-if CYGWIN
-libqof_la_SOURCES += yafcygwin.c
-endif
 
 libqof_la_LIBADD = @GLIB_LDADD@
 libqof_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@ -version-info @LIBCOMPAT@ -release ${VERSION}

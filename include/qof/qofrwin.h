@@ -15,8 +15,8 @@
 #ifndef _QOF_RWIN_H_
 #define _QOF_RWIN_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/streamstat.h>
+#include <qof/autoinc.h>
+#include <qof/streamstat.h>
 
 /** Receiver window statistics structure */
 typedef struct qfRwin_st {

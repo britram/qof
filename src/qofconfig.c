@@ -13,7 +13,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include <airframe/airopt.h>
 #include <airframe/privconfig.h>
 
@@ -46,8 +46,8 @@ typedef struct qfConfigKeyAction_st {
 #define CFG_OFF(_F_) offsetof(qfConfig_t, _F_)
 
 static qfConfigKeyAction_t cfg_key_actions[] = {
-    {"active-timeout",         CFG_OFF(ato_ms), QF_CONFIG_U32},
-    {"idle-timeout",           CFG_OFF(ito_ms), QF_CONFIG_U32},
+    {"active-timeout",         CFG_OFF(ato_s), QF_CONFIG_U32},
+    {"idle-timeout",           CFG_OFF(ito_s), QF_CONFIG_U32},
     {"max-flows",              CFG_OFF(max_flowtab), QF_CONFIG_U32},
     {"max-frags",              CFG_OFF(max_fragtab), QF_CONFIG_U32},
     {"active-timeout-octets",  CFG_OFF(max_flow_oct), QF_CONFIG_U64},
@@ -793,17 +793,16 @@ void qfConfigDefaults(qfConfig_t           *cfg,
                       qfInputContext_t     *ictx,
                       qfOutputContext_t    *octx)
 {
-    cfg->ato_ms = 300000;   /* active timeout 5 min */
-    cfg->ito_ms = 30000;    /* idle timeout 30 sec */
+    cfg->ato_s = 300;                   /* active timeout 5 min */
+    cfg->ito_s = 30;                    /* idle timeout 30 sec */
     cfg->max_flowtab = 1024 * 1024;     /* 1 mebiflow */
     cfg->max_fragtab = 256 * 1024;      /* 256 kfrags */
     cfg->max_flow_pkt = 0;              /* no max packet */
     cfg->max_flow_oct = 0;              /* no max octet count */
     cfg->ato_rtts = 0;                  /* no RTT-based ATO */
     octx->rotate_period = 0;            /* no output rotation by default */
-    octx->template_rtx_period = 60000;  /* 1 min template 
-                                           retransmit period on UDP */
-    octx->stats_period = 60000;         /* 1 min stats transmit period */
+    octx->template_rtx_period = 0;      /* no template retransmit by default */
+    octx->stats_period = 0;             /* no stats transmit by default */
 }
 
 void qfConfigDefaultTemplate(qfConfig_t     *cfg)
@@ -870,7 +869,7 @@ static void qfContextSetupOutput(qfContext_t *ctx)
                 ctx->octx.connspec.transport = FB_UDP;
             }
             if (!ctx->octx.template_rtx_period) {
-                ctx->octx.template_rtx_period = 600000; // 10 minutes
+                ctx->octx.template_rtx_period = 60000; // 1 minute in ms
             } else {
                 ctx->octx.template_rtx_period *= 1000; // convert to milliseconds
             }
@@ -881,7 +880,7 @@ static void qfContextSetupOutput(qfContext_t *ctx)
         
         /* grab TLS password from environment */
         if (ctx->octx.enable_tls) {
-            ctx->octx.connspec.ssl_key_pass = getenv("YAF_TLS_PASS");
+            ctx->octx.connspec.ssl_key_pass = getenv("QOF_TLS_PASS");
         }
         
     } else {
@@ -968,8 +967,8 @@ void qfContextSetup(qfContext_t *ctx) {
                                   ctx->cfg.enable_gre);
 
     /* Allocate flow table */
-    ctx->flowtab = yfFlowTabAlloc(ctx->cfg.ito_ms * 1000,
-                                  ctx->cfg.ato_ms * 1000,
+    ctx->flowtab = yfFlowTabAlloc(ctx->cfg.ito_s * 1000,
+                                  ctx->cfg.ato_s * 1000,
                                   ctx->cfg.max_flowtab,
                                   !ctx->cfg.enable_biflow,
                                   ctx->cfg.enable_silk,

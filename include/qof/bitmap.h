@@ -15,7 +15,7 @@
 #ifndef _QOF_BITMAP_H_
 #define _QOF_BITMAP_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 
 #define k64Bits (sizeof(uint64_t) * 8)
 

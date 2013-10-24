@@ -61,17 +61,17 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include <airframe/logconfig.h>
 #include <airframe/daeconfig.h>
 #include <airframe/airutil.h>
-#include <yaf/picq.h>
-#include <yaf/yaftab.h>
-#include <yaf/yafrag.h>
-#include <yaf/qofopt.h>
+#include <qof/picq.h>
+#include <qof/yaftab.h>
+#include <qof/yafrag.h>
+#include <qof/qofopt.h>
 
 #include "qofconfig.h"
-#include <yaf/decode.h>
+#include <qof/decode.h>
 
 #ifndef YFDEBUG_FLOWTABLE
 #define YFDEBUG_FLOWTABLE 0
