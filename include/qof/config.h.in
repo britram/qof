@@ -1,4 +1,4 @@
-/* include/yaf/config.h.in.  Generated from configure.ac by autoheader.  */
+/* include/qof/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define if pointers to integers require aligned access */
 #undef HAVE_ALIGNED_ACCESS_REQUIRED
@@ -63,9 +63,6 @@
 
 /* Define to 1 if you have the <pcap.h> header file. */
 #undef HAVE_PCAP_H
-
-/* Define to 1 if you have the <pcap-zcopy.h> header file. */
-#undef HAVE_PCAP_ZCOPY_H
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
@@ -136,9 +133,6 @@
    */
 #undef LT_OBJDIR
 
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
-
 /* Name of package */
 #undef PACKAGE
 
@@ -187,20 +181,5 @@
 /* configure script options */
 #undef YAF_ACONF_STRING_STR
 
-/* Define to 1 to enable BIVIO support */
-#undef YAF_ENABLE_BIVIO
-
 /* Define to 1 to compact IPv4 addresses where possible */
 #undef YAF_ENABLE_COMPACT_IP4
-
-/* Define to 1 to enable DAG support */
-#undef YAF_ENABLE_DAG
-
-/* Define to 1 to enable recording DAG interface numbers */
-#undef YAF_ENABLE_DAG_SEPARATE_INTERFACES
-
-/* Define to 1 to enable Napatech support */
-#undef YAF_ENABLE_NAPATECH
-
-/* Define to 1 to enable recording DAG interface numbers */
-#undef YAF_ENABLE_NAPATECH_SEPARATE_INTERFACES

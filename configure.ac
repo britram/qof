@@ -18,7 +18,7 @@ AC_INIT([qof], [0.9.0], [brian@trammell.ch], [qof])
 AC_CONFIG_AUX_DIR([autoconf])
 AC_COPYRIGHT([Copyright (C) 2012-2013 by Brian Trammell
 Copyright (C) 2006-2012 by Carnegie Mellon University
-GNU Public License (GPL) Rights pursuant to Version 2, June 1991)
+GNU Public License (GPL) Rights pursuant to Version 2, June 1991])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
@@ -27,7 +27,7 @@ AM_INIT_AUTOMAKE([1.6.3 foreign])
 AC_PROG_LIBTOOL
 LIBCOMPAT="4:0:0"
 AC_REVISION($Revision: 18549 $)
-AC_CONFIG_HEADERS(include/yaf/config.h)
+AC_CONFIG_HEADERS(include/qof/config.h)
 AC_CONFIG_HEADERS(airframe/include/airframe/config.h)
 
 RPM_CONFIG_FLAGS=""
@@ -447,7 +447,7 @@ AC_CONFIG_FILES([Makefile
 				etc/init.d/qof
 				Doxyfile
 				README
-				etc/yaf.conf
+				etc/qof.conf
 				airframe/Makefile
 				airframe/src/Makefile
 				airframe/include/Makefile
