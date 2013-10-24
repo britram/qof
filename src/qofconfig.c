@@ -46,8 +46,8 @@ typedef struct qfConfigKeyAction_st {
 #define CFG_OFF(_F_) offsetof(qfConfig_t, _F_)
 
 static qfConfigKeyAction_t cfg_key_actions[] = {
-    {"active-timeout",         CFG_OFF(ato_ms), QF_CONFIG_U32},
-    {"idle-timeout",           CFG_OFF(ito_ms), QF_CONFIG_U32},
+    {"active-timeout",         CFG_OFF(ato_s), QF_CONFIG_U32},
+    {"idle-timeout",           CFG_OFF(ito_s), QF_CONFIG_U32},
     {"max-flows",              CFG_OFF(max_flowtab), QF_CONFIG_U32},
     {"max-frags",              CFG_OFF(max_fragtab), QF_CONFIG_U32},
     {"active-timeout-octets",  CFG_OFF(max_flow_oct), QF_CONFIG_U64},
@@ -793,8 +793,8 @@ void qfConfigDefaults(qfConfig_t           *cfg,
                       qfInputContext_t     *ictx,
                       qfOutputContext_t    *octx)
 {
-    cfg->ato_ms = 300000;   /* active timeout 5 min */
-    cfg->ito_ms = 30000;    /* idle timeout 30 sec */
+    cfg->ato_s = 300;   /* active timeout 5 min */
+    cfg->ito_s = 30;    /* idle timeout 30 sec */
     cfg->max_flowtab = 1024 * 1024;     /* 1 mebiflow */
     cfg->max_fragtab = 256 * 1024;      /* 256 kfrags */
     cfg->max_flow_pkt = 0;              /* no max packet */
@@ -968,8 +968,8 @@ void qfContextSetup(qfContext_t *ctx) {
                                   ctx->cfg.enable_gre);
 
     /* Allocate flow table */
-    ctx->flowtab = yfFlowTabAlloc(ctx->cfg.ito_ms * 1000,
-                                  ctx->cfg.ato_ms * 1000,
+    ctx->flowtab = yfFlowTabAlloc(ctx->cfg.ito_s * 1000,
+                                  ctx->cfg.ato_s * 1000,
                                   ctx->cfg.max_flowtab,
                                   !ctx->cfg.enable_biflow,
                                   ctx->cfg.enable_silk,

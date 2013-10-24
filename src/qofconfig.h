@@ -32,8 +32,8 @@ typedef struct qfConfig_st {
     gboolean    enable_gre;     // GRE decap mode
     gboolean    enable_biforce; // force biflow export
     /* Flow state configuration */
-    uint32_t    ato_ms;
-    uint32_t    ito_ms;
+    uint32_t    ato_s;
+    uint32_t    ito_s;
     uint32_t    max_flowtab;
     uint32_t    max_fragtab;
     uint64_t    max_flow_pkt;     // max packet count to force ATO (silk mode)
