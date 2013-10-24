@@ -7,17 +7,15 @@ B<qof> - Quality of Flow (yet another yet another flowmeter)
 =head1 SYNOPSIS
 
     qof     [--in LIBTRACE_URI] [--out OUTPUT_SPECIFIER]
-            [--ipfix TRANSPORT_PROTOCOL]
             [--yaml CONFIG_FILE]
             [--filter BPF_FILTER]
             [--rotate ROTATE_DELAY] [--lock]
-            [--stats INTERVAL][--no-stats]
-            [--gre-decode] [--no-frag]
-            [--template-refresh TEMPLATE_TIMEOUT]
-            [--flow-stats]
+            [--stats INTERVAL]
             [--observation-domain DOMAIN_ID]
+            [--ipfix TRANSPORT_PROTOCOL]
             [--ipfix-port PORT] [--tls] [--tls-ca CA_PEM_FILE]
             [--tls-cert CERT_PEM_FILE] [--tls-key KEY_PEM_FILE]
+            [--template-refresh TEMPLATE_TIMEOUT]
             [--become-user UNPRIVILEGED_USER]
             [--become-group UNPRIVILEGED_GROUP]
             [--log LOG_SPECIFIER] [--loglevel LOG_LEVEL]
@@ -64,9 +62,9 @@ If present, enable Berkeley Packet Filtering (BPF) in B<qof> with I<FILTER_EXPRE
 =head2 Output Options
 
 These options control where B<qof> will send its output. B<qof> can write flows
-to an IPFIX file or export flows to an IPFIX collector over SCTP, TCP, UDP, or Spread.
-By default, if no output options are given, B<qof> writes an IPFIX file to
-standard output.
+to an IPFIX file or export flows to an IPFIX collector over SCTP, TCP, UDP, or
+Spread. By default, if no output options are given, B<qof> writes an IPFIX file
+to standard output.
 
 =over 4
 
@@ -158,12 +156,16 @@ key should contain the private part of the public key in
 I<CERT_PEM_FILE>. Required if B<--tls> is present. If the key is encrypted,
 the password must be present in the QOF_TLS_PASS environment variable.
 
+=item B<--observation-domain> I<ODID>
+
+Set observation domain on exported IPFIX messages to I<ODID>; the default is 0.
+
 =item B<--template-refresh> I<TEMPLATE_RTX_TIME>
 
-Set UDP template refresh time in seconds.
-When set, every active template will be transmitted each I<TEMPLATE_RTX_TIME> seconds.
-Defaults to 0 (no template retransmit) unless B<--ipfix udp> is present, 
-in which case the default is 60 (1 minute).
+Set UDP template refresh time in seconds. When set, every active template will
+be transmitted each I<TEMPLATE_RTX_TIME> seconds. Defaults to 0 (no template
+retransmit) unless B<--ipfix udp> is present, in which case the default is 60
+(1 minute).
 
 =back
 
@@ -176,21 +178,20 @@ for live capture purposes.
 
 =item B<--become-user> I<UNPRIVILEGED_USER>
 
-After opening inputs, drop
-privilege to the named user. Using B<--become-user> requires B<qof> to
-be run  as root or setuid root. This option will cause all files
-written by B<qof> to be owned by the user I<UNPRIVILEGED_USER> and the
-user's primary group; use B<--become-group> as well to change the group
-B<qof> runs as for output purposes. If running as root for live capture purposes 
-and B<--become-user> is not present, B<qof> will warn that privilege is not being 
+After opening inputs, drop privilege to the named user. Using B<--become-user>
+requires B<qof> to be run as root or setuid root. This option will cause all
+files written by B<qof> to be owned by the user I<UNPRIVILEGED_USER> and the
+user's primary group; use B<--become-group> as well to change the group B<qof>
+runs as for output purposes. If running as root for live capture purposes and
+B<--become-user> is not present, B<qof> will warn that privilege is not being
 dropped. We highly recommend the use of this option, especially in production
 environments, for security purposes.
 
 =item B<--become-group> I<UNPRIVILEGED_GROUP>
 
-B<--become-group> can be used to change the group from the default of
-the user given in B<--become-user>.  This option has no effect if
-given without the B<--become-user> option as well.
+B<--become-group> can be used to change the group from the default of the user
+given in B<--become-user>. This option has no effect if given without the
+B<--become-user> option as well.
 
 =back
 
@@ -239,37 +240,38 @@ the configuration keys are as follows:
 
 =item B<template>: I<TEMPLATE_LIST>
 
-[TODO describe]
-
-=item B<interface-map>: I<IFMAP_LIST>
-
-[TODO describe]
+A list of Information Elements to export. The selection of Information Elements in this Template determines which B<qof> features will be enabled; see the B<OUTPUT> section for details. When no template is given, b<qof> defaults to the following:
 
 =over 2
 
-=item B<ip4-net>: I<IP4_CIDR>
-
-[TODO describe]
-
-=item B<ip6-net>: I<IP6_CIDR>
-
-[TODO describe]
-
-=item B<ingress>: I<INTERFACE_NUMBER>
-
-[TODO describe]
-
-=item B<egress>: I<INTERFACE_NUMBER>
+=item flowStartMilliseconds
+=item flowEndMilliseconds
+=item octetDeltaCount
+=item reverseOctetDeltaCount
+=item packetDeltaCount
+=item reversePacketDeltaCount
+=item sourceIPv4Address
+=item destinationIPv4Address
+=item sourceIPv6Address
+=item destinationIPv6Address
+=item sourceTransportPort
+=item destinationTransportPort
+=item protocolIdentifier
+=item flowEndReason
 
 =back
 
+=item B<interface-map>: I<IFMAP_LIST>
+
+This feature will be documented in a future release.
+
 =item B<source-mac>: I<MACADDR_LIST>
 
-[TODO describe]
+This feature will be documented in a future release.
 
 =item B<source-ip>: I<IPADDR_LIST>
 
-[TODO describe]
+This feature will be documented in a future release.
 
 =item B<idle-timeout>: I<IDLE_TIMEOUT>
 
@@ -372,27 +374,149 @@ writing files for processing with rwipfix2silk.
 
 [NOTE: Documentation rewrite is in progress from this point.]
 
-=head2 Basic Flow Record
+[TODO frontmatter]
+
+=head2 Flow Records
 
 B<qof>'s output consists of an IPFIX message stream. B<qof> uses a variety of
-templates for IPFIX data records; the information elements that may appear
-in these templates are enumerated below. For further information about the IPFIX
-information model and IPFIX message stream, see B<RFC 5102>, B<RFC 5101>, and
-B<RFC 5103>.  As of B<qof> 2.0, B<qof> nests some templates in an IPFIX
-subTemplateMultiList.  In order to retain compatibility with the SiLK Tools,
-use B<--silk> to prevent B<qof> from nesting TCP Information Elements.  Below
-are descriptions of each of the templates B<qof> will export.  See the
-Internet-Draft B<Export of Structured Data in IPFIX> for more information on IPFIX lists.
+templates for IPFIX data records. For further information about IPFIX as implemented by B<qof>, see RFC 7011, RFC 7012, RFC 5103, and RFC 5655.
 
 B<qof> assigns information element numbers to reverse flow elements in biflow
-capture based on the standard IPFIX PEN 29305.  This applies only for
-information elements defined in the standard IPFIX Information Model
-(B<RFC 5102>) that do not have a reverse information element already defined.
-For information elements defined under the CERT PEN, a standard method is
-used to calculate their reverse element identifier.  The method is that
-bit fourteen is set to one in the IE field, (e.g. 16384 + the forward IE number.)
+capture based on the standard IPFIX PEN 29305. This applies only for
+information elements registered with IANA that do not have a reverse
+information element already defined. B<qof> additionally uses information
+elements registered with CERT (PEN 6871) for features inherited from B<yaf> and
+elements registered under the trammell.ch PEN (PEN 35566) for B<qof> specific
+features. For enterprise-specific information elements, the method described in
+RFC 5103 is used to calculate their reverse element identifier: bit fourteen is
+set to one in the IE field, (e.g. 16384 + the forward IE number.)
+
+B<qof> supports the following Information Elements in flow records, which can appear in the B<template:> list in the YAML configuration file; in the list below, features enabled and conditions for export for each Information Element are noted.
 
 =over 4
+
+=item octetDeltaCount, IANA IE 1
+
+=item packetDeltaCount, IANA IE 2
+
+=item protocolIdentifier, IANA IE 4
+
+=item tcpControlBits, IANA IE 6
+
+=item sourceTransportPort, IANA IE 7
+
+=item sourceIPv4Address, IANA IE 8
+
+=item ingressInterface, IANA IE 10
+
+=item destinationTransportPort, IANA IE 11
+
+=item destinationIPv4Address, IANA IE 12
+
+=item egressInterface, IANA IE 14
+
+=item sourceIPv6Address, IANA IE 27
+
+=item destinationIPv6Address, IANA IE 28
+
+=item minimumTTL, IANA IE 52
+
+=item maximumTTL, IANA IE 53
+
+=item sourceMacAddress, IANA IE 56
+
+=item vlanId, IANA IE 58
+
+=item destinationMacAddress, IANA IE 80
+
+=item flowEndReason, IANA IE 136
+
+=item flowId, IANA IE 148
+
+=item flowStartMilliseconds, IANA IE 152
+
+=item flowEndMilliseconds, IANA IE 153
+
+=item transportOctetDeltaCount, IANA IE 401
+
+=item transportPacketDeltaCount, IANA IE 402
+
+=item reverseOctetDeltaCount, RFC 5103 (PEN 29305) IE 1
+
+=item reversePacketDeltaCount, RFC 5103 (PEN 29305) IE 2
+
+=item reverseTcpControlBits, RFC 5103 (PEN 29305) IE 6
+
+=item reverseMinimumTTL, RFC 5103 (PEN 29305) IE 52
+
+=item reverseMaximumTTL, RFC 5103 (PEN 29305) IE 53
+
+=item reverseTransportOctetDeltaCount, RFC 5103 (PEN 29305) IE 401
+
+=item reverseTransportPacketDeltaCount, RFC 5103 (PEN 29305) IE 402
+
+|_. Name |_. Number |_. Type |_. Semantics |_. Units |_. Description |
+| initialTCPFlags| 6871 / 14 | unsigned8 | flags | | Flags on the first TCP packet in the forward direction; see tcpControlBits |
+| unionTCPFlags | 6871 / 15 | unsigned8 | flags | | Union of the flags on all TCP packets after the first TCP packet in the forward direction; see tcpControlBits |
+| reverseFlowDeltaMilliseconds | 6871 / 21 | signed32 | quantity | milliseconds | Milliseconds between first packet in the forward direction and the first packet in the reverse direction |
+| reverseInitialTCPFlags | 6871 / 16398 | unsigned8 | flags | | Flags on the first TCP packet in the reverse direction; see tcpControlBits |
+| reverseUnionTCPFlags | 6871 / 16399 | unsigned8 | flags | | Union of the flags on all TCP packets after the first TCP packet in the reverse direction; see tcpControlBits |
+| expiredFragmentCount | 6871 / 100 | unsigned32 | quantity | packets | Count of fragments expired out of the fragment table since QoF startup; sent in status records |
+| assembledFragmentCount | 6871 / 101 | unsigned32 | quantity | packets | Count of fragments assembled in of the fragment table since QoF startup; sent in status records |
+| meanFlowRate | 6871 / 102 | unsigned32 | quantity | flows/sec | Mean number of flows processed per second; sent in status records |
+| meanPacketRate | 6871 / 103 | unsigned32 | quantity | packets/sec | Mean number of packets processed per second; sent in status records |
+| flowTableFlushEventCount | 6871 / 104 | unsigned32 | quantity | events | Number of flow table flush events since QoF startup; sent in status records |
+| flowTablePeakCount | 6871 / 105 | unsigned32 | quantity | flows | Peak flow concurrency since QoF startup; sent in status records |
+
+The following Information Elements are allocated within trammell.ch private enterprise number (PEN) space (PEN 35566).
+
+|_. Name |_. Number |_. Type |_. Semantics |_. Units |_. Description |
+| tcpSequenceCount | 35566 / 1024 | unsigned64 | deltaCounter | octets | The number of octets passed up to the application layer at the receiver, as measured by progress through TCP sequence number space observed at the Observation Point. |
+| tcpRetransmitCount | 35566 / 1025 | unsigned64 | deltaCounter | packets | The number of packets consisting of complete or partial retransmission, as measured by segments and/or portions of sequence number space observed at the Observation Point. |
+| maxTcpSequenceJump | 35566 / 1026 | unsigned32 | quantity | octets | The maximum observed size of a sequence number jump, calculated by subtracting the sequence number of the first byte in a reordered packet from the highest-seen sequence number on this Flow. |
+| minTcpRttMilliseconds | 35566 / 1029 | unsigned32 | quantity | milliseconds | The minimum TCP round trip time for this Flow, as observed at the Observation Point. QoF attempts to correct for observation point placement. |
+| lastTcpRttMilliseconds | 35566 / 1030 | unsigned32 | quantity | milliseconds | The final smoothed TCP round trip time for this Flow, as observed at or calculated by the Observation Point. QoF attempts to correct for observation point placement. |
+| ectMarkCount | 35566 / 1031 | unsigned64 | deltaCounter | packets | Count of packets carrying an ECN Capable Transport mark (Not implemented in master) |
+| ceMarkCount | 35566 / 1032 | unsigned64 | deltaCounter | packets | Count of packets carrying an ECN Congestion Experienced mark (Not implemented in master) |
+| declaredTcpMss | 35566 / 1033 | unsigned16 | quantity | octets | TCP MSS declared in TCP options |
+| observedTcpMss | 35566 / 1034 | unsigned16 | quantity | octets | Maximum size of payload in observed TCP segments |
+| tcpSequenceLossCount | 35566 / 1035 | unsigned64 | deltaCounter | octets | Octets in TCP segments inferred from observing the sequence number series but not observed in the packet stream; generally indicates observation loss |
+| tcpSequenceJumpCount | 35566 / 1036 | unsigned64 | deltaCounter | packets | Count of TCP segments received out of order; i.e., without having observed the previous segment; counts multi-segment jumps in units of observed MSS |
+| tcpPureAckCount | 35566 / 1037 | unsigned64 | deltaCounter | packets | Count of TCP pure-ACK packets (not implemented in master) |
+| tcpLossEventCount | 35566 / 1038 | unsigned64 | deltaCounter | events | Count of RTT time windows during which a loss indication (retransmit or jump) was observed. |
+| qofTcpCharacteristics | 35566 / 1039 | unsigned32 | flags | | Flags describing particular characteristics of the flow. 0x01 = ECT(0) present on at least one packet. 0x02 = ECT(1) present on at least one packet. 0x04 = CE present on at least one packet. 0x10 = TCP Timestamp present. 0x20 = At least one segment was selectively acknowledged. 0x40 = TCP Window Scale present. |
+| tcpDupAckCount | 35566 / 1040 | unsigned64 | deltaCounter | packets | Count of pure duplicate ACKs (definition subject to change) |
+| tcpSelAckCount | 35566 / 1041 | unsigned64 | deltaCounter | packets | Count of segments carrying a selective acknowledgment (definition subject to change) |
+| minTcpRwin | 35566 / 1042 | unsigned32 | quantity | octets | Minimum observed scaled receiver window |
+| meanTcpRwin | 35566 / 1043 | unsigned32 | quantity | octets | Mean observed scaled receiver window over all packets |
+| maxTcpRwin | 35566 / 1044 | unsigned32 | quantity | octets | Maximum observed scaled receiver window |
+| tcpReceiverStallCount | 35566 / 1045 | unsigned32 | quantity | events | Count of transitions of the receiver window from nonzero to zero (definition subject to change) |
+| tcpRttSampleCount | 35566 / 1046 | unsigned32 | quantity | events | Count of RTT samples from which the flow's RTT information is derived |
+| tcpTimestampFrequency | 35566 / 1047 | unsigned32 | quantity | Hz | Observed frequency of the TCP Timestamp generator |
+
+The following reverse Information Elements are allocated within trammell.ch private enterprise number (PEN) space (PEN 35566); they defined as their forward counterparts, and associated with the reverse direction of the Flow, as in RFC 5103.
+
+|_. Name |_. Number |_. Type |_. Semantics |_. Units |
+| reverseTcpSequenceCount | 35566 / 17408 | unsigned64 | deltaCounter | octets |
+| reverseTcpRetransmitCount | 35566 / 17409 | unsigned64 | deltaCounter | packets |
+| reverseMaxSequenceJump | 35566 / 17410 | unsigned32 | quantity | octets |
+| reverseEctMarkCount | 35566 / 17415 | unsigned64 | deltaCounter | packets |
+| reverseCeMarkCount | 35566 / 17416 | unsigned64 | deltaCounter | packets |
+| reverseDeclaredTcpMss | 35566 / 17417 | unsigned16 | quantity | octets |
+| reverseObservedTcpMss | 35566 / 17418 | unsigned16 | quantity | octets |
+| reverseTcpSequenceLossCount | 35566 / 17419 | unsigned64 | deltaCounter | octets |
+| reverseTcpSequenceJumpCount | 35566 / 17420 | unsigned64 | deltaCounter | packets |
+| reverseTcpRtxBurstCount | 35566 / 17422 | unsigned64 | deltaCounter | events |
+| reverseQofTcpCharacteristics | 35566 / 17423 | unsigned32 | flags | |
+| reverseTcpDupAckCount | 35566 / 17424 | unsigned64 | deltaCounter | packets |
+| reverseTcpSelAckCount | 35566 / 17425 | unsigned64 | deltaCounter | packets |
+| reverseMinTcpRwin | 35566 / 17426 | unsigned32 | quantity | octets |
+| reverseMeanTcpRwin | 35566 / 17427 | unsigned32 | quantity | octets |
+| reverseMaxTcpRwin | 35566 / 17428 | unsigned32 | quantity | octets |
+| reverseTcpReceiverStallCount | 35566 / 17429 | unsigned32 | quantity | events |
+| reverseTcpRttSampleCount | 35566 / 17430 | unsigned32 | quantity | octets |
+| reverseTcpTimestampFrequency | 35566 / 17431 | unsigned32 | quantity | Hz |
+
 
 =item B<flowStartMilliseconds> IE 152, 8 octets, unsigned
 
