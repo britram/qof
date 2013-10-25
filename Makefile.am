@@ -28,22 +28,22 @@ MOSTLYCLEANFILES = $(DX_CLEANFILES)
 utils-doc:
 	(cd $(top_builddir)/src && $(MAKE) docs)
 
-release-note-doc: NEWS
-	$(top_srcdir)/doc/news2xhtml.pl yaf gpl 16 < $(top_srcdir)/NEWS > doc/releases.xml
+#release-note-doc: NEWS
+#	$(top_srcdir)/doc/news2xhtml.pl yaf gpl 16 < $(top_srcdir)/NEWS > doc/releases.xml
 
 make-doc-path:
 	mkdir -p $(top_builddir)/doc/html
 
-copy-doxygen-doc:
-	cp -pr doc/html $(distdir)/doc
+#copy-doxygen-doc:
+#	cp -pr doc/html $(distdir)/doc
 
-dist-hook: docs copy-doxygen-doc
+dist-hook: docs
 	find $(distdir) -name .svn -type d -prune -exec rm -rf '{}' ';'
 
-distclean-local:
-	rm -f $(top_builddir)/doc/releases.xml
+#distclean-local:
+#	rm -f $(top_builddir)/doc/releases.xml
 
-docs: make-doc-path doxygen-doc utils-doc release-note-doc
+docs: make-doc-path utils-doc 
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libyaf.pc

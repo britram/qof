@@ -46,6 +46,7 @@ configuration interface, and output format may change wildly before a
 =head2 Input Options
 
 These options control where B<qof> will take its input from.
+
 =over 4
 
 =item B<--in> I<LIBTRACE_URI>
@@ -76,8 +77,6 @@ the I<OUTPUT_SPECIFIER> specifies the hostname or IP address of the
 collector to which the flows will be exported. Otherwise, I<OUTPUT_SPECIFIER> 
 is a filename in which the flows will be written; the string B<-> 
 may be used to write to standard output (the default).
-
-=back
 
 =item B<--ipfix> I<TRANSPORT_PROTOCOL>
 
@@ -241,26 +240,71 @@ the configuration keys are as follows:
 
 =item B<template>: I<TEMPLATE_LIST>
 
-A list of Information Elements to export. The selection of Information Elements in this Template determines which B<qof> features will be enabled; see the B<OUTPUT> section for details. When no template is given, b<qof> defaults to the following:
+A list of Information Elements to export. The selection of Information Elements in this Template determines which B<qof> features will be enabled; see the B<OUTPUT> section for details. When no template is given, B<qof> defaults to the following:
 
 =over 2
 
-=item flowStartMilliseconds
-=item flowEndMilliseconds
-=item octetDeltaCount
-=item reverseOctetDeltaCount
-=item packetDeltaCount
-=item reversePacketDeltaCount
-=item sourceIPv4Address
-=item destinationIPv4Address
-=item sourceIPv6Address
-=item destinationIPv6Address
-=item sourceTransportPort
-=item destinationTransportPort
-=item protocolIdentifier
-=item flowEndReason
+=item *
+
+flowStartMilliseconds
+
+=item *
+
+flowEndMilliseconds
+
+=item *
+
+octetDeltaCount
+
+=item *
+
+reverseOctetDeltaCount
+
+=item *
+
+packetDeltaCount
+
+=item *
+
+reversePacketDeltaCount
+
+=item *
+
+sourceIPv4Address
+
+=item *
+
+destinationIPv4Address
+
+=item *
+
+sourceIPv6Address
+
+=item *
+
+destinationIPv6Address
+
+=item *
+
+sourceTransportPort
+
+=item *
+
+destinationTransportPort
+
+=item *
+
+protocolIdentifier
+
+=item *
+
+flowEndReason
 
 =back
+
+See the B<OUTPUT> section for a definition of each information 
+element available here, and for the features enabled by each information 
+element.
 
 =item B<interface-map>: I<IFMAP_LIST>
 
@@ -373,15 +417,13 @@ writing files for processing with rwipfix2silk.
 
 =head1 OUTPUT X<OUTPUT>
 
-[NOTE: Documentation rewrite is in progress from this point.]
-
-[TODO frontmatter]
+B<qof>'s output consists of an IPFIX message stream. B<qof> uses a variety of
+templates for IPFIX data records, derived from a template supplied by the
+user in the YAML configuration file. This section describes the 
+information elements used in those templates. For further information about IPFIX as
+implemented by B<qof>, see RFC 7011, RFC 7012, RFC 5103, and RFC 5655.
 
 =head2 Flow Records
-
-B<qof>'s output consists of an IPFIX message stream. B<qof> uses a variety of
-templates for IPFIX data records. For further information about IPFIX as 
-implemented by B<qof>, see RFC 7011, RFC 7012, RFC 5103, and RFC 5655.
 
 B<qof> assigns information element numbers to reverse flow elements in biflow
 capture based on the standard IPFIX PEN 29305. This applies only for
@@ -396,8 +438,13 @@ set to one in the IE field, (e.g. 16384 + the forward IE number.)
 B<qof> supports the following Information Elements in flow records, 
 which can appear in the B<template:> list in the YAML configuration file; 
 in the list below, features enabled and conditions for export for 
-each Information Element are noted. For IANA IEs, see 
-http://www.iana.org/assignments/ipfix for details.
+each Information Element are noted. 
+
+Note as well that if I<any> reverse information element is 
+specified in the B<template:> list, B<qof> will export biflows 
+as in RFC 5103; otherwise, it will export biflows as two separate records.
+
+For IANA IEs, see http://www.iana.org/assignments/ipfix for details.
 
 =over 4
 
@@ -794,6 +841,8 @@ tracking.
 Timestamps in the reverse direction. Only exported for TCP biflows on which the
 timestamp option is present. If present in the template, turns on options
 parsing and timestamp tracking.
+
+=back
 
 =head2 Statistics Option Template
 

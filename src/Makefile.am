@@ -15,6 +15,7 @@
 PODFILES = qof.pod
 man1_MANS = qof.1
 HTMLFILES = qof.html
+PDFFILES = qof.pdf
 
 WARN_CFLAGS = -g -DDEBUG -Wall -W -Wmissing-prototypes -Wformat=2 -Wdeclaration-after-statement -Wpointer-arith -Wshadow
 
@@ -23,13 +24,15 @@ WARN_CFLAGS = -g -DDEBUG -Wall -W -Wmissing-prototypes -Wformat=2 -Wdeclaration-
 
 .pod.html:
 	$(POD2HTML) --noindex --infile="$<" --outfile="$@"
-	$(top_srcdir)/doc/add-header.pl "$@"
+
+.1.pdf:
+	groff -mandoc $< | ps2pdf - $@
 
 copy-man-pages: $(HTMLFILES)
 	mkdir -p $(top_builddir)/doc/html
 	cp $(HTMLFILES) $(top_builddir)/doc/html
 
-docs: $(man1_MANS) copy-man-pages
+docs: $(man1_MANS) $(PDFFILES) copy-man-pages
 
 clean-docs:
 	rm -f $(man1_MANS) $(HTMLFILES)
