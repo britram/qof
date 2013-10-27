@@ -15,15 +15,17 @@ typedef struct ipfix_header_st {
 } ipfix_header_t;
     
 static size_t read_message(FILE *fp, uint8_t *buf, size_t bufmax) {
-    int rv;
-    size_t restlen;
-    
-    if (bufmax < sizeof(ipfix_header_t)) {
+    size_t rv = 0;
+    size_t restlen = 0;
+    size_t header_sz = 16;
+    if (bufmax < header_sz) {
         fprintf(stderr, "internal error: message buffer way too small\n");
         exit(1);
     }
     
-    if ((rv = fread(buf, sizeof(ipfix_header_t), 1, fp)) != 1) {
+    rv = fread(buf, header_sz, 1, fp);
+    
+    if (rv != 1) {
         if (rv) {
             fprintf(stderr, "error reading ipfix message header: %s\n",
                     strerror(errno));
@@ -33,8 +35,15 @@ static size_t read_message(FILE *fp, uint8_t *buf, size_t bufmax) {
         }
     }
     
-    restlen = ntohs(((ipfix_header_t *)buf)->length) - sizeof(ipfix_header_t);
-    if ((rv = fread(buf+sizeof(ipfix_header_t), restlen, 1, fp)) != 1) {
+    restlen = ntohs(((ipfix_header_t *)buf)->length) - header_sz;
+    if (restlen > bufmax - header_sz) {
+        fprintf(stderr, "internal error: message buffer too small\n");
+        exit(1);
+    }
+    
+    rv = fread(buf+header_sz, restlen, 1, fp);
+    
+    if (rv != 1) {
         if (rv) {
             fprintf(stderr, "error reading ipfix message body: %s\n",
                     strerror(errno));
@@ -75,25 +84,42 @@ int main (int argc, char *argv[]) {
     time_t start;
     int period = 3600;
     char* prefix;
+    char* infn;
     uint8_t msgbuf[65536];
     size_t msglen;
     FILE *outfp = NULL;
+    FILE *infp = NULL;
     
 
-    if (argc != 3) {
-        fprintf(stderr, "usage: %s period_sec out_prefix < in.ipfix\n",
+    if (argc < 3) {
+        fprintf(stderr, "usage: %s period_sec out_prefix [in.ipfix] [< in.ipfix]\n",
                         argv[0]);
         exit(1);
     }
     
     period = atoi(argv[1]);
     prefix = argv[2];
+    
+    if (argc == 4) {
+        infn = argv[3];
+        infp = fopen(infn, "rb");
+        if (!infp) {
+            fprintf(stderr, "could not open input file %s: %s",
+                    infn, strerror(errno));
+            exit(1);
+        }
+    } else {
+        infn = "-";
+        infp = stdin;
+    }
 
     start = time(NULL);
 
     /* read a message */
     while ((msglen = read_message(stdin, msgbuf, sizeof(msgbuf)))) {
     
+        fprintf(stderr, "got message length %zu\n", msglen);
+        
         /* get message hour number */
         msgpn = get_message_hour(msgbuf, period);
         
