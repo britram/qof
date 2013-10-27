@@ -98,7 +98,7 @@ int main (int argc, char *argv[]) {
         msgpn = get_message_hour(msgbuf, period);
         
         /* rotate output if necessary */
-        if (lastpn != msgpn) {
+        if (msgpn > lastpn) {
             if (outfp) {
                 fclose(outfp);
             }
