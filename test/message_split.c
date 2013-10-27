@@ -56,7 +56,7 @@ static FILE *output_for_hour(char *prefix, int hournum, int period) {
     
     strncpy(fnbuf, prefix, sizeof(fnbuf));
     strftime(fnbuf + strlen(prefix), sizeof(fnbuf) - strlen(prefix) - 1,
-             "%Ye-%m-%d-%h-%m", gmtime(&stamp));
+             "%Ye-%m-%d-%h-%m.ipfix", gmtime(&stamp));
     
     if (!(outfp = fopen(fnbuf, "rb"))) {
         fprintf(stderr, "could not open output file %s: %s",
