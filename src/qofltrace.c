@@ -25,6 +25,7 @@
 #include "yafstat.h"
 
 #include "qofltrace.h"
+#include "qofdetune.h"
 
 #define TRACE_PACKET_GROUP 32
 
@@ -108,13 +109,14 @@ void qfTraceClose(qfTraceSource_t *lts) {
     if (lts) g_free(lts);
 }
 
-static void qfTraceHandle(qfTraceSource_t             *lts,
-                          qfContext_t                 *ctx)
+
+static void qfTraceHandle(qfTraceSource_t    *lts,
+                                 qfContext_t        *ctx)
 {
     yfPBuf_t                    *pbuf;
     yfIPFragInfo_t              fraginfo_buf,
-                                *fraginfo = ctx->fragtab ?
-                                &fraginfo_buf : NULL;
+    *fraginfo = ctx->fragtab ?
+    &fraginfo_buf : NULL;
     libtrace_linktype_t         linktype;
     uint8_t                     *pkt;
     uint32_t                    caplen;
@@ -125,34 +127,77 @@ static void qfTraceHandle(qfTraceSource_t             *lts,
     pbuf = (yfPBuf_t *)rgaNextHead(ctx->pbufring);
     g_assert(pbuf);
     
-    /* extract data from libtrace */
-    tv = trace_get_timeval(lts->packet);
-    pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
+    do {
+        /* extract data from libtrace */
+        tv = trace_get_timeval(lts->packet);
+        pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
     
-    /* Decode packet into packet buffer */
-    if (!yfDecodeToPBuf(ctx->dectx,
-                        linktype,
-                        yfDecodeTimeval(&tv),
-                        trace_get_capture_length(lts->packet),
-                        pkt, fraginfo, pbuf))
-    {
-        /* Couldn't decode packet; counted in dectx. Skip. */
-        return;
-    }
+        /* Decode packet into packet buffer */
+        if (!yfDecodeToPBuf(ctx->dectx,
+                            linktype,
+                            yfDecodeTimeval(&tv),
+                            trace_get_capture_length(lts->packet),
+                            pkt, fraginfo, pbuf))
+        {
+            /* Couldn't decode packet; counted in dectx. Skip. */
+            return;
+        }
     
+    /* Check to see if we should drop the packet, loop if so */
+    } while (ctx->ictx.detune &&
+             !qfDetunePacket(ctx->ictx.detune, &pbuf->ptime, pbuf->iplen));
+        
     /* Handle fragmentation if necessary */
     if (fraginfo && fraginfo->frag) {
         yfDefragPBuf(ctx->fragtab, fraginfo, pbuf, pkt, caplen);
     }
 }
 
+/* Old pre-detuned code */
+//static void qfTraceHandle(qfTraceSource_t             *lts,
+//                          qfContext_t                 *ctx)
+//{
+//    yfPBuf_t                    *pbuf;
+//    yfIPFragInfo_t              fraginfo_buf,
+//                                *fraginfo = ctx->fragtab ?
+//                                &fraginfo_buf : NULL;
+//    libtrace_linktype_t         linktype;
+//    uint8_t                     *pkt;
+//    uint32_t                    caplen;
+//    
+//    struct timeval tv;
+//    
+//    /* get next spot in ring buffer */
+//    pbuf = (yfPBuf_t *)rgaNextHead(ctx->pbufring);
+//    g_assert(pbuf);
+//    
+//    /* extract data from libtrace */
+//    tv = trace_get_timeval(lts->packet);
+//    pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
+//    
+//    /* Decode packet into packet buffer */
+//    if (!yfDecodeToPBuf(ctx->dectx,
+//                        linktype,
+//                        yfDecodeTimeval(&tv),
+//                        trace_get_capture_length(lts->packet),
+//                        pkt, fraginfo, pbuf))
+//    {
+//        /* Couldn't decode packet; counted in dectx. Skip. */
+//        return;
+//    }
+//    
+//    /* Handle fragmentation if necessary */
+//    if (fraginfo && fraginfo->frag) {
+//        yfDefragPBuf(ctx->fragtab, fraginfo, pbuf, pkt, caplen);
+//    }
+//}
+
+
 static void qfTraceUpdateStats(qfTraceSource_t *lts) {
     yaf_trace_drop = (uint32_t) trace_get_dropped_packets(lts->trace);
     if (yaf_trace_drop == (uint32_t)-1) yaf_trace_drop = 0;
 }
 
-/* FIXME move this into another file,
- split responsibilites again so we can have a ctx-less yafcore */
 static gboolean qfTracePeriodicExport(
                                  qfContext_t         *ctx,
                                  uint64_t            ctime)

@@ -34,6 +34,7 @@ typedef enum {
     QF_CONFIG_STRING,
     QF_CONFIG_U32,
     QF_CONFIG_U64,
+    QF_CONFIG_DOUBLE,
     QF_CONFIG_BOOL,
 } qfConfigKeyType_t;
 
@@ -298,6 +299,20 @@ static gboolean qfYamlParseBool(yaml_parser_t      *parser,
     return TRUE;
 }
 
+static gboolean qfYamlParseDouble(yaml_parser_t      *parser,
+                                  double             *val,
+                                  GError             **err)
+{
+    char valbuf[VALBUF_SIZE];
+    
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+    
+    if (sscanf(valbuf, "%lf", val) < 1) {
+        return qfYamlError(err, parser, "expected float value");
+    }
+    
+    return TRUE;
+}
 
 static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
                                       uint32_t           *addr,
@@ -701,6 +716,9 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
                     break;
                   case QF_CONFIG_U64:
                     rv = qfYamlParseU64(parser, (uint64_t*)cvp, err);
+                    break;
+                  case QF_CONFIG_DOUBLE:
+                    rv = qfYamlParseDouble(parser, (double*)cvp, err);
                     break;
                   case QF_CONFIG_BOOL:
                     rv = qfYamlParseBool(parser, (gboolean*)cvp, err);

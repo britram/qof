@@ -12,6 +12,8 @@
 
 #include <airframe/airlock.h>
 
+#include "qofdetune.h"
+
 typedef struct qfConfig_st {
     /* Features enabled by template selection */
     gboolean    enable_biflow;  // RFC5103 biflow export
@@ -55,6 +57,8 @@ typedef struct qfInputContext_st {
     char            *bpf_expr;
     /** Packet source */
     struct qfTraceSource_st *pktsrc;
+    /** Packet detuner */
+    qofDetune_t     *detune;
 } qfInputContext_t;
 
 typedef struct qfOutputContext_st {
