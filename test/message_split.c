@@ -9,15 +9,17 @@
 typedef struct ipfix_header_st {
     uint16_t    version;
     uint16_t    length;
-    uint32_t    sequence;
     uint32_t    export_time;
-    uint32_t    delay;
+    uint32_t    sequence;
+    uint32_t    domain;
 } ipfix_header_t;
     
 static size_t read_message(FILE *fp, uint8_t *buf, size_t bufmax) {
     size_t rv = 0;
     size_t restlen = 0;
     size_t header_sz = 16;
+    ipfix_header_t *hdr = (ipfix_header_t *)buf;
+    
     if (bufmax < header_sz) {
         fprintf(stderr, "internal error: message buffer way too small\n");
         exit(1);
@@ -35,7 +37,7 @@ static size_t read_message(FILE *fp, uint8_t *buf, size_t bufmax) {
         }
     }
     
-    restlen = ntohs(((ipfix_header_t *)buf)->length) - header_sz;
+    restlen = ntohs(hdr->length) - header_sz;
     if (restlen > bufmax - header_sz) {
         fprintf(stderr, "internal error: message buffer too small\n");
         exit(1);
@@ -51,11 +53,13 @@ static size_t read_message(FILE *fp, uint8_t *buf, size_t bufmax) {
         }
     }
     
-    return ntohs(((ipfix_header_t *)buf)->length);
+    return ntohs(hdr->length);
 }
 
 static int get_message_hour(uint8_t *buf, int period) {
-    return ntohl(((ipfix_header_t *)buf)->export_time) / period;
+    ipfix_header_t *hdr = (ipfix_header_t *)buf;
+    
+    return ntohl(hdr->export_time) / period;
 }
 
 static FILE *output_for_hour(char *prefix, int hournum, int period) {
@@ -65,11 +69,12 @@ static FILE *output_for_hour(char *prefix, int hournum, int period) {
     
     strncpy(fnbuf, prefix, sizeof(fnbuf));
     strftime(fnbuf + strlen(prefix), sizeof(fnbuf) - strlen(prefix) - 1,
-             "%Y-%m-%d-%h-%m.ipfix", gmtime(&stamp));
+             "%Y-%m-%d-%H-%M.ipfix", gmtime(&stamp));
     
-    if (!(outfp = fopen(fnbuf, "rb"))) {
+    if (!(outfp = fopen(fnbuf, "wb"))) {
         fprintf(stderr, "could not open output file %s: %s",
                         fnbuf, strerror(errno));
+        exit(1);
     }
     
     return outfp;
@@ -116,13 +121,11 @@ int main (int argc, char *argv[]) {
     start = time(NULL);
 
     /* read a message */
-    while ((msglen = read_message(stdin, msgbuf, sizeof(msgbuf)))) {
-    
-        fprintf(stderr, "got message length %zu\n", msglen);
+    while ((msglen = read_message(infp, msgbuf, sizeof(msgbuf)))) {
         
         /* get message hour number */
         msgpn = get_message_hour(msgbuf, period);
-        
+
         /* rotate output if necessary */
         if (msgpn > lastpn) {
             if (outfp) {
