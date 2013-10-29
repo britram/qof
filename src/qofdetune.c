@@ -65,6 +65,7 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
         if (detune->bucket_cur >= detune->bucket_max) {
             /* bucket overflow, tail drop */
             detune->bucket_cur = detune->bucket_max;
+            detune->stat_bucket_drop++;
             return FALSE;
         }
     }
@@ -73,6 +74,7 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     if (detune->drop_p) {
         sstLinSmoothAdd(&detune->drop_die, rand32());
         if ((((double)detune->drop_die.val) / max32) < detune->drop_p) {
+            detune->stat_random_drop++;
             return FALSE;
         }
     }
@@ -97,10 +99,40 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     if (*ms < detune->last_ms) {
         *ms = detune->last_ms;
     }
+    sstMeanAdd(&detune->stat_delay, (int)(*ms - detune->last_ms));
+    
     detune->last_ms = cur_ms;
     
     /* if we made it here, don't drop the packet */
     return TRUE;
 }
+
+uint64_t qfDetuneDumpStats(qofDetune_t          *detune,
+                           uint64_t             flowPacketCount)
+{
+    uint64_t droppedPacketCount = detune->stat_bucket_drop +
+                                  detune->stat_random_drop;
+    uint64_t totalPacketCount = flowPacketCount + droppedPacketCount;
+    
+    if (droppedPacketCount) {
+        g_debug("Detune got %llu packets, dropped %llu : (%3.2f%%)",
+                totalPacketCount, droppedPacketCount,
+                ((double)(droppedPacketCount)/(double)(totalPacketCount) * 100) );
+        if (detune->stat_bucket_drop) {
+            g_debug("  %llu (%3.2f%%) tail drops", detune->stat_bucket_drop,
+                    ((double)(detune->stat_bucket_drop)/(double)(droppedPacketCount) * 100) );
+        }
+        if (detune->stat_random_drop) {
+            g_debug("  %llu (%3.2f%%) random losses", detune->stat_random_drop,
+                    ((double)(detune->stat_random_drop)/(double)(droppedPacketCount) * 100) );
+        }
+        if (detune->stat_delay.mean) {
+            g_debug("  mean imparted delay %u ms", (unsigned int)detune->stat_delay.mean);
+        }
+   }
+    
+    return totalPacketCount;
+}
+
 
 #endif

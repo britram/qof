@@ -40,6 +40,12 @@ typedef struct qofDetune_st {
     unsigned         delay_max;
     /* last timestamp (for minimizing random delay) */
     uint64_t         last_ms;
+    /* statistics: dropped on full bucket */
+    uint64_t         stat_bucket_drop;
+    /* statistics: dropped random */
+    uint64_t         stat_random_drop;
+    /* statistics: mean delay */
+    sstMean_t        stat_delay;
 } qofDetune_t;
      
 qofDetune_t *qfDetuneInit(unsigned bucket_max,
@@ -53,5 +59,7 @@ void qfDetuneFree(qofDetune_t *detune);
 
 gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct);
 
+uint64_t qfDetuneDumpStats(qofDetune_t          *detune,
+                           uint64_t             flowPacketCount);
 #endif
 #endif
