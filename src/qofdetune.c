@@ -56,7 +56,7 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     
     if (detune->bucket_max) {
         /* drain bucket */
-        if (detune->last_ms && detune->bucket_cur) {
+        if (detune->last_ms && detune->bucket_cur && (*ms > detune->last_ms)) {
             detune->bucket_cur -= ((*ms - detune->last_ms) *
                                    detune->bucket_rate / 1000);
             if (detune->bucket_cur < 0) {
@@ -137,7 +137,7 @@ uint64_t qfDetuneDumpStats(qofDetune_t          *detune,
         g_debug("  %llu (%3.2f%%) random losses", detune->stat_random_drop,
                 ((double)(detune->stat_random_drop)/(double)(droppedPacketCount) * 100) );
     }
-    if (detune->stat_highwater) {
+    if (!detune->stat_bucket_drop && detune->stat_highwater) {
         g_debug("  high water mark %u (%3.2f%%)", detune->stat_highwater,
                 ((double)(detune->stat_highwater)/(double)(detune->bucket_max) * 100) );
         

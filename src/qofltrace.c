@@ -110,92 +110,51 @@ void qfTraceClose(qfTraceSource_t *lts) {
 }
 
 
-static void qfTraceHandle(qfTraceSource_t    *lts,
-                                 qfContext_t        *ctx)
+static gboolean qfTraceHandlePacket(qfTraceSource_t    *lts,
+                                    yfPBuf_t           *pbuf,
+                                    qfContext_t        *ctx)
 {
-    yfPBuf_t                    *pbuf;
     yfIPFragInfo_t              fraginfo_buf,
-    *fraginfo = ctx->fragtab ?
-    &fraginfo_buf : NULL;
+                                *fraginfo = ctx->fragtab ?
+                                &fraginfo_buf : NULL;
     libtrace_linktype_t         linktype;
     uint8_t                     *pkt;
     uint32_t                    caplen;
     
     struct timeval tv;
     
-    /* get next spot in ring buffer */
-    pbuf = (yfPBuf_t *)rgaNextHead(ctx->pbufring);
-    g_assert(pbuf);
+    /* extract data from libtrace */
+    tv = trace_get_timeval(lts->packet);
+    pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
+
+    /* Decode packet into packet buffer */
+    if (!yfDecodeToPBuf(ctx->dectx,
+                        linktype,
+                        yfDecodeTimeval(&tv),
+                        trace_get_capture_length(lts->packet),
+                        pkt, fraginfo, pbuf))
+    {
+        /* Couldn't decode packet; counted in dectx. Skip. */
+        return FALSE;
+    }
     
 #if QOF_ENABLE_DETUNE
-    do {
-#endif
-        /* extract data from libtrace */
-        tv = trace_get_timeval(lts->packet);
-        pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
-    
-        /* Decode packet into packet buffer */
-        if (!yfDecodeToPBuf(ctx->dectx,
-                            linktype,
-                            yfDecodeTimeval(&tv),
-                            trace_get_capture_length(lts->packet),
-                            pkt, fraginfo, pbuf))
-        {
-            /* Couldn't decode packet; counted in dectx. Skip. */
-            return;
+    /* Signal drop if detune says so */
+    if (ctx->ictx.detune) {
+        if (!qfDetunePacket(ctx->ictx.detune, &pbuf->ptime, pbuf->iplen)) {
+            return FALSE;
         }
-    
-#if QOF_ENABLE_DETUNE
-    /* Check to see if we should drop the packet, loop if so */
-    } while (ctx->ictx.detune &&
-             !qfDetunePacket(ctx->ictx.detune, &pbuf->ptime, pbuf->iplen));
+    }
 #endif
     
     /* Handle fragmentation if necessary */
     if (fraginfo && fraginfo->frag) {
         yfDefragPBuf(ctx->fragtab, fraginfo, pbuf, pkt, caplen);
     }
+    
+    /* signal packet processed */
+    return TRUE;
 }
-
-/* Old pre-detuned code */
-//static void qfTraceHandle(qfTraceSource_t             *lts,
-//                          qfContext_t                 *ctx)
-//{
-//    yfPBuf_t                    *pbuf;
-//    yfIPFragInfo_t              fraginfo_buf,
-//                                *fraginfo = ctx->fragtab ?
-//                                &fraginfo_buf : NULL;
-//    libtrace_linktype_t         linktype;
-//    uint8_t                     *pkt;
-//    uint32_t                    caplen;
-//    
-//    struct timeval tv;
-//    
-//    /* get next spot in ring buffer */
-//    pbuf = (yfPBuf_t *)rgaNextHead(ctx->pbufring);
-//    g_assert(pbuf);
-//    
-//    /* extract data from libtrace */
-//    tv = trace_get_timeval(lts->packet);
-//    pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
-//    
-//    /* Decode packet into packet buffer */
-//    if (!yfDecodeToPBuf(ctx->dectx,
-//                        linktype,
-//                        yfDecodeTimeval(&tv),
-//                        trace_get_capture_length(lts->packet),
-//                        pkt, fraginfo, pbuf))
-//    {
-//        /* Couldn't decode packet; counted in dectx. Skip. */
-//        return;
-//    }
-//    
-//    /* Handle fragmentation if necessary */
-//    if (fraginfo && fraginfo->frag) {
-//        yfDefragPBuf(ctx->fragtab, fraginfo, pbuf, pkt, caplen);
-//    }
-//}
-
 
 static void qfTraceUpdateStats(qfTraceSource_t *lts) {
     yaf_trace_drop = (uint32_t) trace_get_dropped_packets(lts->trace);
@@ -235,6 +194,8 @@ gboolean qfTraceMain(qfContext_t             *ctx)
 {
     gboolean                ok = TRUE;
     qfTraceSource_t         *lts = ctx->ictx.pktsrc;
+    yfPBuf_t                    *pbuf;
+
     libtrace_err_t          terr;
     
     int i, trv;
@@ -242,14 +203,22 @@ gboolean qfTraceMain(qfContext_t             *ctx)
     /* process input until we're done */
     while (!yaf_quit) {
         
-        for (i = 0;
-             i < TRACE_PACKET_GROUP && !yaf_quit &&
-                (trv = trace_read_packet(lts->trace, lts->packet)) > 0;
-             i++)
-        {
-            qfTraceHandle(lts, ctx);
+        i = 0;
+        while (i < TRACE_PACKET_GROUP && !yaf_quit) {
+            
+            /* get next spot in ring buffer */
+            pbuf = (yfPBuf_t *)rgaNextHead(ctx->pbufring);
+            g_assert(pbuf);
+            
+            /* and try to parse packets into it until we get one */
+            do {
+                trv = trace_read_packet(lts->trace, lts->packet);
+                if (trv <= 0) goto TRACE_END;
+            } while (!qfTraceHandlePacket(lts, pbuf, ctx));
+            i++;
         }
-        
+
+TRACE_END:
         /* Check for error */
         if (trace_is_err(lts->trace)) {
             terr = trace_get_err(lts->trace);

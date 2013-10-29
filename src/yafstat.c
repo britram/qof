@@ -100,7 +100,9 @@ static void yfStatDump()
     numPackets = yfFlowDumpStats(statctx->flowtab, yaf_fft);
     yfFragDumpStats(statctx->fragtab, numPackets);
 #if QOF_ENABLE_DETUNE
-    numPackets = qfDetuneDumpStats(statctx->ictx.detune, numPackets);
+    if (statctx->ictx.detune) {
+        numPackets = qfDetuneDumpStats(statctx->ictx.detune, numPackets);
+    }
 #endif
     yfDecodeDumpStats(statctx->dectx, numPackets);
     
