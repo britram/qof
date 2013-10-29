@@ -191,10 +191,10 @@ AirOptionEntry qof_optent_detune[] = {
     AF_OPTION( "detune-random-drop", (char)0, 0, AF_OPT_TYPE_DOUBLE,
               &qof_detune_drop_p, THE_LAME_80COL_FORMATTER_STRING
               "Probability of post-bucket random drop [0.0]", "p" ),
-    AF_OPTION( "detune-random-delay", (char)0, 0, AF_OPT_TYPE_DOUBLE,
+    AF_OPTION( "detune-random-delay", (char)0, 0, AF_OPT_TYPE_INT,
               &qof_detune_delay_max, THE_LAME_80COL_FORMATTER_STRING
               "Maximum post-bucket random delay [0]", "ms" ),
-    AF_OPTION( "detune-random-alpha", (char)0, 0, AF_OPT_TYPE_DOUBLE,
+    AF_OPTION( "detune-random-alpha", (char)0, 0, AF_OPT_TYPE_INT,
               &qof_detune_alpha, THE_LAME_80COL_FORMATTER_STRING
               "Random drop/delay linear smoothing weight [4]", "packets" ),
     AF_OPTION_END

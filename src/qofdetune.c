@@ -111,11 +111,11 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
         if (*ms < detune->last_ms) {
             *ms = detune->last_ms;
         }
-        sstMeanAdd(&detune->stat_delay, (int)(*ms - detune->last_ms));
+        sstMeanAdd(&detune->stat_delay, (int)(*ms - cur_ms));
     }
     
     /* advance last millisecond counter */
-    detune->last_ms = cur_ms;
+    detune->last_ms = *ms;
     
     /* if we made it here, don't drop the packet */
     return TRUE;
@@ -145,7 +145,9 @@ uint64_t qfDetuneDumpStats(qofDetune_t          *detune,
         
     }
     if (detune->stat_delay.mean) {
-        g_debug("  mean imparted delay %u ms", (unsigned int)detune->stat_delay.mean);
+        g_debug("  mean imparted delay %u ms (stdev %.2f)",
+                (unsigned int)detune->stat_delay.mean,
+                sstStdev(&detune->stat_delay));
     }
     
     return totalPacketCount;
