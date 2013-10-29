@@ -33,7 +33,7 @@ def init_ipfix(specfiles = None):
         for sf in specfiles:
             ipfix.ie.use_specfile(sf)
 
-def stream_to_hdf5(ipfix_stream, ienames, hdf5_store, hd5_table):
+def stream_to_hdf5(ipfix_stream, ienames, hdf5_store, hdf5_table):
     store = pd.HDFStore(hdf5_store)
     df = qof.dataframe_from_ipfix_stream(ipfix_stream, ienames)
     store[hdf5_table] = df
