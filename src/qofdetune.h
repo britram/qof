@@ -38,8 +38,10 @@ typedef struct qofDetune_st {
     sstLinSmooth_t   delay;
     /* maximum value for random delay (ms) */
     unsigned         delay_max;
-    /* last timestamp (for minimizing random delay) */
-    uint64_t         last_ms;
+    /* last timestamp (real): used to drain the queue */
+    uint64_t         last_real_ms;
+    /* last timestamp (delayed): used to avoid inversions */
+    uint64_t         last_delayed_ms;
     /* statistics: dropped on full bucket */
     uint64_t         stat_bucket_drop;
     /* statistics: dropped random */

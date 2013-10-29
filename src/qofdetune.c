@@ -58,8 +58,11 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     
     if (detune->bucket_max) {
         /* drain bucket */
-        if (detune->last_ms && detune->bucket_cur && (*ms > detune->last_ms)) {
-            detune->bucket_cur -= ((*ms - detune->last_ms) *
+        if (detune->last_real_ms &&
+            detune->bucket_cur &&
+            (*ms > detune->last_real_ms))
+        {
+            detune->bucket_cur -= ((*ms - detune->last_real_ms) *
                                    detune->bucket_rate / 1000);
             if (detune->bucket_cur < 0) {
                 detune->bucket_cur = 0;
@@ -108,14 +111,15 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
         } else {
             *ms += rdelay;
         }
-        if (*ms < detune->last_ms) {
-            *ms = detune->last_ms;
+        if (*ms < detune->last_delayed_ms) {
+            *ms = detune->last_delayed_ms;
         }
         sstMeanAdd(&detune->stat_delay, (int)(*ms - cur_ms));
     }
     
-    /* advance last millisecond counter */
-    detune->last_ms = *ms;
+    /* advance last millisecond counters */
+    detune->last_real_ms = cur_ms;
+    detune->last_delayed_ms = *ms;
     
     /* if we made it here, don't drop the packet */
     return TRUE;
