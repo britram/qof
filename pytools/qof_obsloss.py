@@ -38,7 +38,7 @@ def opts_report_stream(ipfix_stream):
         "tcpSequenceCount", "reverseTcpSequenceCount",
         "tcpSequenceLossCount", "reverseTcpSequenceLossCount"))
     
-    flowcount = len(df)
+    allcount = len(df)
     df["lossy"] = (df["tcpSequenceLossCount"] > 0) | (df["reverseTcpSequenceLossCount"] > 0)
     lossycount = len(df[df["lossy"]])
 
