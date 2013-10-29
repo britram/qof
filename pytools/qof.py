@@ -127,8 +127,7 @@ def drop_incomplete(df):
 
 def coerce_timestamps(df, cols=("flowStartMilliseconds", "flowEndMilliseconds")):    
     """
-    add a floating point duration column
-    to a dataframe including flowStartMilliseconds and flowEndMilliseconds
+    coerce timestamps to datetime64
     
     modifies the dataframe in place and returns it.
     """

@@ -36,6 +36,7 @@ def init_ipfix(specfiles = None):
 def stream_to_hdf5(ipfix_stream, ienames, hdf5_store, hdf5_table):
     store = pd.HDFStore(hdf5_store)
     df = qof.dataframe_from_ipfix_stream(ipfix_stream, ienames)
+    qof.coerce_timestamps(df)
     store[hdf5_table] = df
     store.close()
 
