@@ -24,6 +24,8 @@ qofDetune_t *qfDetuneAlloc(unsigned bucket_max,
                           unsigned delay_max,
                           unsigned alpha)
 {
+    srandom(time(NULL));
+    
     qofDetune_t *detune = calloc(1, sizeof(qofDetune_t));
     
     detune->bucket_max = bucket_max;
@@ -44,11 +46,11 @@ void qfDetuneFree(qofDetune_t *detune) {
     if(detune) free(detune);
 }
 
-static unsigned rand32() {
-    return (uint32_t)(random() & 0xffffffff);
+static unsigned randbits() {
+    return (uint32_t)(random() & 0x3fffffffU);
 }
 
-static const unsigned long max32 = 1L >> 32;
+static const unsigned long randmax = 0x40000000UL;
 
 gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     unsigned    bdelay = 0, rdelay = 0;
@@ -79,8 +81,8 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     
     /* apply random drop */
     if (detune->drop_p) {
-        sstLinSmoothAdd(&detune->drop_die, rand32());
-        if ((((double)detune->drop_die.val) / max32) < detune->drop_p) {
+        sstLinSmoothAdd(&detune->drop_die, randbits());
+        if ((((double)((unsigned)detune->drop_die.val)) / randmax) < detune->drop_p) {
             detune->stat_random_drop++;
             return FALSE;
         }
@@ -94,7 +96,7 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     /* calculate random delay */
     if (detune->delay_max) {
         sstLinSmoothAdd(&detune->delay,
-                        (int)((unsigned long)rand32() * detune->delay_max / max32));
+                        (int)((unsigned long)randbits() * detune->delay_max / randmax));
         rdelay = detune->delay.val;
     }
     
