@@ -72,6 +72,9 @@
 
 #include "qofconfig.h"
 
+#include "qofdetune.h"
+
+
 /* FIXME determine if we want to be more dynamic about this */
 #define YAF_SNAPLEN 96
 
@@ -82,9 +85,19 @@ static char         *qof_yaml_config = NULL;
 static qfContext_t  qfctx;
 
 /* I/O configuration */
-static int           yaf_opt_rotate_period = 0;
-static int           yaf_opt_template_rtx_period = 0;
-static int           yaf_opt_stats_period = 0;
+static int          yaf_opt_rotate_period = 0;
+static int          yaf_opt_template_rtx_period = 0;
+static int          yaf_opt_stats_period = 0;
+
+/* Detune configuration */
+#if QOF_ENABLE_DETUNE
+static int          qof_detune_bucket_max = 0;
+static int          qof_detune_bucket_rate = 0;
+static int          qof_detune_bucket_delay = 0;
+static double       qof_detune_drop_p = 0.0;
+static int          qof_detune_delay_max = 0;
+static int          qof_detune_alpha = 4;
+#endif
 
 /* global quit flag */
 int                 yaf_quit = 0;
@@ -164,6 +177,29 @@ AirOptionEntry yaf_optent_ipfix[] = {
     AF_OPTION_END
 };
 
+#if QOF_ENABLE_DETUNE
+AirOptionEntry qof_optent_detune[] = {
+    AF_OPTION( "detune-bucket-max", (char)0, 0, AF_OPT_TYPE_INT,
+              &qof_detune_bucket_max, THE_LAME_80COL_FORMATTER_STRING
+              "Size of detune bucket [0 = disable]", "bytes" ),
+    AF_OPTION( "detune-bucket-rate", (char)0, 0, AF_OPT_TYPE_INT,
+              &qof_detune_bucket_rate, THE_LAME_80COL_FORMATTER_STRING
+              "Drain rate of detune bucket [0 = disable]", "bytes/s" ),
+    AF_OPTION( "detune-bucket-delay", (char)0, 0, AF_OPT_TYPE_INT,
+              &qof_detune_bucket_delay, THE_LAME_80COL_FORMATTER_STRING
+              "Imparted delay of full bucket (linear) [0]", "ms" ),
+    AF_OPTION( "detune-random-drop", (char)0, 0, AF_OPT_TYPE_DOUBLE,
+              &qof_detune_drop_p, THE_LAME_80COL_FORMATTER_STRING
+              "Probability of post-bucket random drop [0.0]", "p" ),
+    AF_OPTION( "detune-random-delay", (char)0, 0, AF_OPT_TYPE_DOUBLE,
+              &qof_detune_delay_max, THE_LAME_80COL_FORMATTER_STRING
+              "Maximum post-bucket random delay [0]", "ms" ),
+    AF_OPTION( "detune-random-alpha", (char)0, 0, AF_OPT_TYPE_DOUBLE,
+              &qof_detune_alpha, THE_LAME_80COL_FORMATTER_STRING
+              "Random drop/delay linear smoothing weight [4]", "packets" ),
+    AF_OPTION_END
+};
+#endif
 
 /**
  * yfCleanVersionString
@@ -275,7 +311,12 @@ static void yfParseOptions(
     air_option_context_add_group(aoctx, "ipfix", "IPFIX Options:",
                                  THE_LAME_80COL_FORMATTER_STRING"Show help "
                                  "for IPFIX export options", yaf_optent_ipfix);
-
+#if QOF_ENABLE_DETUNE
+    air_option_context_add_group(aoctx, "detune", "Detuning Options:",
+                                 THE_LAME_80COL_FORMATTER_STRING"Show help "
+                                 "for detuning options", qof_optent_detune);
+#endif
+    
     privc_add_option_group(aoctx);
 
     versionString = yfCleanVersionString(VERSION, YAF_ACONF_STRING_STR);
@@ -307,6 +348,27 @@ static void yfParseOptions(
     if (yaf_opt_template_rtx_period) {
         qfctx.octx.template_rtx_period = yaf_opt_template_rtx_period * 1000;
     }
+
+#if QOF_ENABLE_DETUNE
+    /* detune if necessary */
+    if (qof_detune_bucket_max || qof_detune_bucket_rate ||
+        qof_detune_delay_max || qof_detune_drop_p)
+    {
+        /* if we have a bucket, we need a rate */
+        if (!(qof_detune_bucket_max && qof_detune_bucket_rate)) {
+            qof_detune_bucket_max = 0;
+            qof_detune_bucket_rate = 0;
+        }
+        
+        /* allocate detune */
+        qfctx.ictx.detune = qfDetuneAlloc(qof_detune_bucket_max,
+                                          qof_detune_bucket_rate,
+                                          qof_detune_bucket_delay,
+                                          qof_detune_drop_p,
+                                          qof_detune_delay_max,
+                                          qof_detune_alpha);
+    }
+#endif
     
     /* done with options parsing */
     air_option_context_free(aoctx);

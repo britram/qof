@@ -16,6 +16,9 @@
 #define _QOF_DETUNE_H_
 
 #include <qof/autoinc.h>
+
+#if QOF_ENABLE_DETUNE
+
 #include <qof/streamstat.h>
 
 typedef struct qofDetune_st {
@@ -43,10 +46,12 @@ qofDetune_t *qfDetuneInit(unsigned bucket_max,
                           unsigned bucket_rate,
                           unsigned bucket_delay,
                           double drop_p,
-                          unsigned delay_max);
+                          unsigned delay_max,
+                          unsigned alpha);
 
 void qfDetuneFree(qofDetune_t *detune);
 
 gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct);
 
+#endif
 #endif

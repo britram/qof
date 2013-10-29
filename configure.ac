@@ -391,13 +391,28 @@ fi
 ])
 
 dnl ----------------------------------------------------------------------
-dnl Check for Spread Support
+dnl Enable detuning
 dnl ----------------------------------------------------------------------
-m4_include([autoconf/spread.m4])
-AC_PATH_SPREAD([4.1])
-if test "x$ac_cv_header_spread_sp_h" == "xyes"; then
-   AC_SUBST(FIXBUF_REQ_LIBSPREAD, [1])
+
+AC_ARG_ENABLE(detune,
+AS_HELP_STRING([--enable-detune],
+               [Enable experimental --detune-* options]), [
+if test "x$enableval" = "xno"; then
+    AC_DEFINE(QOF_ENABLE_DETUNE, 0,
+              [Define to 1 to enable detuning support])
+    OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"no-detune|"
+else
+    AC_MSG_NOTICE([Enabling experimental --detune-* options])
+    AC_DEFINE(QOF_ENABLE_DETUNE, 1,
+              [Define to 1 to enable detuning support])
+    OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"detune|"
+    RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --enable-detune"
 fi
+],[
+    AC_DEFINE(QOF_ENABLE_DETUNE, 0,
+              [Define to 1 to enable detuning support])
+    OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"no-detune|"
+])
 
 dnl ----------------------------------------------------------------------
 dnl Check for Unix vs. Linux privdrop (EWW EWW HACK EWW)

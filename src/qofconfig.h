@@ -57,8 +57,10 @@ typedef struct qfInputContext_st {
     char            *bpf_expr;
     /** Packet source */
     struct qfTraceSource_st *pktsrc;
+#if QOF_ENABLE_DETUNE
     /** Packet detuner */
     qofDetune_t     *detune;
+#endif
 } qfInputContext_t;
 
 typedef struct qfOutputContext_st {

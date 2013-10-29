@@ -1,11 +1,13 @@
-QoF is the performance measurement fork of YAF 2.3.2 by Brian Trammell
+QoF is the no-DPI performance measurement fork of YAF 2.3.2 by Brian Trammell
 <brian@trammell.ch>, who is the primary maintainer of QoF.
 
-Questions, comments, and support inquiries for QoF should be directed to <brian@trammell.ch>. 
+Questions, comments, and support inquiries for QoF should be directed to <brian@trammell.ch>.
+
+Lothar Braun contributed autotools and configuration interface fixes.
 
 This software is substantially derived from YAF, which was originally designed
 and implemented by Brian Trammell; Emily Ecoff is the present lead developer
 and maintainer of YAF, and can be reached at <netsa-help@cert.org>. Chris
 Inacio designed and built the plugin interface. Michael Duggan contributed to
-the design of YAF's packet decoder. Tony Cebzanov, Michael Duggan, and Sidney
+the design of YAF's packet decoder. Tony Cebzanov contributed to the airframe library included with QoF. Tony Cebzanov, Michael Duggan, and Sidney
 Faber contributed to testing.

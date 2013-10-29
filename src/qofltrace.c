@@ -127,7 +127,9 @@ static void qfTraceHandle(qfTraceSource_t    *lts,
     pbuf = (yfPBuf_t *)rgaNextHead(ctx->pbufring);
     g_assert(pbuf);
     
+#if QOF_ENABLE_DETUNE
     do {
+#endif
         /* extract data from libtrace */
         tv = trace_get_timeval(lts->packet);
         pkt = trace_get_packet_buffer(lts->packet, &linktype, &caplen);
@@ -143,10 +145,12 @@ static void qfTraceHandle(qfTraceSource_t    *lts,
             return;
         }
     
+#if QOF_ENABLE_DETUNE
     /* Check to see if we should drop the packet, loop if so */
     } while (ctx->ictx.detune &&
              !qfDetunePacket(ctx->ictx.detune, &pbuf->ptime, pbuf->iplen));
-        
+#endif
+    
     /* Handle fragmentation if necessary */
     if (fraginfo && fraginfo->frag) {
         yfDefragPBuf(ctx->fragtab, fraginfo, pbuf, pkt, caplen);

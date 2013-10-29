@@ -15,11 +15,14 @@
 #define _YAF_SOURCE_
 #include "qofdetune.h"
 
+#if QOF_ENABLE_DETUNE
+
 qofDetune_t *qfDetuneAlloc(unsigned bucket_max,
                           unsigned bucket_rate,
                           unsigned bucket_delay,
                           double drop_p,
-                          unsigned delay_max)
+                          unsigned delay_max,
+                          unsigned alpha)
 {
     qofDetune_t *detune = calloc(1, sizeof(qofDetune_t));
     
@@ -28,6 +31,12 @@ qofDetune_t *qfDetuneAlloc(unsigned bucket_max,
     detune->bucket_delay = bucket_delay;
     detune->drop_p = drop_p;
     detune->delay_max = delay_max;
+    
+    sstLinSmoothInit(&detune->delay);
+    detune->delay.alpha = alpha;
+    sstLinSmoothInit(&detune->drop_die);
+    detune->drop_die.alpha = alpha;
+    
     
     return detune;
 }
@@ -43,19 +52,21 @@ static unsigned rand32() {
 static const unsigned long max32 = 1L >> 32;
 
 gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
-    unsigned    bdelay, rdelay;
+    unsigned    bdelay = 0, rdelay = 0;
     uint64_t    cur_ms;
     
-    /* drain bucket */
-    detune->bucket_cur -= ((*ms - detune->last_ms) * detune->bucket_rate / 1000);
-    if (detune->bucket_cur < 0) detune->bucket_cur = 0;
-    
-    /* fill bucket */
-    detune->bucket_cur += oct;
-    if (detune->bucket_cur >= detune->bucket_max) {
-        /* bucket overflow, tail drop */
-        detune->bucket_cur = detune->bucket_max;
-        return FALSE;
+    if (detune->bucket_max) {
+        /* drain bucket */
+        detune->bucket_cur -= ((*ms - detune->last_ms) * detune->bucket_rate / 1000);
+        if (detune->bucket_cur < 0) detune->bucket_cur = 0;
+        
+        /* fill bucket */
+        detune->bucket_cur += oct;
+        if (detune->bucket_cur >= detune->bucket_max) {
+            /* bucket overflow, tail drop */
+            detune->bucket_cur = detune->bucket_max;
+            return FALSE;
+        }
     }
     
     /* apply random drop */
@@ -67,7 +78,9 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     }
     
     /* calculate bucket delay */
-    bdelay = detune->bucket_cur * detune->bucket_delay / detune->bucket_max;
+    if (detune->bucket_max && detune->bucket_delay) {
+        bdelay = detune->bucket_cur * detune->bucket_delay / detune->bucket_max;
+    }
     
     /* calculate random delay */
     sstLinSmoothAdd(&detune->delay,
@@ -86,6 +99,8 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     }
     detune->last_ms = cur_ms;
     
-    /* don't drop the packet */
+    /* if we made it here, don't drop the packet */
     return TRUE;
 }
+
+#endif
