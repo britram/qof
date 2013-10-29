@@ -44,11 +44,13 @@ typedef struct qofDetune_st {
     uint64_t         stat_bucket_drop;
     /* statistics: dropped random */
     uint64_t         stat_random_drop;
+    /* leaky bucket high water mark (bytes) */
+    unsigned         stat_highwater;
     /* statistics: mean delay */
     sstMean_t        stat_delay;
 } qofDetune_t;
      
-qofDetune_t *qfDetuneInit(unsigned bucket_max,
+qofDetune_t *qfDetuneAlloc(unsigned bucket_max,
                           unsigned bucket_rate,
                           unsigned bucket_delay,
                           double drop_p,

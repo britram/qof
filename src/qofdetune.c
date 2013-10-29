@@ -37,7 +37,6 @@ qofDetune_t *qfDetuneAlloc(unsigned bucket_max,
     sstLinSmoothInit(&detune->drop_die);
     detune->drop_die.alpha = alpha;
     
-    
     return detune;
 }
 
@@ -57,11 +56,19 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     
     if (detune->bucket_max) {
         /* drain bucket */
-        detune->bucket_cur -= ((*ms - detune->last_ms) * detune->bucket_rate / 1000);
-        if (detune->bucket_cur < 0) detune->bucket_cur = 0;
+        if (detune->last_ms && detune->bucket_cur) {
+            detune->bucket_cur -= ((*ms - detune->last_ms) *
+                                   detune->bucket_rate / 1000);
+            if (detune->bucket_cur < 0) {
+                detune->bucket_cur = 0;
+            }
+        }
         
         /* fill bucket */
         detune->bucket_cur += oct;
+        if (detune->bucket_cur > detune->stat_highwater) {
+            detune->stat_highwater = detune->bucket_cur;
+        }
         if (detune->bucket_cur >= detune->bucket_max) {
             /* bucket overflow, tail drop */
             detune->bucket_cur = detune->bucket_max;
@@ -85,22 +92,27 @@ gboolean qfDetunePacket(qofDetune_t *detune, uint64_t *ms, unsigned oct) {
     }
     
     /* calculate random delay */
-    sstLinSmoothAdd(&detune->delay,
-                    (int)((unsigned long)rand32() * detune->delay_max / max32));
-    rdelay = detune->delay.val;
+    if (detune->delay_max) {
+        sstLinSmoothAdd(&detune->delay,
+                        (int)((unsigned long)rand32() * detune->delay_max / max32));
+        rdelay = detune->delay.val;
+    }
     
     /* apply the maximum, clamp to avoid out of order */
     cur_ms = *ms;
-    if (bdelay > rdelay) {
-        *ms += bdelay;
-    } else {
-        *ms += rdelay;
+    if (bdelay || rdelay) {
+        if (bdelay > rdelay) {
+            *ms += bdelay;
+        } else {
+            *ms += rdelay;
+        }
+        if (*ms < detune->last_ms) {
+            *ms = detune->last_ms;
+        }
+        sstMeanAdd(&detune->stat_delay, (int)(*ms - detune->last_ms));
     }
-    if (*ms < detune->last_ms) {
-        *ms = detune->last_ms;
-    }
-    sstMeanAdd(&detune->stat_delay, (int)(*ms - detune->last_ms));
     
+    /* advance last millisecond counter */
     detune->last_ms = cur_ms;
     
     /* if we made it here, don't drop the packet */
@@ -114,22 +126,25 @@ uint64_t qfDetuneDumpStats(qofDetune_t          *detune,
                                   detune->stat_random_drop;
     uint64_t totalPacketCount = flowPacketCount + droppedPacketCount;
     
-    if (droppedPacketCount) {
-        g_debug("Detune got %llu packets, dropped %llu : (%3.2f%%)",
-                totalPacketCount, droppedPacketCount,
-                ((double)(droppedPacketCount)/(double)(totalPacketCount) * 100) );
-        if (detune->stat_bucket_drop) {
-            g_debug("  %llu (%3.2f%%) tail drops", detune->stat_bucket_drop,
-                    ((double)(detune->stat_bucket_drop)/(double)(droppedPacketCount) * 100) );
-        }
-        if (detune->stat_random_drop) {
-            g_debug("  %llu (%3.2f%%) random losses", detune->stat_random_drop,
-                    ((double)(detune->stat_random_drop)/(double)(droppedPacketCount) * 100) );
-        }
-        if (detune->stat_delay.mean) {
-            g_debug("  mean imparted delay %u ms", (unsigned int)detune->stat_delay.mean);
-        }
-   }
+    g_debug("Detune got %llu packets, dropped %llu (%3.2f%%)",
+            totalPacketCount, droppedPacketCount,
+            ((double)(droppedPacketCount)/(double)(totalPacketCount) * 100) );
+    if (detune->stat_bucket_drop) {
+        g_debug("  %llu (%3.2f%%) tail drops", detune->stat_bucket_drop,
+                ((double)(detune->stat_bucket_drop)/(double)(droppedPacketCount) * 100) );
+    }
+    if (detune->stat_random_drop) {
+        g_debug("  %llu (%3.2f%%) random losses", detune->stat_random_drop,
+                ((double)(detune->stat_random_drop)/(double)(droppedPacketCount) * 100) );
+    }
+    if (detune->stat_highwater) {
+        g_debug("  high water mark %u (%3.2f%%)", detune->stat_highwater,
+                ((double)(detune->stat_highwater)/(double)(detune->bucket_max) * 100) );
+        
+    }
+    if (detune->stat_delay.mean) {
+        g_debug("  mean imparted delay %u ms", (unsigned int)detune->stat_delay.mean);
+    }
     
     return totalPacketCount;
 }
