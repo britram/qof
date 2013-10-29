@@ -1040,6 +1040,7 @@ static gboolean yfUniflowReverse(
     uf->stime = bf->stime + bf->rdtime;
     uf->etime = bf->etime;
     uf->rdtime = 0;
+    
     if (bf->destinationMacAddr) {
         memcpy(uf->sourceMacAddr, bf->destinationMacAddr,
                ETHERNET_MAC_ADDR_LENGTH);
@@ -1055,6 +1056,9 @@ static gboolean yfUniflowReverse(
     memcpy(&(uf->val), &(bf->rval), sizeof(yfFlowVal_t));
     memset(&(uf->rval), 0, sizeof(yfFlowVal_t));
 
+    /* copy rtt */
+    memcpy(&uf->rtt, &bf->rtt, sizeof(qfRtt_t));
+    
     /* copy reason */
     uf->reason = bf->reason;
 
