@@ -145,8 +145,10 @@ uint64_t qfDetuneDumpStats(qofDetune_t          *detune,
         
     }
     if (detune->stat_delay.mean) {
-        g_debug("  mean imparted delay %u ms (stdev %.2f)",
+        g_debug("  mean imparted delay %u ms (min %d max %d stdev %.2f)",
                 (unsigned int)detune->stat_delay.mean,
+                detune->stat_delay.mm.min,
+                detune->stat_delay.mm.max,
                 sstStdev(&detune->stat_delay));
     }
     
