@@ -129,6 +129,7 @@
 		D3C4E99A17263FA100DB5423 /* qof.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qof.c; sourceTree = "<group>"; };
 		D3C98F8E181ED9A500B1BC87 /* qofdetune.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofdetune.c; sourceTree = "<group>"; };
 		D3C98F90181EDA2100B1BC87 /* qofdetune.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdetune.h; sourceTree = "<group>"; };
+		D3C98F911821029F00B1BC87 /* qof-uniflow.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "qof-uniflow.yaml"; sourceTree = "<group>"; };
 		D3CCBE961716AF06006C25EB /* qofconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofconfig.c; sourceTree = "<group>"; };
 		D3D91D8016EE7F9E00748C63 /* qof-test.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "qof-test.yaml"; sourceTree = "<group>"; };
 		D3E1B1C316E4EBD200C5D50C /* riptcp.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = riptcp.rb; sourceTree = "<group>"; };
@@ -262,6 +263,7 @@
 			children = (
 				D3A7DFE9181CFB48006F629B /* message_split.c */,
 				D3D91D8016EE7F9E00748C63 /* qof-test.yaml */,
+				D3C98F911821029F00B1BC87 /* qof-uniflow.yaml */,
 				D3E1B1C316E4EBD200C5D50C /* riptcp.rb */,
 				D31013E416A94BA80068059F /* test_ifmap.c */,
 				D3773390171DF9E4004FF28F /* tracepull.c */,

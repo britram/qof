@@ -1088,6 +1088,13 @@ gboolean yfWriteFlow(
             rec.tcpReceiverStallCount = val->tcp->rwin.stall;
             rec.minTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.min;
             rec.maxTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.max;
+            
+            if ((hz = qfTimestampHz(&val->tcp->seq))) {
+                wtid |= YTF_TSV;
+                rec.tcpTimestampFrequency = hz;
+                rec.minTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.min;
+                rec.maxTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.max;
+            }
         }
         
         if (rval->tcp) {
@@ -1110,22 +1117,15 @@ gboolean yfWriteFlow(
             rec.reverseTcpReceiverStallCount = rval->tcp->rwin.stall;
             rec.reverseMinTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.min;
             rec.reverseMaxTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.max;
+            
+            if ((rhz = qfTimestampHz(&rval->tcp->seq))) {
+                wtid |= YTF_TSV;
+                rec.reverseTcpTimestampFrequency = rhz;
+                rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.min;
+                rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.max;
+            }
         }
         
-        if (val->tcp && rval->tcp &&
-            ((hz = qfTimestampHz(&val->tcp->seq)) ||
-            (rhz = qfTimestampHz(&rval->tcp->seq))))
-        {
-            wtid |= YTF_TSV;
-            rec.tcpTimestampFrequency = qfTimestampHz(&val->tcp->seq);
-            rec.reverseTcpTimestampFrequency =  qfTimestampHz(&rval->tcp->seq);
-            rec.minTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.min;
-            rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.min;
-            rec.maxTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.max;
-            rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.max;
-
-        }
-
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
