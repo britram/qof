@@ -20,7 +20,9 @@
 #include <qof/streamstat.h>
 #include <qof/qofrtt.h>
 
+#ifndef QF_SEQGAP_CT
 #define QF_SEQGAP_CT 8
+#endif
 
 typedef struct qfSeqGap_st {
     uint32_t        a;

@@ -283,7 +283,7 @@ uint32_t qfSeqCountLost(qfSeq_t *qs) {
 //    fprintf(stderr,"seqCountLost %p prev_seqlost %u isn %u nsn %u len %u\n",
 //            qs, qs->seqlost, qs->isn, qs->nsn, qs->nsn - qs->isn);
     for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i); i++) {
-        qs->seqlost += qs->gaps[i].b - qs->gaps[i].a;
+        qs->seqlost += (uint32_t)(qs->gaps[i].b - qs->gaps[i].a);
 //            fprintf(stderr, "\t%u-%u (%u) (%u)\n",
 //                    qs->gaps[i].a,  qs->gaps[i].b,
 //                    qs->gaps[i].b - qs->gaps[i].a,
