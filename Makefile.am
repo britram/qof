@@ -46,7 +46,7 @@ dist-hook: docs
 docs: make-doc-path utils-doc 
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libyaf.pc
+pkgconfig_DATA = libqof.pc
 
 EXTRA_DIST = \
     Doxyfile.in \
