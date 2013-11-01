@@ -202,90 +202,6 @@ AirOptionEntry qof_optent_detune[] = {
 #endif
 
 /**
- * yfCleanVersionString
- *
- * takes in a string defined by autconf, fields seperated
- * by "|" characters and turns it into a better formatted
- * (80 columns or less, etc.) string to pass into the
- * options processing machinery
- *
- * @param verNumStr string containing the version number
- * @param capbilStr string containing the build capabilities
- *                  string
- *
- * @return an allocated formatted string for the version switch
- *         that describes the yaf build
- *
- */
-static char *yfCleanVersionString (
-    const char *verNumStr,
-    const char *capbilStr) {
-
-    unsigned int formatStringSize = 0;
-    const unsigned int MaxLineSize = 80;
-    const unsigned int TabSize = 8;
-    char *resultString;
-
-    formatStringSize = (unsigned int)strlen(verNumStr) + 1;
-    if (MaxLineSize > strlen(capbilStr)) {
-        formatStringSize += strlen(capbilStr);
-        resultString = g_malloc(formatStringSize + 1);
-        strcpy(resultString, verNumStr);
-        strcat(resultString, "\n");
-        strcat(resultString, capbilStr);
-        strcat(resultString, "\n");
-        return resultString;
-    } else {
-        unsigned int newLineCounters = 0;
-        const char *indexPtr = capbilStr + MaxLineSize;
-        const char *prevIndexPtr = capbilStr;
-        do {
-            while ('|' != *indexPtr && indexPtr > prevIndexPtr) {
-                indexPtr--;
-            }
-            if (indexPtr == prevIndexPtr) {
-                /* no division point within MaxLineSize characters */
-                indexPtr = strchr(indexPtr, '|');
-                if (NULL == indexPtr) {
-                    indexPtr = prevIndexPtr + strlen(prevIndexPtr) - 1;
-                }
-            }
-            prevIndexPtr = indexPtr+1;
-            indexPtr += (MaxLineSize - TabSize) + 1;
-            newLineCounters++;
-        } while ((MaxLineSize - TabSize) < strlen(prevIndexPtr));
-
-        formatStringSize += strlen(capbilStr) + (2 * newLineCounters) + 1;
-        resultString = g_malloc(formatStringSize);
-        strcpy(resultString, verNumStr);
-        strcat(resultString, "\n");
-        prevIndexPtr = capbilStr;
-        indexPtr = capbilStr + MaxLineSize;
-        do {
-            while ('|' != *indexPtr && indexPtr > prevIndexPtr) {
-                indexPtr--;
-            }
-            if (indexPtr == prevIndexPtr) {
-                /* no division point within MaxLineSize characters */
-                indexPtr = strchr(indexPtr, '|');
-                if (NULL == indexPtr) {
-                    indexPtr = prevIndexPtr + strlen(prevIndexPtr) - 1;
-                }
-            }
-            strncat(resultString, prevIndexPtr, indexPtr - prevIndexPtr);
-            strcat(resultString, "\n\t");
-            prevIndexPtr = indexPtr+1;
-            indexPtr += (MaxLineSize - TabSize) + 1;
-        } while ((MaxLineSize - TabSize) < strlen(prevIndexPtr));
-        strcat(resultString, prevIndexPtr);
-
-        return resultString;
-    }
-
-    return NULL;
-}
-
-/**
  * yfParseOptions
  *
  * parses the command line options via calls to the Airframe
@@ -319,9 +235,7 @@ static void yfParseOptions(
     
     privc_add_option_group(aoctx);
 
-    versionString = yfCleanVersionString(VERSION, YAF_ACONF_STRING_STR);
-
-    logc_add_option_group(aoctx, "qof", versionString);
+    logc_add_option_group(aoctx, "qof", VERSION " (\"" CUTE_VERSION "\")");
 
     air_option_context_set_help_enabled(aoctx);
 
@@ -367,6 +281,7 @@ static void yfParseOptions(
                                           qof_detune_drop_p,
                                           qof_detune_delay_max,
                                           qof_detune_alpha);
+        g_warning("detuning enabled");
     }
 #endif
     
@@ -469,7 +384,7 @@ int main (
     
     /* Print exit message */
     if (loop_ok) {
-        g_debug("qof terminating");
+        g_message("qof terminating");
     } else {
         qfContextTerminate(&qfctx);
     }

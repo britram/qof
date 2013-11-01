@@ -15,6 +15,7 @@ dnl ------------------------------------------------------------------------
 dnl RCSIDENT("$Id: configure.in 18549 2012-09-14 15:57:18Z ecoff_svn $")
 
 AC_INIT([qof], [0.9.0], [brian@trammell.ch], [qof])
+AC_DEFINE([CUTE_VERSION], ["Albula"], [Release name])
 AC_CONFIG_AUX_DIR([autoconf])
 AC_COPYRIGHT([Copyright (C) 2012-2013 by Brian Trammell
 Copyright (C) 2006-2012 by Carnegie Mellon University
@@ -456,13 +457,9 @@ AC_SUBST([abs_top_builddir])
 AC_CONFIG_FILES([Makefile
 				src/Makefile
 				include/Makefile
-				etc/Makefile
 				src/qof.pod
 				libqof.pc
-				etc/init.d/qof
 				Doxyfile
-				README
-				etc/qof.conf
 				airframe/Makefile
 				airframe/src/Makefile
 				airframe/include/Makefile

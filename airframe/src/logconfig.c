@@ -481,7 +481,7 @@ gboolean logc_setup(
     /* GLib < 2.6 needs a little bit of help here */
     g_log_set_handler(G_LOG_DOMAIN, ~levels, logc_logger_null, NULL);
 #endif
-    g_message("%s starting", logc.appname);
+    g_message("%s %s starting", logc.appname, logc.version);
 
     return TRUE;
 }

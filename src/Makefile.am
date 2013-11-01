@@ -31,6 +31,7 @@ WARN_CFLAGS = -g -DDEBUG -Wall -W -Wmissing-prototypes -Wformat=2 -Wdeclaration-
 copy-man-pages: $(HTMLFILES)
 	mkdir -p $(top_builddir)/doc/html
 	cp $(HTMLFILES) $(top_builddir)/doc/html
+	cp $(PDFFILES) $(top_builddir)/doc
 
 docs: $(man1_MANS) $(PDFFILES) copy-man-pages
 

@@ -956,8 +956,7 @@ void qfContextSetup(qfContext_t *ctx) {
     /* drop privilege if necessary */
     if (!privc_become(&ctx->err)) {
         if (g_error_matches(ctx->err, PRIVC_ERROR_DOMAIN, PRIVC_ERROR_NODROP)) {
-            g_warning("running as root in --live mode, "
-                      "but not dropping privilege");
+            g_warning("running as root, but not dropping privilege");
             g_clear_error(&ctx->err);
         } else {
             qfTraceClose(ctx->ictx.pktsrc);

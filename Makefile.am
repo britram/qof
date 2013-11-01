@@ -19,7 +19,7 @@ ACLOCAL_AMFLAGS = -I m4
 # Avoid picking up MacOS X resource forks in "make dist"
 am__tar = COPY_EXTENDED_ATTRIBUTES_DISABLE=1 COPYFILE_DISABLE=1 ${AMTAR} cof - "$$tardir"
 
-SUBDIRS = airframe src include etc
+SUBDIRS = airframe src include
 
 include doxygen.am
 
@@ -50,10 +50,4 @@ pkgconfig_DATA = libqof.pc
 
 EXTRA_DIST = \
     Doxyfile.in \
-    yaf.spec \
-    yaf.spec.in \
-    doc/add-header.pl \
-    doc/Doxyhead.html \
-    doc/Doxyfoot.html \
-    doc/doxygen.css \
-    doc/news2xhtml.pl
+    doc/doxygen.css
