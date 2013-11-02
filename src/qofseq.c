@@ -303,7 +303,7 @@ uint32_t qfTimestampHz(qfSeq_t *qs)
     uint64_t lms_interval =
     (((uint64_t)qs->lmswrap * k2e32) + qs->advlms - qs->initlms);
     
-    if (lms_interval) {
+    if (lms_interval && qs->initsval && qs->advtsval) {
         return (uint32_t)(val_interval * 1000 / lms_interval);
     } else {
         return 0;
