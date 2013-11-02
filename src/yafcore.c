@@ -1091,9 +1091,9 @@ gboolean yfWriteFlow(
             
             if ((hz = qfTimestampHz(&val->tcp->seq))) {
                 wtid |= YTF_TSV;
-                if (hz > 1000000) {
-                    fprintf(stderr,"fast timestamp clock detected: %u\n", hz);
-                }
+//                if (hz > 1000000) {
+//                    fprintf(stderr,"fast timestamp clock detected: %u\n", hz);
+//                }
                 rec.tcpTimestampFrequency = hz;
                 rec.minTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.min;
                 rec.maxTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.max;
@@ -1123,9 +1123,9 @@ gboolean yfWriteFlow(
             
             if ((rhz = qfTimestampHz(&rval->tcp->seq))) {
                 wtid |= YTF_TSV;
-                if (hz > 1000000) {
-                    fprintf(stderr,"fast timestamp clock detected: %u\n", hz);
-                }
+//                if (hz > 1000000) {
+//                    fprintf(stderr,"fast timestamp clock detected: %u\n", hz);
+//                }
                 rec.reverseTcpTimestampFrequency = rhz;
                 rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.min;
                 rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.max;
