@@ -216,7 +216,6 @@ static void yfParseOptions(
 
     AirOptionCtx    *aoctx = NULL;
     GError          *err = NULL;
-    char            *versionString;
 
 
     aoctx = air_option_context_new("", argc, argv, yaf_optent_core);

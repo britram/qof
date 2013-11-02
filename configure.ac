@@ -465,7 +465,6 @@ AC_CONFIG_FILES([Makefile
 				airframe/include/Makefile
 				airframe/doc/Makefile
 				airframe/libairframe.pc
-				airframe/libairframe.spec
 				airframe/Doxyfile
 				])
 

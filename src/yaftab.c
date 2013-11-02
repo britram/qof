@@ -812,7 +812,7 @@ static void yfFlowPktTCP(
         if (flowtab->tcp_seq_enable) {
             qfSeqFirstSegment(&val->tcp->seq, tcpinfo->flags,
                               tcpinfo->seq, (uint32_t) datalen,
-                              lms, flowtab->tcp_ts_enable, tcpinfo->tsval);
+                              lms, tcpinfo->tsval, flowtab->tcp_ts_enable);
         }
     }
     
