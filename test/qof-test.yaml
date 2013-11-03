@@ -58,6 +58,8 @@ template:
     - reverseTcpTimestampFrequency
     - minTcpChirpMilliseconds
     - reverseMinTcpChirpMilliseconds
+    - meanTcpChirpMilliseconds
+    - reverseMeanTcpChirpMilliseconds
     - maxTcpChirpMilliseconds
     - reverseMaxTcpChirpMilliseconds
     - minTcpIOTMilliseconds
