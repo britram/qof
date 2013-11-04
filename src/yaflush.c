@@ -60,7 +60,7 @@
 #include "yaflush.h"
 #include "yafout.h"
 #include "yafstat.h"
-#include <yaf/yafcore.h>
+#include <qof/yafcore.h>
 
 gboolean yfProcessPBufRing(
     qfContext_t        *ctx,

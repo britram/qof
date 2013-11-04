@@ -7,11 +7,11 @@ import ipfix.reader
 import pandas as pd
 import numpy as np
 import collections
+import itertools
 import bz2
 
 from ipaddress import ip_network
 from datetime import datetime, timedelta
-from itertools import zip_longest
 
 # Flags constants
 TCP_CWR = 0x80
@@ -56,35 +56,43 @@ DEFAULT_QOF_IES = [  "flowStartMilliseconds",
 
 def iter_group(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
-    return zip_longest(*args, fillvalue=fillvalue)
+    return itertools.zip_longest(*args, fillvalue=fillvalue)
 
 def _dataframe_iterator(tuple_iterator, columns, chunksize=100000):
     for group in iter_group(tuple_iterator, chunksize):
         yield pd.DataFrame.from_records([rec for rec in 
                   filter(lambda a: a is not None, group)], columns=columns)
-        
-def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000):
+
+def dataframe_from_ipfix_stream(stream, ienames=DEFAULT_QOF_IES, chunksize=100000, count=None):
     """ 
-    read an IPFIX file into a dataframe, selecting only records
+    read an IPFIX stream into a dataframe, selecting only records
     containing all the named IEs. uses chunked reading from the ipfix iterator
     to reduce memory requirements on read.
      
     """
     ielist = ipfix.ie.spec_list(ienames)
+    columns = [ie.name for ie in ielist]
+    r = ipfix.reader.from_stream(stream)
+    i = r.tuple_iterator(ielist)
+    if count:
+        i = itertools.islice(i, count)
     
+    # concatenate chunks from a dataframe iterator wrapped around
+    # the stream's tuple iterator
+    return pd.concat(_dataframe_iterator(i, columns, chunksize),
+                     ignore_index=True)
+        
+def dataframe_from_ipfix(filename, ienames=DEFAULT_QOF_IES, chunksize=100000, count=None):
+    """ 
+    read an IPFIX file into a dataframe, selecting only records
+    containing all the named IEs. uses chunked reading from the ipfix iterator
+    to reduce memory requirements on read.
+     
+    """    
     with open(filename, mode="rb") as f:
         # get a stream to read from
-        r = ipfix.reader.from_stream(f)
-        
-        # get column names
-        columns = [ie.name for ie in ielist]
-
-        # concatenate chunks from a dataframe iterator wrapped around
-        # the 
-        return pd.concat(_dataframe_iterator(r.tuple_iterator(ielist), 
-                                             columns, chunksize),
-                         ignore_index=True)
-
+        return dataframe_from_ipfix_stream(f, ienames, chunksize, count)
+ 
 def drop_lossy(df):
     """
     Filter out any rows for which observation loss was detected.
@@ -111,15 +119,15 @@ def drop_incomplete(df):
     try:
         with_syn = ((df["initialTCPFlags"] & TCP_SYN) > 0) &\
                    ((df["reverseInitialTCPFlags"] & TCP_SYN) > 0)
+        df = df[with_syn]
         with_fin = (df["flowEndReason"] == END_FIN)
-        return df[with_syn & with_fin]
+        df = df[with_fin]
     except KeyError:
         return df
 
 def coerce_timestamps(df, cols=("flowStartMilliseconds", "flowEndMilliseconds")):    
     """
-    add a floating point duration column
-    to a dataframe including flowStartMilliseconds and flowEndMilliseconds
+    coerce timestamps to datetime64
     
     modifies the dataframe in place and returns it.
     """

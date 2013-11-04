@@ -59,7 +59,7 @@
 #ifndef _YAF_FLUSH_H_
 #define _YAF_FLUSH_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include "qofconfig.h"
 
 gboolean yfProcessPBufRing(

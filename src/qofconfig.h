@@ -1,16 +1,18 @@
 #ifndef _QOF_CONFIG_H_
 #define _QOF_CONFIG_H_
 
-#include <yaf/autoinc.h>
-#include <yaf/yaftab.h>
-#include <yaf/yafrag.h>
-#include <yaf/decode.h>
-#include <yaf/ring.h>
+#include <qof/autoinc.h>
+#include <qof/yaftab.h>
+#include <qof/yafrag.h>
+#include <qof/decode.h>
+#include <qof/ring.h>
 
-#include <yaf/qofifmap.h>
-#include <yaf/qofmaclist.h>
+#include <qof/qofifmap.h>
+#include <qof/qofmaclist.h>
 
 #include <airframe/airlock.h>
+
+#include "qofdetune.h"
 
 typedef struct qfConfig_st {
     /* Features enabled by template selection */
@@ -30,9 +32,10 @@ typedef struct qfConfig_st {
     /* Features enabled explicitly */
     gboolean    enable_silk;    // SiLK compatibility mode
     gboolean    enable_gre;     // GRE decap mode
+    gboolean    enable_biforce; // force biflow export
     /* Flow state configuration */
-    uint32_t    ato_ms;
-    uint32_t    ito_ms;
+    uint32_t    ato_s;
+    uint32_t    ito_s;
     uint32_t    max_flowtab;
     uint32_t    max_fragtab;
     uint64_t    max_flow_pkt;     // max packet count to force ATO (silk mode)
@@ -54,6 +57,10 @@ typedef struct qfInputContext_st {
     char            *bpf_expr;
     /** Packet source */
     struct qfTraceSource_st *pktsrc;
+#if QOF_ENABLE_DETUNE
+    /** Packet detuner */
+    qofDetune_t     *detune;
+#endif
 } qfInputContext_t;
 
 typedef struct qfOutputContext_st {

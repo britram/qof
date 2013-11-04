@@ -13,8 +13,8 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/qofrtt.h>
-#include <yaf/yaftab.h>
+#include <qof/qofrtt.h>
+#include <qof/yaftab.h>
 
 #define QOF_RTT_DEBUG 0
 

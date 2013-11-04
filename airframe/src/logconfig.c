@@ -119,14 +119,13 @@ gboolean logc_add_option_group(
 
 
 static void logc_print_version() {
-    fprintf(stderr,"%s version %s (c) 2000-2012 Carnegie Mellon University.\n",
+    fprintf(stderr,"%s version %s (c) 2013 Brian Trammell.\n",
             logc.appname,logc.version);
+    fprintf(stderr,"Based on YAF (c) 2000-2013 Carnegie Mellon University.\n");
     fprintf(stderr,"GNU General Public License (GPL) Rights "
                    "pursuant to Version 2, June 1991\n");
     fprintf(stderr,"Some included library code covered by LGPL 2.1; "
                    "see source for details.\n");
-    fprintf(stderr,"Government Purpose License Rights (GPLR) "
-                   "pursuant to DFARS 252.227-7013\n");
     fprintf(stderr, "Send bug reports, feature requests, and comments to "
             "netsa-help@cert.org.\n");
 }
@@ -482,7 +481,7 @@ gboolean logc_setup(
     /* GLib < 2.6 needs a little bit of help here */
     g_log_set_handler(G_LOG_DOMAIN, ~levels, logc_logger_null, NULL);
 #endif
-    g_message("%s starting", logc.appname);
+    g_message("%s %s starting", logc.appname, logc.version);
 
     return TRUE;
 }

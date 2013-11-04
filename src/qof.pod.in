@@ -1,0 +1,961 @@
+=pod
+
+=head1 NAME
+
+B<qof> - Quality of Flow (yet another yet another flowmeter)
+
+=head1 SYNOPSIS
+
+    qof     [--in LIBTRACE_URI] [--out OUTPUT_SPECIFIER]
+            [--yaml CONFIG_FILE]
+            [--filter BPF_FILTER]
+            [--rotate ROTATE_DELAY] [--lock]
+            [--stats INTERVAL]
+            [--observation-domain DOMAIN_ID]
+            [--ipfix TRANSPORT_PROTOCOL]
+            [--ipfix-port PORT] [--tls] [--tls-ca CA_PEM_FILE]
+            [--tls-cert CERT_PEM_FILE] [--tls-key KEY_PEM_FILE]
+            [--template-refresh TEMPLATE_TIMEOUT]
+            [--become-user UNPRIVILEGED_USER]
+            [--become-group UNPRIVILEGED_GROUP]
+            [--log LOG_SPECIFIER] [--loglevel LOG_LEVEL]
+            [--verbose] [--version]
+
+=head1 DESCRIPTION
+
+B<qof> is an IPFIX (B<RFC 7011>) flow meter with an emphasis on passive
+TCP performance measurement. It is based on a fork of the B<yaf> flow meter.
+It reads packet data using B<libtrace>, which allows it to read from many 
+dumpfile formats as well as a variety of capture devices, generates flows 
+from these packets, and exports flow records via IPFIX over SCTP, TCP or UDP,
+or into B<RFC 5655> IPFIX Files on the local file system.
+
+Since B<qof> is designed to be deployed on white-box sensors attached to local
+network segments or span ports at symmetric routing points, it supports
+bidirectional flow assembly natively. Biflow export is done via the export
+method specified in B<RFC 5103> Bidirectional Flow Export using IPFIX. See the
+B<OUTPUT> section below for information on this format.
+
+As of this release, B<qof> should be considered alpha quality software. The core is reasonably
+stable, having been based on B<yaf>, but the command-line options,
+configuration interface, and output format may change wildly before a 
+1.0 release.
+
+=head1 OPTIONS
+
+=head2 Input Options
+
+These options control where B<qof> will take its input from.
+
+=over 4
+
+=item B<--in> I<LIBTRACE_URI>
+
+I<LIBTRACE_URI> is a libtrace URI. If no scheme is given, 
+assumes C<pcapfile:> to read from a named pcap dumpfile. 
+If not given, reads pcap dumpfiles from standard input.
+
+=item B<--filter> I<BPF_FILTER>
+
+If present, enable Berkeley Packet Filtering (BPF) in B<qof> with I<FILTER_EXPRESSION> as the incoming traffic filter.  The syntax of I<FILTER_EXPRESSION> follows the expression format described in the B<tcpdump(1)> man page.
+
+=back
+
+=head2 Output Options
+
+These options control where B<qof> will send its output. B<qof> can write flows
+to an IPFIX file or export flows to an IPFIX collector over SCTP, TCP, UDP, or
+Spread. By default, if no output options are given, B<qof> writes an IPFIX file
+to standard output.
+
+=over 4
+
+=item B<--out> I<OUTPUT_SPECIFIER>
+
+I<OUTPUT_SPECIFIER> is an output specifier. If B<--ipfix> is present,
+the I<OUTPUT_SPECIFIER> specifies the hostname or IP address of the
+collector to which the flows will be exported. Otherwise, I<OUTPUT_SPECIFIER> 
+is a filename in which the flows will be written; the string B<-> 
+may be used to write to standard output (the default).
+
+=item B<--ipfix> I<TRANSPORT_PROTOCOL>
+
+If present, causes B<qof> to operate as an IPFIX exporter, sending
+IPFIX Messages via the specified transport protocol to the collector (e.g.,
+SiLK's rwflowpack or flowcap facilities) named in the I<OUTPUT_SPECIFIER>.
+Valid I<TRANSPORT_PROTOCOL> values are B<tcp>, B<udp> or B<sctp>.
+B<sctp> is only available if B<qof> was built with SCTP support. 
+UDP is not recommended, as it is not a reliable transport protocol, 
+and cannot guarantee delivery of messages.  As per the recommendations in 
+RFC 5101, B<qof> will retransmit templates three times within the template 
+timeout period (configurable using B<--template-refresh>). Use the
+B<--ipfix-port>, B<--tls>, B<--tls-ca>, B<--tls-cert>, and B<--tls-key>
+options to further configure the connection to the
+IPFIX collector.
+
+=item B<--rotate> I<ROTATE_DELAY>
+
+If present, causes B<qof> to write output to multiple files, opening a new output
+file every I<ROTATE_DELAY> seconds in the input data. Rotated files are named
+using the prefix given in the I<OUTPUT_SPECIFIER>, followed by a suffix
+containing a timestamp in C<YYYYMMDDhhmmss> format, a decimal serial number,
+and the file extension B<.yaf>.
+
+=item B<--lock>
+
+Use lockfiles for concurrent file access protection on output files.
+This is recommended for interoperating with the Airframe filedaemon
+facility.
+
+=item B<--stats> I<INTERVAL>
+
+If present, causes B<qof> to export process statistics in an IPFIX Options
+Record inline in the output stream every I<INTERVAL> seconds.
+If I<INTERVAL> is set to zero, stats will not be exported; 
+the default is not to export stats.
+
+=back
+
+=head2 IPFIX Connection Options
+
+These options are used to configure the connection to an IPFIX collector.
+
+=over 4
+
+=item B<--ipfix-port> I<PORT>
+
+If B<--ipfix> is present, export flows to TCP, UDP, or SCTP port I<PORT>.
+If not present, the default IPFIX port 4739 is used. If B<--tls> is also
+present, the default secure IPFIX port 4740 is used.
+
+=item B<--tls>
+
+If B<--ipfix> is present, use TLS to secure the connection to the
+IPFIX collector. Requires the I<TRANSPORT_PROTOCOL> to be B<tcp>, as DTLS over
+UDP or SCTP is not yet supported. Requires the B<--tls-ca>, B<--tls-cert>, and
+B<--tls-key> options to specify the X.509 certificate and TLS key information.
+
+=item B<--tls-ca> I<CA_PEM_FILE>
+
+Use the Certificate Authority or Authorities in I<CA_PEM_FILE> to verify the
+remote IPFIX Collecting Process' X.509 certificate. The connection to the
+Collecting Process will fail if its certificate was not signed by this CA
+(or by a certificate signed by this CA, recursively); this prevents export to
+unauthorized Collecting Processes. Required if B<--tls> is present.
+
+=item B<--tls-cert> I<CERT_PEM_FILE>
+
+Use the X.509 certificate in I<CERT_PEM_FILE> to identify this IPFIX Exporting
+Process. This certificate should contain the public part of the private key in
+I<KEY_PEM_FILE>. Required if B<--tls> is present.
+
+=item B<--tls-key> I<KEY_PEM_FILE>
+
+Use the private key in I<KEY_PEM_FILE> for this IPFIX Exporting Process. This
+key should contain the private part of the public key in
+I<CERT_PEM_FILE>. Required if B<--tls> is present. If the key is encrypted,
+the password must be present in the QOF_TLS_PASS environment variable.
+
+=item B<--observation-domain> I<ODID>
+
+Set observation domain on exported IPFIX messages to I<ODID>; the default is 0.
+
+=item B<--template-refresh> I<TEMPLATE_RTX_TIME>
+
+Set UDP template refresh time in seconds. When set, every active template will
+be transmitted each I<TEMPLATE_RTX_TIME> seconds. Defaults to 0 (no template
+retransmit) unless B<--ipfix udp> is present, in which case the default is 60
+(1 minute).
+
+=back
+
+=head2 Privilege Options
+
+These options are used to cause B<qof> to drop privileges when running as root
+for live capture purposes.
+
+=over 4
+
+=item B<--become-user> I<UNPRIVILEGED_USER>
+
+After opening inputs, drop privilege to the named user. Using B<--become-user>
+requires B<qof> to be run as root or setuid root. This option will cause all
+files written by B<qof> to be owned by the user I<UNPRIVILEGED_USER> and the
+user's primary group; use B<--become-group> as well to change the group B<qof>
+runs as for output purposes. If running as root for live capture purposes and
+B<--become-user> is not present, B<qof> will warn that privilege is not being
+dropped. We highly recommend the use of this option, especially in production
+environments, for security purposes.
+
+=item B<--become-group> I<UNPRIVILEGED_GROUP>
+
+B<--become-group> can be used to change the group from the default of the user
+given in B<--become-user>. This option has no effect if given without the
+B<--become-user> option as well.
+
+=back
+
+=head2 Logging Options
+
+These options are used to specify how log messages are routed. B<qof> can
+log to standard error, regular files, or the UNIX syslog facility.
+
+=over 4
+
+=item B<--log> I<LOG_SPECIFIER>
+
+Specifies destination for log messages. I<LOG_SPECIFIER> can be a syslog(3)
+facility name, the special value B<stderr> for standard error, or the
+I<absolute> path to a file for file logging. The default log
+specifier is B<stderr> if available, B<user> otherwise.
+
+=item B<--loglevel> I<LOG_LEVEL>
+
+Specify minimum level for logged messages. In increasing levels of verbosity,
+the supported log levels are B<quiet>, B<error>, B<critical>, B<warning>,
+B<message>, B<info>, and B<debug>. The default logging level is B<warning>.
+
+=item B<--verbose>
+
+Equivalent to B<--loglevel debug>.
+
+=item B<--version>
+
+If present, print version and copyright information to standard error and exit.
+
+=back
+
+=head1 CONFIGURATION FILE FORMAT
+
+The behavior of the B<qof> flow table and IPFIX export is defined by a 
+YAML configuration file, the path to which is given on the B<qof> 
+command line by the B<--yaml> option. If no configuration file is given, it is
+as if an empty configuration file is given, and the default value for each 
+of the configuration keys is taken.
+
+The YAML configuration file is a mapping of configuration keys to values; 
+the configuration keys are as follows:
+
+=over 4
+
+=item B<template>: I<TEMPLATE_LIST>
+
+A list of Information Elements to export. The selection of Information Elements in this Template determines which B<qof> features will be enabled; see the B<OUTPUT> section for details. When no template is given, B<qof> defaults to the following:
+
+=over 2
+
+=item *
+
+flowStartMilliseconds
+
+=item *
+
+flowEndMilliseconds
+
+=item *
+
+octetDeltaCount
+
+=item *
+
+reverseOctetDeltaCount
+
+=item *
+
+packetDeltaCount
+
+=item *
+
+reversePacketDeltaCount
+
+=item *
+
+sourceIPv4Address
+
+=item *
+
+destinationIPv4Address
+
+=item *
+
+sourceIPv6Address
+
+=item *
+
+destinationIPv6Address
+
+=item *
+
+sourceTransportPort
+
+=item *
+
+destinationTransportPort
+
+=item *
+
+protocolIdentifier
+
+=item *
+
+flowEndReason
+
+=back
+
+See the B<OUTPUT> section for a definition of each information 
+element available here, and for the features enabled by each information 
+element.
+
+=item B<interface-map>: I<IFMAP_LIST>
+
+This feature will be documented in a future release.
+
+=item B<source-mac>: I<MACADDR_LIST>
+
+This feature will be documented in a future release.
+
+=item B<source-ip>: I<IPADDR_LIST>
+
+This feature will be documented in a future release.
+
+=item B<idle-timeout>: I<IDLE_TIMEOUT>
+
+Set flow idle timeout in seconds. Flows are considered idle and flushed
+from the flow table if no packets are received for I<IDLE_TIMEOUT> seconds.
+The default flow idle timeout is 30 seconds.
+
+=item B<active-timeout>: I<ACTIVE_TIMEOUT>
+
+Set flow active timeout in seconds. Any flow lasting longer than
+I<ACTIVE_TIMEOUT> seconds will be flushed from the flow table.
+The default flow active timeout is 300 seconds (5 minutes).
+
+=item B<max-flows>: I<FLOW_TABLE_MAX>
+
+If present, limit the number of open flows in the flow table to
+I<FLOW_TABLE_MAX> by prematurely expiring the flows with the least
+recently received packets; this is analogous to an adaptive idle
+timeout. This option is provided to limit B<qof> resource usage when
+operating on data from large networks. By default, there is no flow
+table limit, and the flow table can grow to resource exhaustion.
+
+=item B<max-frags>: I<FRAG_TABLE_MAX>
+
+If present, limit the number of outstanding, not-yet reassembled fragments
+in the fragment table to I<FRAG_TABLE_MAX> by prematurely expiring fragments
+from the table. This option is provided to limit B<qof> resource usage when
+operating on data from very large networks or networks with abnormal
+fragmentation. The fragment table may exceed this limit slightly due
+to limits on how often B<qof> prunes the fragment table (every 5 seconds).
+By default, there is no fragment table limit, and the fragment
+table can grow to resource exhaustion.
+
+=item B<active-timeout-octets>: I<MAX_FLOW_OCTETS>
+
+Not implemented.
+
+=item B<active-timeout-packets>: I<MAX_FLOW_PACKETS>
+
+Not implemented.
+
+=item B<active-timeout-rtts>: I<MAX_FLOW_PACKETS>
+
+Not implemented.
+
+=item B<active-timeout-rtts>: I<MAX_FLOW_PACKETS>
+
+Not implemented.
+
+=item B<force-biflow>: I<FLAG>
+
+If present and I<FLAG> is anything except "0", export reverse Information 
+Elements for all flows, even those with only one observed direction.
+
+=item B<gre-decap>: I<FLAG>
+
+If present and I<FLAG> is anything except "0", 
+attempt to decode GRE version 0 encapsulated packets. Flows will
+be created from packets within the GRE tunnels. Undecodeable GRE packets will
+be dropped. Without this option, GRE traffic is exported as IP protocol 47
+flows. This option is presently experimental.
+
+=item B<silk-compatible>: I<FLAG>
+
+If present and I<FLAG> is anything except "0",
+export flows in "SiLK mode". This flag must be used when
+exporting to SiLK for it to collect TCP flow information.  
+This also introduces the following incompatibilities
+with standard IPFIX export:
+
+=over 4
+
+=item *
+
+octetDeltaCount and reverseOctetDeltaCount are clamped to 32 bits. Any packet
+that would cause either of these counters to overflow 32 bits will cause the
+flow to close with flowEndReason 0x02 (active timeout), and will become the
+first packet of a new flow. This is analogous to forcing an active timeout
+when the octet counters overflow.
+
+=item *
+
+The high-order bit of the flowEndReason IE is set on any flow created on a
+counter overflow, as above.
+
+=item *
+
+The high-order bit of the flowEndReason IE is set on any flow created on an
+active timeout.
+
+=back
+
+Since this changes the semantics of the exported flowEndReason IE, it should
+only be used when generating flows and exporting to rwflowpack, flowcap, or
+writing files for processing with rwipfix2silk.
+
+=back 
+
+=head1 OUTPUT X<OUTPUT>
+
+B<qof>'s output consists of an IPFIX message stream. B<qof> uses a variety of
+templates for IPFIX data records, derived from a template supplied by the
+user in the YAML configuration file. This section describes the 
+information elements used in those templates. For further information about IPFIX as
+implemented by B<qof>, see RFC 7011, RFC 7012, RFC 5103, and RFC 5655.
+
+=head2 Flow Records
+
+B<qof> assigns information element numbers to reverse flow elements in biflow
+capture based on the standard IPFIX PEN 29305. This applies only for
+information elements registered with IANA that do not have a reverse
+information element already defined. B<qof> additionally uses information
+elements registered with CERT (PEN 6871) for features inherited from B<yaf> and
+elements registered under the trammell.ch PEN (PEN 35566) for B<qof> specific
+features. For enterprise-specific information elements, the method described in
+RFC 5103 is used to calculate their reverse element identifier: bit fourteen is
+set to one in the IE field, (e.g. 16384 + the forward IE number.)
+
+B<qof> supports the following Information Elements in flow records, 
+which can appear in the B<template:> list in the YAML configuration file; 
+in the list below, features enabled and conditions for export for 
+each Information Element are noted. 
+
+Note as well that if I<any> reverse information element is 
+specified in the B<template:> list, B<qof> will export biflows 
+as in RFC 5103; otherwise, it will export biflows as two separate records.
+
+For IANA IEs, see http://www.iana.org/assignments/ipfix for details.
+
+=over 4
+
+=item B<octetDeltaCount> IANA IE 1
+
+Can be exported for all flows.
+
+=item B<reverseOctetDeltaCount> RFC 5103 (PEN 29305) IE 1
+
+Can be exported for all biflows.
+
+=item B<packetDeltaCount> IANA IE 2
+
+Can be exported for all flows.
+
+=item B<reversePacketDeltaCount> RFC 5103 (PEN 29305) IE 2
+
+Can be exported for all biflows.
+
+=item B<protocolIdentifier> IANA IE 4
+
+Flow key, can be exported for all flows.
+
+=item B<tcpControlBits> IANA IE 6
+
+Can be exported for TCP flows.
+
+=item B<reverseTcpControlBits> RFC 5103 (PEN 29305) IE 6
+
+Can be exported for TCP biflows.
+
+=item B<sourceTransportPort> IANA IE 7
+
+Flow key, can be exported for all flows.
+
+=item B<sourceIPv4Address> IANA IE 8
+
+Flow key, can be exported for IPv4 flows. If neither sourceIPv4Address nor 
+destinationIPv4Address are present in the template, and either
+sourceIPv6Address or destinationIPv6Address are present, then 
+sourceIPv4Address will be exported as an IPv6-mapped address 
+in sourceIPv6Address.
+
+=item B<ingressInterface> IANA IE 10
+
+Can be exported if ingress interface information is available; presently only
+supported with the (not yet documented) interface map.
+
+=item B<destinationTransportPort> IANA IE 11
+
+Flow key, can be exported for all flows.
+
+=item B<destinationIPv4Address> IANA IE 12
+
+Flow key, can be exported for IPv4 flows. If neither sourceIPv4Address nor 
+destinationIPv4Address are present in the template, and either
+sourceIPv6Address or destinationIPv6Address are present, then 
+destinationIPv4Address will be exported as an IPv6-mapped address
+in destinationIPv6Address.
+
+=item B<egressInterface> IANA IE 14
+
+Can be exported if egress interface information is available; presently only
+supported with the (not yet documented) interface map.
+
+=item B<sourceIPv6Address> IANA IE 27
+
+Flow key, can be exported for IPv6 flows, or for IPv4 flows if address 
+mapping is enabled. If neither sourceIPv6Address nor destinationIPv6Address 
+are present in the template, then IPv6 flows will not be measured.
+
+=item B<destinationIPv6Address> IANA IE 28
+
+Flow key, can be exported for IPv6 flows, or for IPv4 flows if address 
+mapping is enabled. If neither sourceIPv6Address nor destinationIPv6Address 
+are present in the template, then IPv6 flows will not be measured.
+
+=item B<minimumTTL> IANA IE 52
+
+Can be exported for all flows.
+
+=item B<reverseMinimumTTL> RFC 5103 (PEN 29305) IE 52
+
+Can be exported for all biflows.
+
+=item B<maximumTTL> IANA IE 53
+
+Can be exported for all flows.
+
+=item B<reverseMaximumTTL> RFC 5103 (PEN 29305) IE 53
+
+Can be exported for all biflows.
+
+=item B<sourceMacAddress> IANA IE 56
+
+Can be exported for all flows if MAC layer information available; 
+enables MAC header parsing if selected.
+
+=item B<vlanId> IANA IE 58
+
+Can be exported for all flows if MAC layer information available; 
+enables MAC header parsing if selected.
+
+=item B<destinationMacAddress> IANA IE 80
+
+Can be exported for all flows if MAC layer information available; 
+enables MAC header parsing if selected.
+
+=item B<flowEndReason> IANA IE 136
+
+Can be exported for all flows.
+
+=item B<flowId> IANA IE 148
+
+Can be exported for all flows. flowIds are persistent across exports 
+on active timeout, and can be used to link flows for continuation.
+
+=item B<flowStartMilliseconds> IANA IE 152
+
+Can be exported for all flows.
+
+=item B<flowEndMilliseconds> IANA IE 153
+
+Can be exported for all flows.
+
+=item B<transportOctetDeltaCount> IANA IE 401
+
+Can be exported for all flows.
+
+=item B<reverseTransportOctetDeltaCount> RFC 5103 (PEN 29305) IE 401
+
+Can be exported for all biflows.
+
+=item B<transportPacketDeltaCount> IANA IE 402
+
+Can be exported for all flows.
+
+=item B<reverseTransportPacketDeltaCount> RFC 5103 (PEN 29305) IE 402
+
+Can be exported for all biflows.
+
+=item B<initialTCPFlags> CERT (PEN 6871) IE 14
+
+(type: unsigned8, semantics: flags) Flags on the first TCP packet in the 
+forward direction; see tcpControlBits.
+
+=item B<unionTCPFlags> CERT (PEN 6871) IE 15
+
+(type: unsigned8, semantics: flags) Union of the flags on all TCP packets 
+after the first TCP packet in the forward direction; see tcpControlBits.
+ 
+=item B<reverseInitialTCPFlags> CERT (PEN 6871) IE 16398
+
+(type: unsigned8, semantics: flags) Flags on the first TCP packet in the 
+reverse direction; see tcpControlBits.
+
+=item B<reverseUnionTCPFlags> CERT (PEN 6871) IE 16399
+
+(type: unsigned8, semantics: flags) Union of the flags on all TCP packets 
+after the first TCP packet in the reverse direction; see tcpControlBits.
+
+=item B<reverseFlowDeltaMilliseconds> CERT (PEN 6871) IE 21
+
+(type: signed32, semantics: quantity, units: milliseconds) Milliseconds 
+between first packet in the forward direction and the first packet in the 
+reverse direction.
+
+=item B<tcpSequenceCount> trammell.ch (PEN 35566) IE 1024
+
+(type: unsigned64, semantics: deltaCounter, units: octets) The number of 
+octets passed up to the application layer at the receiver, as measured by 
+progress through TCP sequence number space observed at the Observation Point. 
+Only exported for TCP flows. If present in the template, enables sequence
+number tracking.
+
+=item B<reverseTcpSequenceCount> trammell.ch (PEN 35566) IE 17408
+
+(type: unsigned64, semantics: deltaCounter, units: octets) The number of octets
+passed up to the application layer at the receiver in the reverse direction, as
+measured by progress through TCP sequence number space observed at the
+Observation Point. Only exported for TCP biflows. If present in the template,
+enables sequence number tracking.
+
+=item B<tcpRetransmitCount> trammell.ch (PEN 35566) IE 1025
+
+(type: unsigned64, semantics: deltaCounter, units: octets) The number of
+packets consisting of complete or partial retransmission, as measured by
+segments and/or portions of sequence number space observed at the Observation
+Point. Only exported for TCP flows. If present in the template, enables
+sequence number tracking.
+
+=item B<reverseTcpRetransmitCount> trammell.ch (PEN 35566) IE 17409
+
+(type: unsigned64, semantics: deltaCounter, units: octets) The number of
+packets in the reverse direction consisting of complete or partial
+retransmission, as measured by segments and/or portions of sequence number
+space observed at the Observation Point. Only exported for TCP biflows. If
+present in the template, enables sequence number tracking.
+
+=item B<maxTcpSequenceJump> trammell.ch (PEN 35566) IE 1026
+
+(type: unsigned64, semantics: quantity, units: octets) The maximum observed 
+size of a sequence number jump, calculated by subtracting the sequence number 
+of the first byte in a jump packet from the highest-seen sequence number 
+on this Flow. Only exported for TCP flows. If present in the template, enables
+sequence number tracking.
+
+=item B<reverseMaxTcpSequenceJump> trammell.ch (PEN 35566) IE 17410
+
+(type: unsigned64, semantics: quantity, units: octets) The maximum observed
+size of a sequence number jump in the reverse direction, calculated by
+subtracting the sequence number of the first byte in a jump packet from the
+highest-seen sequence number on the reverse direction of this Flow. Only
+exported for TCP biflows. If present in the template, enables sequence number
+tracking.
+
+=item B<minTcpRttMilliseconds> trammell.ch (PEN 35566) IE 1029
+
+(type: unsigned32, semantics: quantity, units: milliseconds) The minimum
+observed TCP round trip time for this Flow, estimated from the sender's point
+of view, observed at the Observation Point. Derived from SYN-ACK as well as
+TSOPT VAL-ECR delays on both directions of the Flow. Only exported for TCP
+biflows. If present in the template, enables RTT measurement and TCP options
+parsing.
+
+=item B<lastTcpRttMilliseconds> trammell.ch (PEN 35566) IE 1030
+
+(type: unsigned32, semantics: quantity, units: milliseconds) The final smoothed
+observed TCP round trip time for this Flow, estimated from the sender's point
+of view, observed at the Observation Point. Derived from SYN-ACK as well as
+TSOPT VAL-ECR delays on both directions of the Flow. Only exported for TCP
+biflows. If present in the template, enables RTT measurement and TCP options
+parsing.
+
+=item B<declaredTcpMss> trammell.ch (PEN 35566) IE 1033
+
+(type: unsigned16, semantics: quantity, units: octets) TCP MSS declared in TCP
+options. Only exported for TCP flows. If present in the template, enables TCP
+options parsing.
+
+=item B<reverseDeclaredTcpMss> trammell.ch (PEN 35566) IE 17417
+
+(type: unsigned16, semantics: quantity, units: octets) TCP MSS declared in TCP
+options in the reverse direction of the Flow. Only exported for TCP biflows. If
+present in the template, enables TCP options parsing.
+
+=item B<observedTcpMss> trammell.ch (PEN 35566) IE 1034
+
+(type: unsigned16, semantics: quantity, units: octets) Maximum size of payload
+in observed TCP segments. Only exported for TCP flows. If present in the
+template, enables TCP options parsing.
+
+=item B<reverseObservedTcpMss> trammell.ch (PEN 35566) IE 17418
+
+(type: unsigned16, semantics: quantity, units: octets) Maximum size of payload
+in observed TCP segments in the reverse direction of the Flow. Only exported
+for TCP biflows. If present in the template, enables TCP options parsing.
+
+=item B<tcpSequenceLossCount> trammell.ch (PEN 35566) IE 1035
+
+(type: unsigned64, semantics: deltaCounter, units: octets) Octets in TCP
+segments inferred from observing the sequence number series but not observed in
+the packet stream. A nonzero value generally indicates observation loss. Only
+exported for TCP flows. If present in the template, enables sequence number
+tracking.
+
+=item B<reverseTcpSequenceLossCount> trammell.ch (PEN 35566) IE 17419
+
+(type: unsigned64, semantics: deltaCounter, units: octets) Octets in TCP
+segments inferred from observing the sequence number series but not observed in
+the packet stream in the reverse direction. A nonzero value generally indicates
+observation loss. Only exported for TCP biflows. If present in the template,
+enables sequence number tracking.
+
+=item B<tcpSequenceJumpCount> trammell.ch (PEN 35566) IE 1036
+
+(type: unsigned64, semantics: deltaCounter, units: packets) Number of packets
+observed which cause a sequence number jump, calculated by subtracting the
+sequence number of the first byte in a jump packet from the highest-seen
+sequence number on this Flow. Counts multi-segment jumps in units of observed
+MSS, Only exported for TCP flows. If present in the template, enables sequence
+number tracking.
+
+=item B<reverseTcpSequenceJumpCount> trammell.ch (PEN 35566) IE 17420
+
+(type: unsigned64, semantics: deltaCounter, units: packets) Number of packets
+observed in the reverse direction which cause a sequence number jump,
+calculated by subtracting the sequence number of the first byte in a jump
+packet from the highest-seen sequence number on this Flow. Counts multi-segment
+jumps in units of observed MSS. Only exported for TCP biflows. If present in the
+template, enables sequence number tracking.
+
+=item B<tcpLossEventCount> trammell.ch (PEN 35566) IE 1038
+
+(type: unsigned64, semantics: deltaCounter, units: events) Count of RTT time
+windows during which a loss indication (retransmit or jump) was observed. Only
+exported for TCP flows. If present in the template, enables sequence number
+tracking, RTT tracking, and options parsing.
+
+=item B<reverseTcpLossEventCount> trammell.ch (PEN 35566) IE 17422
+
+(type: unsigned64, semantics: deltaCounter, units: events) Count of RTT time
+windows during which a loss indication (retransmit or jump) was observed. Only
+exported for TCP biflows. If present in the template, enables sequence number
+tracking, RTT tracking, and options parsing.
+
+=item B<qofTcpCharacteristics> trammell.ch (PEN 35566) IE 1039
+
+(type: unsigned32, semantics: flags) Flags describing particular
+characteristics of the flow. 0x01 = ECT(0) present on at least one packet. 0x02
+= ECT(1) present on at least one packet. 0x04 = CE present on at least one
+packet. 0x10 = TCP Timestamp present. 0x20 = At least one segment was
+selectively acknowledged. 0x40 = TCP Window Scale present. Only exported for
+TCP flows. If present in the template, enables options parsing.
+
+=item B<reverseQofTcpCharacteristics> trammell.ch (PEN 35566) IE 17423
+
+(type: unsigned32, semantics: flags) Flags describing particular
+characteristics of the reverse direction of the flow. 0x01 = ECT(0) present on
+at least one packet. 0x02 = ECT(1) present on at least one packet. 0x04 = CE
+present on at least one packet. 0x10 = TCP Timestamp present. 0x20 = At least
+one segment was selectively acknowledged. 0x40 = TCP Window Scale present. Only
+exported for TCP biflows. If present in the template, enables options parsing.
+
+=item B<minTcpRwin> trammell.ch (PEN 35566) IE 1042
+
+(type: unsigned32, semantics: quantity, units: octets) Minimum observed scaled
+receiver window. Only exported for TCP flows. If present in the template,
+enables TCP options parsing and receiver window tracking.
+
+=item B<reverseMinTcpRwin> trammell.ch (PEN 35566) IE 17426
+
+(type: unsigned32, semantics: quantity, units: octets) Minimum observed scaled
+receiver window in the reverse direction. Only exported for TCP biflows. If
+present in the template, enables TCP options parsing and receiver window
+tracking.
+
+=item B<meanTcpRwin> trammell.ch (PEN 35566) IE 1043
+
+(type: unsigned32, semantics: quantity, units: octets) Mean observed scaled
+receiver window. Only exported for TCP flows. If present in the template,
+enables TCP options parsing and receiver window tracking.
+
+=item B<reverseMeanTcpRwin> trammell.ch (PEN 35566) IE 17427
+
+(type: unsigned32, semantics: quantity, units: octets) Mean observed scaled
+receiver window in the reverse direction. Only exported for TCP biflows. If
+present in the template, enables TCP options parsing and receiver window
+tracking.
+
+=item B<maxTcpRwin> trammell.ch (PEN 35566) IE 1044
+
+(type: unsigned32, semantics: quantity, units: octets) Maximum observed scaled
+receiver window. Only exported for TCP flows. If present in the template,
+enables TCP options parsing and receiver window tracking.
+
+=item B<reverseMaxTcpRwin> trammell.ch (PEN 35566) IE 17428
+
+(type: unsigned32, semantics: quantity, units: octets) Maximum observed scaled
+receiver window in the reverse direction. Only exported for TCP biflows. If
+present in the template, enables TCP options parsing and receiver window
+tracking.
+
+=item B<tcpReceiverStallCount> trammell.ch (PEN 35566) IE 1045
+
+(type: unsigned32, semantics: quantity, units: events) Count of transitions of
+the receiver window from nonzero to zero. Only exported for TCP flows. If
+present in the template, enables TCP options parsing and receiver window
+tracking.
+
+=item B<reverseTcpReceiverStallCount> trammell.ch (PEN 35566) IE 17429
+
+(type: unsigned32, semantics: quantity, units: events) Count of transitions of
+the receiver window from nonzero to zero in the reverse direction. Only
+exported for TCP biflows. If present in the template, enables TCP options
+parsing and receiver window tracking.
+
+=item B<tcpRttSampleCount> trammell.ch (PEN 35566) IE 1046
+
+(type: unsigned32, semantics: quantity, units: events) 
+Count of RTT samples from which the flow's RTT information is derived.  If
+present in the template, enables TCP options parsing and RTT tracking.
+
+=item B<tcpTimestampFrequency> trammell.ch (PEN 35566) IE 1047
+
+(type: unsigned32, semantics: quantity, units: Hz) Observed frequency of TCP
+Timestamps. Only exported for TCP flows on which the timestamp option is
+present. If present in the template, turns on options parsing and timestamp
+tracking.
+
+=item B<reverseTcpTimestampFrequency> trammell.ch (PEN 35566) IE 17431
+
+(type: unsigned32, semantics: quantity, units: Hz) Observed frequency of TCP
+Timestamps in the reverse direction. Only exported for TCP biflows on which the
+timestamp option is present. If present in the template, turns on options
+parsing and timestamp tracking.
+
+=back
+
+=head2 Statistics Option Template
+
+B<qof> will export information about its process periodically
+using IPFIX Options Template Record.  This record gives information
+about the status of the flow and fragment table, as well as decoding
+information.  This can be turned off using the B<--no-stats> option.
+The following Information Elements will be exported:
+
+=over 4
+
+=item B<systemInitTimeMilliseconds> IE 161, 8 octets, unsigned
+
+The time in milliseconds of the last (re-)initialization of B<qof>.
+
+=item B<exportedFlowRecordTotalCount> IE 42, 8 octets, unsigned
+
+Total amount of exported flows from B<qof> start time.
+
+=item B<packetTotalCount> IE 86, 8 octets, unsigned
+
+Total amount of packets processed by B<qof> from B<qof> start time.
+
+=item B<droppedPacketTotalCount> IE 135, 8 octets, unsigned
+
+Total amount of dropped packets according to statistics given
+by libpcap, libdag, or libpcapexpress.
+
+=item B<ignoredPacketTotalCount> IE 164, 8 octets, unsigned
+
+Total amount of packets ignored by the B<qof> packet decoder, such as
+unsupported packet types and incomplete headers, from B<qof>
+start time.
+
+=item B<notSentPacketTotalCount> IE 167, 8 octets, unsigned
+
+Total amount of packets rejected by B<qof> because they were received
+out of sequence.
+
+=item B<expiredFragmentCount> CERT (PEN 6871) IE 100, 4 octets, unsigned
+
+Total amount of fragments that have been expired since B<qof>
+start time.
+
+=item B<assembledFragmentCount> CERT (PEN 6871) IE 101, 4 octets, unsigned
+
+Total number of packets that been assembled from a series of
+fragments since B<qof> start time.
+
+=item B<flowTableFlushEventCount> CERT (PEN 6871) IE 104, 4 octets, unsigned
+
+Total number of times the B<qof> flow table has been flushed
+since B<qof> start time.
+
+=item B<flowTablePeakCount> CERT (PEN 6871) IE 105, 4 octets, unsigned
+
+The maximum number of flows in the B<qof> flow table at any
+one time since B<qof> start time.
+
+=item B<exporterIPv4Address> IE 130, 4 octets, unsigned
+
+The IPv4 Address of the B<qof> flow sensor.
+
+=item B<exportingProcessId> IE 144, 4 octets, unsigned
+
+Set the ID of the B<qof> flow sensor by giving a value to
+B<--observation-domain>.  The default is 0.
+
+=item B<meanFlowRate> CERT (PEN 6871) IE 102, 4 octets, unsigned
+
+The mean flow rate of the B<qof> flow sensor since B<qof> start time,
+rounded to the nearest integer.
+
+=item B<meanPacketRate> CERT (PEN 6871) IE 103, 4 octets, unsigned
+
+The mean packet rate of the B<qof> flow sensor since B<qof> start time,
+rounded to the nearest integer.
+
+=back
+
+=head1 SIGNALS
+
+B<qof> responds to B<SIGINT> or B<SIGTERM> by terminating input processing,
+flushing any pending flows to the current output, and exiting. If B<--verbose>
+is given, B<qof> responds to B<SIGUSR1> by printing present flow and fragment table
+statistics to its log.  All other signals are handled by the C runtimes in
+the default manner on the platform on which B<qof> is currently operating.
+
+=head1 EXAMPLES
+
+To generate flows from an pcap file into an IPFIX file, using configuration defaults:
+
+C<qof --in pcapfile:packets.pcap --out flows.ipfix>
+
+To capture flows from an interface and export them to files in the
+current directory rotated hourly, with a given configuration
+
+C<qof --yaml qof-config.yaml --in int:eth0 --out eth0_capture --rotate 3600>
+
+To capture flows from an Endace DAG card and export them via IPFIX over TCP:
+
+C<yaf --yaml qof-config.yaml --in dag:/dev/dag0 --ipfix tcp --out my-collector.example.com>
+
+=head1 AUTHORS
+
+Brian Trammell E<lt>brian@trammell.chE<gt>
+
+Based on YAF by Chris Inacio, Michael Duggan, Emily Sarneso, Dan Ruef,
+and the CERT Network Situational Awareness Group Engineering Team,
+E<lt>http://www.cert.org/netsaE<gt>.
+
+=head1 SEE ALSO
+
+B<libtrace(3)>
+
+=cut

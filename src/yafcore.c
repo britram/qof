@@ -63,10 +63,10 @@
 #include "qofconfig.h"
 #include "yafstat.h"
 
-#include <yaf/yafcore.h>
-#include <yaf/decode.h>
+#include <qof/yafcore.h>
+#include <qof/decode.h>
 #include <airframe/airutil.h>
-#include <yaf/yafrag.h>
+#include <qof/yafrag.h>
 
 /** These are the template IDs for the templates that YAF uses to
     select the output. Template IDs are maintained for a set of
@@ -119,9 +119,9 @@
 #define QOF_MIN_RTT_COUNT 1
 
 /** include enterprise-specific Information Elements for YAF */
-#include "yaf/CERT_IE.h"
-#include "yaf/TCH_IE.h"
-#include "yaf/IANA_IE.h"
+#include <qof/CERT_IE.h>
+#include <qof/TCH_IE.h>
+#include <qof/IANA_IE.h>
 
 static uint64_t yaf_start_time = 0;
 
@@ -160,10 +160,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpRetransmitCount",                 8, YTF_TCP | YTF_FLE },
     { "reverseTcpRetransmitCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
-    { "tcpLossBurstCount",                   8, YTF_TCP | YTF_FLE },
-    { "reverseTcpLossBurstCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
-    { "tcpOutOfOrderCount",                 8, YTF_TCP | YTF_FLE },
-    { "reverseTcpOutOfOrderCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
+    { "tcpLossEventCount",                   8, YTF_TCP | YTF_FLE },
+    { "reverseTcpLossEventCount",            8, YTF_TCP | YTF_FLE | YTF_BIF },    
+    { "tcpSequenceJumpCount",                 8, YTF_TCP | YTF_FLE },
+    { "reverseTcpSequenceJumpCount",          8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpDupAckCount",                     8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "reverseTcpDupAckCount",              8, YTF_TCP | YTF_FLE | YTF_BIF },
     { "tcpSelAckCount",                     8, YTF_TCP | YTF_FLE | YTF_BIF },
@@ -174,10 +174,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpLossBurstCount",                   4, YTF_TCP | YTF_RLE },
-    { "reverseTcpLossBurstCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpOutOfOrderCount",                 4, YTF_TCP | YTF_RLE },
-    { "reverseTcpOutOfOrderCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpLossEventCount",                   4, YTF_TCP | YTF_RLE },
+    { "reverseTcpLossEventCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpSequenceJumpCount",                 4, YTF_TCP | YTF_RLE },
+    { "reverseTcpSequenceJumpCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpDupAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "reverseTcpDupAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSelAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
@@ -291,10 +291,10 @@ typedef struct yfIpfixFlow_st {
     uint64_t    reverseTcpSequenceLossCount;
     uint64_t    tcpRetransmitCount;
     uint64_t    reverseTcpRetransmitCount;
-    uint64_t    tcpLossBurstCount;
-    uint64_t    reverseTcpLossBurstCount;
-    uint64_t    tcpOutOfOrderCount;
-    uint64_t    reverseTcpOutOfOrderCount;
+    uint64_t    tcpLossEventCount;
+    uint64_t    reverseTcpLossEventCount;
+    uint64_t    tcpSequenceJumpCount;
+    uint64_t    reverseTcpSequenceJumpCount;
     uint64_t    tcpDupAckCount;
     uint64_t    reverseTcpDupAckCount;
     uint64_t    tcpSelAckCount;
@@ -374,6 +374,7 @@ typedef struct yfIpfixStats_st {
 
 /* Core library configuration variables */
 static gboolean yaf_core_map_ipv6 = FALSE;
+static gboolean yaf_core_force_biflow = FALSE;
 static qfIfMap_t *yaf_core_ifmap = NULL;
 static qfNetList_t *yaf_source_netlist = NULL;
 static qfMacList_t *yaf_source_maclist = NULL;
@@ -433,10 +434,10 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceLossCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpRetransmitCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpRetransmitCount);
-    CHECK_OFFSET(yfIpfixFlow_t,tcpLossBurstCount);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpLossBurstCount);
-    CHECK_OFFSET(yfIpfixFlow_t,tcpOutOfOrderCount);
-    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpOutOfOrderCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpLossEventCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpLossEventCount);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpSequenceJumpCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSequenceJumpCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpDupAckCount);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpDupAckCount);
     CHECK_OFFSET(yfIpfixFlow_t,tcpSelAckCount);
@@ -496,6 +497,14 @@ void qfInternalTemplateCheck() {
 #undef EO_STRING
 #undef CHECK_OFFSET
 }
+
+
+void yfWriterForceBiflowExport(
+    gboolean            biforce_mode)
+{
+    yaf_core_force_biflow = biforce_mode;
+}
+
 
 void yfWriterExportMappedV6(
     gboolean            map_mode)
@@ -654,9 +663,7 @@ static fbSession_t *yfInitExporterSession(
     if (!fbSessionAddTemplate(session, TRUE, YAF_FLOW_FULL_TID, tmpl, err)) {
         return NULL;
     }
-    if (!fbSessionAddTemplate(session, FALSE, YAF_FLOW_FULL_TID, tmpl, err)) {
-        return NULL;
-    }
+
 
     /* Create the Statistics Template */
     /* FIXME check that the template looks like the structure */
@@ -835,6 +842,47 @@ static gboolean yfSetExportTemplate(
     return fBufSetExportTemplate(fbuf, tid, err);
 }
 
+static gboolean yfEnsureStatsTemplate(fBuf_t *fbuf, GError **err) {
+    fbInfoModel_t   *model = yfInfoModel();
+    fbSession_t     *session = fBufGetSession(fbuf);
+    fbTemplate_t    *tmpl = NULL;
+    
+    static gboolean stats_template_initialized = FALSE;
+    
+    /* Create the Statistics Template if we need to */
+    if (!stats_template_initialized) {
+        /* FIXME check that the template looks like the structure */
+        tmpl = fbTemplateAlloc(model);
+        if (!fbTemplateAppendSpecArray(tmpl, yaf_stats_option_spec, 0, err))
+        {
+            return FALSE;
+        }
+        
+        /* Scope fields are exporterIPv4Address and exportingProcessID */
+        fbTemplateSetOptionsScope(tmpl, 2);
+        if (!fbSessionAddTemplate(session, TRUE, YAF_OPTIONS_TID, tmpl, err))
+        {
+            return FALSE;
+        }
+        if (!fbSessionAddTemplate(session, FALSE, YAF_OPTIONS_TID, tmpl, err))
+        {
+            return FALSE;
+        }
+        stats_template_initialized = TRUE;
+    }
+    
+    /* Set Internal Template for Buffer to Options TID */
+    if (!fBufSetInternalTemplate(fbuf, YAF_OPTIONS_TID, err))
+        return FALSE;
+    
+    /* Set Export Template for Buffer to Options TMPL */
+    if (!yfSetExportTemplate(fbuf, YAF_OPTIONS_TID, err)) {
+        return FALSE;
+    }
+    
+    return TRUE;
+}
+
 /**
  *yfWriteStatsRec
  *
@@ -896,15 +944,11 @@ gboolean yfWriteStatsRec(
 
     rec.systemInitTimeMilliseconds = yaf_start_time;
     
-    /* Set Internal Template for Buffer to Options TID */
-    if (!fBufSetInternalTemplate(fbuf, YAF_OPTIONS_TID, err))
-        return FALSE;
-
-    /* Set Export Template for Buffer to Options TMPL */
-    if (!yfSetExportTemplate(fbuf, YAF_OPTIONS_TID, err)) {
+    /* Initialize stats export templates if necessary */
+    if (!yfEnsureStatsTemplate(fbuf, err)) {
         return FALSE;
     }
-
+    
     /* Append Record */
     if (!fBufAppend(fbuf, (uint8_t *)&rec, sizeof(rec), err)) {
         return FALSE;
@@ -931,7 +975,7 @@ gboolean yfWriteFlow(
 {
     yfIpfixFlow_t       rec;
     uint16_t            wtid;
-    uint32_t            hz, rhz;
+    uint32_t            hz = 0, rhz = 0;
     
     yfFlowVal_t         *val, *rval;
     yfFlowKey_t         kbuf, *key;
@@ -1029,9 +1073,9 @@ gboolean yfWriteFlow(
                                               val->iflags | val->uflags);
             rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcp->seq);
             rec.tcpRetransmitCount = val->tcp->seq.rtx;
-            rec.tcpOutOfOrderCount = val->tcp->seq.ooo;
+            rec.tcpSequenceJumpCount = val->tcp->seq.ooo;
             rec.maxTcpSequenceJump = val->tcp->seq.maxooo;
-            rec.tcpLossBurstCount = val->tcp->seq.burstct;
+            rec.tcpLossEventCount = val->tcp->seq.lossct;
             rec.tcpDupAckCount = val->tcp->ack.dup_ct;
             rec.tcpSelAckCount = val->tcp->ack.sel_ct;
             rec.qofTcpCharacteristics = val->tcp->opts.flags;
@@ -1044,6 +1088,16 @@ gboolean yfWriteFlow(
             rec.tcpReceiverStallCount = val->tcp->rwin.stall;
             rec.minTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.min;
             rec.maxTcpIOTMilliseconds = val->tcp->seq.seg_iat.mm.max;
+            
+            if ((hz = qfTimestampHz(&val->tcp->seq))) {
+                wtid |= YTF_TSV;
+//                if (hz > 1000000) {
+//                    fprintf(stderr,"fast timestamp clock detected: %u\n", hz);
+//                }
+                rec.tcpTimestampFrequency = hz;
+                rec.minTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.min;
+                rec.maxTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.max;
+            }
         }
         
         if (rval->tcp) {
@@ -1051,9 +1105,9 @@ gboolean yfWriteFlow(
                                           rval->iflags | rval->uflags);
             rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcp->seq);
             rec.reverseTcpRetransmitCount = rval->tcp->seq.rtx;
-            rec.reverseTcpOutOfOrderCount = rval->tcp->seq.ooo;
+            rec.reverseTcpSequenceJumpCount = rval->tcp->seq.ooo;
             rec.reverseMaxTcpSequenceJump = rval->tcp->seq.maxooo;
-            rec.reverseTcpLossBurstCount = rval->tcp->seq.burstct;
+            rec.reverseTcpLossEventCount = rval->tcp->seq.lossct;
             rec.reverseTcpDupAckCount = rval->tcp->ack.dup_ct;
             rec.reverseTcpSelAckCount = rval->tcp->ack.sel_ct;
             rec.reverseQofTcpCharacteristics = rval->tcp->opts.flags;
@@ -1066,22 +1120,18 @@ gboolean yfWriteFlow(
             rec.reverseTcpReceiverStallCount = rval->tcp->rwin.stall;
             rec.reverseMinTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.min;
             rec.reverseMaxTcpIOTMilliseconds = rval->tcp->seq.seg_iat.mm.max;
+            
+            if ((rhz = qfTimestampHz(&rval->tcp->seq))) {
+                wtid |= YTF_TSV;
+//                if (hz > 1000000) {
+//                    fprintf(stderr,"fast timestamp clock detected: %u\n", hz);
+//                }
+                rec.reverseTcpTimestampFrequency = rhz;
+                rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.min;
+                rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.max;
+            }
         }
         
-        if (val->tcp && rval->tcp &&
-            ((hz = qfTimestampHz(&val->tcp->seq)) ||
-            (rhz = qfTimestampHz(&rval->tcp->seq))))
-        {
-            wtid |= YTF_TSV;
-            rec.tcpTimestampFrequency = qfTimestampHz(&val->tcp->seq);
-            rec.reverseTcpTimestampFrequency =  qfTimestampHz(&rval->tcp->seq);
-            rec.minTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.min;
-            rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.min;
-            rec.maxTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.max;
-            rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.max;
-
-        }
-
         /* Enable RTT export if we have enough samples */
         if (flow->rtt.val.n >= QOF_MIN_RTT_COUNT) {
             wtid |= YTF_RTT;
@@ -1104,7 +1154,7 @@ gboolean yfWriteFlow(
     /* Set flags based on exported record properties */
     
     /* Set biflow flag */
-    if (rec.reversePacketCount) {
+    if (yaf_core_force_biflow || rec.reversePacketCount) {
         wtid |= YTF_BIF;
     }
     
@@ -1383,156 +1433,6 @@ static uint64_t yfNTPDecode(
 }
 #endif
 
-/* this is basically for interop testing. drop for now, 
-   since we don't have an extflow anymore... */
-#if 0
-/**
- *yfReadFlowExtended
- *
- * read an IPFIX flow record in (with respect to fields YAF cares about)
- * using YAF's extended precision time recording
- *
- */
-gboolean yfReadFlowExtended(
-    fBuf_t                  *fbuf,
-    yfFlow_t                *flow,
-    GError                  **err)
-{
-    yfIpfixExtFlow_t        rec;
-    fbTemplate_t            *next_tmpl = NULL;
-    size_t                  len;
-
-    yfTcpFlow_t         *tcprec = NULL;
-    yfMacFlow_t         *macrec = NULL;
-
-    /* read next YAF record; retrying on missing template or EOF. */
-    len = sizeof(yfIpfixExtFlow_t);
-    if (!fBufSetInternalTemplate(fbuf, YAF_FLOW_EXT_TID, err))
-        return FALSE;
-
-    while (1) {
-
-        /* Check if Options Template - if so - ignore */
-        next_tmpl = fBufNextCollectionTemplate(fbuf, NULL, err);
-        if (next_tmpl) {
-            if (fbTemplateGetOptionsScope(next_tmpl)) {
-                if (!(fBufNext(fbuf, (uint8_t *)&rec, &len, err))) {
-                    return FALSE;
-                }
-                continue;
-            }
-        } else {
-            return FALSE;
-        }
-        if (fBufNext(fbuf, (uint8_t *)&rec, &len, err)) {
-            break;
-        } else {
-            if (g_error_matches(*err, FB_ERROR_DOMAIN, FB_ERROR_TMPL)) {
-                /* try again on missing template */
-                g_debug("skipping IPFIX data set: %s", (*err)->message);
-                g_clear_error(err);
-                continue;
-            } else {
-                /* real, actual error */
-                return FALSE;
-            }
-        }
-    }
-
-    /* Run the Gauntlet of Time. */
-    if (rec.f.flowStartMilliseconds) {
-        flow->stime = rec.f.flowStartMilliseconds;
-        if (rec.f.flowEndMilliseconds >= rec.f.flowStartMilliseconds) {
-            flow->etime = rec.f.flowEndMilliseconds;
-        } else {
-            flow->etime = flow->stime + rec.flowDurationMilliseconds;
-        }
-    } else if (rec.flowStartMicroseconds) {
-        /* Decode NTP-format microseconds */
-        flow->stime = yfNTPDecode(rec.flowStartMicroseconds);
-        if (rec.flowEndMicroseconds >= rec.flowStartMicroseconds) {
-            flow->etime = yfNTPDecode(rec.flowEndMicroseconds);
-        } else {
-            flow->etime = flow->stime + (rec.flowDurationMicroseconds / 1000);
-        }
-    } else if (rec.flowStartSeconds) {
-        /* Seconds? Well. Okay... */
-        flow->stime = rec.flowStartSeconds * 1000;
-        flow->etime = rec.flowEndSeconds * 1000;
-    } else if (rec.flowStartDeltaMicroseconds) {
-        /* Handle delta microseconds. */
-        flow->stime = fBufGetExportTime(fbuf) * 1000 -
-                      rec.flowStartDeltaMicroseconds / 1000;
-        if (rec.flowEndDeltaMicroseconds &&
-            rec.flowEndDeltaMicroseconds <= rec.flowStartDeltaMicroseconds) {
-            flow->etime = fBufGetExportTime(fbuf) * 1000 -
-                          rec.flowEndDeltaMicroseconds / 1000;
-        } else {
-            flow->etime = flow->stime + (rec.flowDurationMicroseconds / 1000);
-        }
-    } else {
-        /* Out of time. Use current timestamp, zero duration */
-        struct timeval ct;
-        g_assert(!gettimeofday(&ct, NULL));
-        flow->stime = ((uint64_t)ct.tv_sec * 1000) +
-                      ((uint64_t)ct.tv_usec / 1000);
-        flow->etime = flow->stime;
-    }
-
-    /* copy private time field - reverse delta */
-    flow->rdtime = rec.f.reverseFlowDeltaMilliseconds;
-
-    /* copy addresses */
-    if (rec.f.sourceIPv4Address || rec.f.destinationIPv4Address) {
-        flow->key.version = 4;
-        flow->key.addr.v4.sip = rec.f.sourceIPv4Address;
-        flow->key.addr.v4.dip = rec.f.destinationIPv4Address;
-    } else if (rec.f.sourceIPv6Address || rec.f.destinationIPv6Address) {
-        flow->key.version = 6;
-        memcpy(flow->key.addr.v6.sip, rec.f.sourceIPv6Address,
-               sizeof(flow->key.addr.v6.sip));
-        memcpy(flow->key.addr.v6.dip, rec.f.destinationIPv6Address,
-               sizeof(flow->key.addr.v6.dip));
-    } else {
-        /* Hmm. Default to v4 null addressing for now. */
-        flow->key.version = 4;
-        flow->key.addr.v4.sip = 0;
-        flow->key.addr.v4.dip = 0;
-    }
-
-    /* copy key and counters */
-    flow->key.sp = rec.f.sourceTransportPort;
-    flow->key.dp = rec.f.destinationTransportPort;
-    flow->key.proto = rec.f.protocolIdentifier;
-    flow->val.oct = rec.f.octetTotalCount;
-    flow->val.pkt = rec.f.packetTotalCount;
-    flow->rval.oct = rec.f.reverseOctetTotalCount;
-    flow->rval.pkt = rec.f.reversePacketTotalCount;
-    flow->key.vlanId = rec.f.vlanId;
-    flow->reason = rec.f.flowEndReason;
-    /* Handle delta counters */
-    if (!(flow->val.oct)) {
-        flow->val.oct = rec.f.octetDeltaCount;
-        flow->rval.oct = rec.f.reverseOctetDeltaCount;
-    }
-    if (!(flow->val.pkt)) {
-        flow->val.pkt = rec.f.packetDeltaCount;
-        flow->rval.pkt = rec.f.reversePacketDeltaCount;
-    }
-
-    flow->val.isn = rec.f.tcpSequenceNumber;
-    flow->val.iflags = rec.f.initialTCPFlags;
-    flow->val.uflags = rec.f.unionTCPFlags;
-    flow->rval.isn = rec.f.reverseTcpSequenceNumber;
-    flow->rval.iflags = rec.f.reverseInitialTCPFlags;
-    flow->rval.uflags = rec.f.reverseUnionTCPFlags;
-
-
-    return TRUE;
-}
-#endif 
-
-
 /**
  *yfPrintFlags
  *
@@ -1672,128 +1572,6 @@ void yfPrintString(
     g_string_append(rstr,"\n");
 
 }
-
-#if 0
-/**
- *yfPrintDelimitedString
- *
- *
- *
- */
-void yfPrintDelimitedString(
-    GString                 *rstr,
-    yfFlow_t                *flow,
-    gboolean                yaft_mac)
-{
-    char                sabuf[AIR_IP6ADDR_BUF_MINSZ],
-                        dabuf[AIR_IP6ADDR_BUF_MINSZ];
-    GString             *fstr = NULL;
-    int                 loop = 0;
-
-    /* print time and duration */
-    air_mstime_g_string_append(rstr, flow->stime, AIR_TIME_ISO8601);
-    g_string_append_printf(rstr, "%s", YF_PRINT_DELIM);
-    air_mstime_g_string_append(rstr, flow->etime, AIR_TIME_ISO8601);
-    g_string_append_printf(rstr, "%s%8.3f%s",
-        YF_PRINT_DELIM, (flow->etime - flow->stime) / 1000.0, YF_PRINT_DELIM);
-
-    /* print initial RTT */
-    g_string_append_printf(rstr, "%8.3f%s",
-        flow->rdtime / 1000.0, YF_PRINT_DELIM);
-
-    /* print five tuple */
-    if (flow->key.version == 4) {
-        air_ipaddr_buf_print(sabuf, flow->key.addr.v4.sip);
-        air_ipaddr_buf_print(dabuf, flow->key.addr.v4.dip);
-    } else if (flow->key.version == 6) {
-        air_ip6addr_buf_print(sabuf, flow->key.addr.v6.sip);
-        air_ip6addr_buf_print(dabuf, flow->key.addr.v6.dip);
-    } else {
-        sabuf[0] = (char)0;
-        dabuf[0] = (char)0;
-
-    }
-    g_string_append_printf(rstr, "%3u%s%40s%s%5u%s%40s%s%5u%s",
-        flow->key.proto, YF_PRINT_DELIM,
-        sabuf, YF_PRINT_DELIM, flow->key.sp, YF_PRINT_DELIM,
-        dabuf, YF_PRINT_DELIM, flow->key.dp, YF_PRINT_DELIM);
-
-    if (yaft_mac) {
-        for (loop = 0; loop < 6; loop++) {
-            g_string_append_printf(rstr, "%02x", flow->sourceMacAddr[loop]);
-            if (loop < 5) {
-                g_string_append_printf(rstr, ":");
-            }
-            /* clear out mac addr for next flow */
-            flow->sourceMacAddr[loop] = 0;
-        }
-        g_string_append_printf(rstr, "%s", YF_PRINT_DELIM);
-        for(loop =0; loop< 6; loop++) {
-            g_string_append_printf(rstr, "%02x", flow->destinationMacAddr[loop]);
-            if (loop < 5) {
-                g_string_append_printf(rstr, ":");
-            }
-            /* clear out mac addr for next flow */
-            flow->destinationMacAddr[loop] = 0;
-        }
-        g_string_append_printf(rstr, "%s", YF_PRINT_DELIM);
-    }
-
-    /* print tcp flags */
-    fstr = g_string_new("");
-    yfPrintFlags(fstr, flow->val.iflags);
-    g_string_append_printf(rstr, "%8s%s", fstr->str, YF_PRINT_DELIM);
-    g_string_truncate(fstr, 0);
-    yfPrintFlags(fstr, flow->val.uflags);
-    g_string_append_printf(rstr, "%8s%s", fstr->str, YF_PRINT_DELIM);
-    g_string_truncate(fstr, 0);
-    yfPrintFlags(fstr, flow->rval.iflags);
-    g_string_append_printf(rstr, "%8s%s", fstr->str, YF_PRINT_DELIM);
-    g_string_truncate(fstr, 0);
-    yfPrintFlags(fstr, flow->rval.uflags);
-    g_string_append_printf(rstr, "%8s%s", fstr->str, YF_PRINT_DELIM);
-    g_string_free(fstr, TRUE);
-
-    /* print tcp sequence numbers */
-    g_string_append_printf(rstr, "%08x%s%08x%s", flow->val.isn, YF_PRINT_DELIM,
-                           flow->rval.isn, YF_PRINT_DELIM);
-
-    /* print vlan tags */
-    if (flow->rval.oct) {
-        g_string_append_printf(rstr, "%03hx%s%03hx%s", flow->key.vlanId,
-                               YF_PRINT_DELIM, flow->key.vlanId,
-                               YF_PRINT_DELIM);
-    } else {
-        g_string_append_printf(rstr, "%03hx%s%03hx%s", flow->key.vlanId,
-                               YF_PRINT_DELIM, 0, YF_PRINT_DELIM);
-    }
-
-
-    /* print flow counters */
-    g_string_append_printf(rstr, "%8llu%s%8llu%s%8llu%s%8llu%s",
-        (long long unsigned int)flow->val.pkt, YF_PRINT_DELIM,
-        (long long unsigned int)flow->val.oct, YF_PRINT_DELIM,
-        (long long unsigned int)flow->rval.pkt, YF_PRINT_DELIM,
-        (long long unsigned int)flow->rval.oct, YF_PRINT_DELIM);
-
-    /* end reason flags */
-    if ((flow->reason & YAF_END_MASK) == YAF_END_IDLE)
-        g_string_append(rstr,"idle ");
-    if ((flow->reason & YAF_END_MASK) == YAF_END_ACTIVE)
-        g_string_append(rstr,"active ");
-    if ((flow->reason & YAF_END_MASK) == YAF_END_FORCED)
-        g_string_append(rstr,"eof ");
-    if ((flow->reason & YAF_END_MASK) == YAF_END_RESOURCE)
-        g_string_append(rstr,"rsrc ");
-    if ((flow->reason & YAF_END_MASK) == YAF_END_UDPFORCE)
-        g_string_append(rstr, "force ");
-
-
-    /* finish line */
-    g_string_append(rstr,"\n");
-
-}
-#endif
 
 /**
  *yfPrint

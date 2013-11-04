@@ -13,7 +13,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/qofrwin.h>
+#include <qof/qofrwin.h>
 
 void qfRwinScale(qfRwin_t       *qr,
                  uint8_t        wscale)

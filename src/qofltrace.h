@@ -17,7 +17,7 @@
 #ifndef _QOF_LTRACE_H_
 #define _QOF_LTRACE_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include <libtrace.h>
 #include "qofconfig.h"
 

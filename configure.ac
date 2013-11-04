@@ -15,11 +15,11 @@ dnl ------------------------------------------------------------------------
 dnl RCSIDENT("$Id: configure.in 18549 2012-09-14 15:57:18Z ecoff_svn $")
 
 AC_INIT([qof], [0.9.0], [brian@trammell.ch], [qof])
+AC_DEFINE([CUTE_VERSION], ["Albula"], [Release name])
 AC_CONFIG_AUX_DIR([autoconf])
 AC_COPYRIGHT([Copyright (C) 2012-2013 by Brian Trammell
 Copyright (C) 2006-2012 by Carnegie Mellon University
-GNU Public License (GPL) Rights pursuant to Version 2, June 1991
-Government Purpose License Rights (GPLR) pursuant to DFARS 252.227-7013])
+GNU Public License (GPL) Rights pursuant to Version 2, June 1991])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
@@ -28,7 +28,7 @@ AM_INIT_AUTOMAKE([1.6.3 foreign])
 AC_PROG_LIBTOOL
 LIBCOMPAT="4:0:0"
 AC_REVISION($Revision: 18549 $)
-AC_CONFIG_HEADERS(include/yaf/config.h)
+AC_CONFIG_HEADERS(include/qof/config.h)
 AC_CONFIG_HEADERS(airframe/include/airframe/config.h)
 
 RPM_CONFIG_FLAGS=""
@@ -109,7 +109,6 @@ dnl ----------------------------------------------------------------------
 m4_include([autoconf/ax_check_aligned_access_required.m4])
 
 AX_CHECK_ALIGNED_ACCESS_REQUIRED
-
 
 dnl ----------------------------------------------------------------------
 dnl Modify PKG_CONFIG_PATH based on prefix
@@ -368,123 +367,6 @@ AC_ARG_WITH(libtrace,
     ]
 )
 
-
-dnl ----------------------------------------------------------------------
-dnl Check for libtrace (old optional version)
-dnl ----------------------------------------------------------------------
-
-dnl AC_ARG_WITH(libtrace,
-dnl AS_HELP_STRING([--with-libtrace=prefix],[include WAND libtrace support]),[
-dnl if test "x$withval" != "xno"; then
-dnl
-dnl     if test -d ${withval}; then
-dnl         LDFLAGS="-L${withval}/lib ${LDFLAGS}"
-dnl         CFLAGS="-I${withval}/include ${CFLAGS}"
-dnl         RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace=${withval}"
-dnl         OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${withval}|"
-dnl     fi
-
-dnl     AC_CHECK_LIB(trace, trace_create,[
-dnl         AC_DEFINE(YAF_ENABLE_LIBTRACE, 1, [Define to 1 to enable libtrace support])
-dnl         AC_SUBST(YAF_HAS_LIBTRACE, [1])
-dnl         LIBS="-ltrace ${LIBS}"
-dnl         RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libtrace"
-dnl         OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libtrace ${LIBS}|"
-dnl     ],[
-dnl         AC_MSG_ERROR([--with-libtrace given but cannot find trace])
-dnl     ])
-
-dnl     AC_CHECK_HEADER(libtrace.h,[],[
-dnl         AC_MSG_ERROR([--with-libtrace given but cannot find libtrace.h])
-dnl     ])
-dnl fi
-dnl ])
-
-dnl ----------------------------------------------------------------------
-dnl Check for libdag
-dnl ----------------------------------------------------------------------
-
-AC_ARG_WITH(dag,
-AS_HELP_STRING([--with-dag=prefix],[include Endace DAG support]),[
-if test "x$withval" != "xno"; then
-
-  if test -d ${withval}; then
-    LDFLAGS="-L${withval}/lib ${LDFLAGS}"
-    CFLAGS="-I${withval}/include ${CFLAGS}"
-    RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-dag=${withval}"
-    OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"dag library ${withval}|"
-  fi
-
-    dnl look for libdag
-    AC_CHECK_LIB(dag, dag_open,[
-        AC_DEFINE(YAF_ENABLE_DAG, 1, [Define to 1 to enable DAG support])
-        AC_SUBST(YAF_HAS_DAG, [1])
-        LIBS="-ldag ${LIBS}"
-        RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-dag"
-        OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"dag library ${LIBS}|"
-    ],[
-        AC_MSG_ERROR([--with-dag given but cannot find libdag])
-    ])
-
-    AC_CHECK_HEADER(dagapi.h,,[
-        AC_MSG_ERROR([--with-dag given but cannot find dagapi.h])
-    ])
-fi
-])
-
-dnl ----------------------------------------------------------------------
-dnl Check for libpcapexpress
-dnl ----------------------------------------------------------------------
-AC_ARG_WITH(napatech,
-    AS_HELP_STRING([--with-napatech=PCAPX_DIR],[include Napatech support (find pcapexpress.h in PCAPX_DIR/include, libpcapexpress in PCAPX_DIR/lib)]),[
-    if test "x$withval" != "xno"; then
-      if test -d ${withval}; then
-        LDFLAGS="-L${withval}/lib ${LDFLAGS}"
-        CFLAGS="-I${withval}/include ${CFLAGS} -pthread"
-	CPPFLAGS="-I$withval/include ${CPPFLAGS}"
-	LIBS="-L$withval/lib -pthread -lntcommoninterface $LIBS"
-        RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-napatech=${withval}"
-        OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}" pcapexpress library ${withval}|"
-      fi
-    AC_CHECK_LIB([pcapexpress],[pcapexpress_open],[
-       AC_DEFINE(YAF_ENABLE_NAPATECH, 1, [Define to 1 to enable Napatech support])
-       AC_SUBST(YAF_HAS_NAPATECH, [1])
-       LIBS="-lpcapexpress -lntcommoninterface -pthread ${LIBS}"
-       RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-napatech"
-       OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}" pcapexpress (napatech) library ${LIBS}|"
-     ],[
-       AC_MSG_ERROR([--with-napatech given but cannot find libpcapexpress.  May need to set LDFLAGS to napatech library (libntcommoninterface)])
-     ])
-     AC_CHECK_HEADER(pcapexpress.h,,[
-       AC_MSG_ERROR([--with-napatech given but cannot find pcapexpress.h])
-     ])
-   fi
-   ]
-)
-
-dnl ----------------------------------------------------------------------
-dnl Check for pcap-zcopy.h
-dnl ----------------------------------------------------------------------
-AC_ARG_WITH(bivio,
-AS_HELP_STRING([--with-bivio=PCAP_ZCOPY_DIR],[include Bivio support (find pcap-zcopy.h in PCAP_ZCOPY_DIR/include)]),[
-    if test "x$withval" != "xno"; then
-      if test -d ${withval}; then
-        CFLAGS="-I${withval}/include ${CFLAGS}"
-      fi
-     AC_CHECK_HEADERS(pcap-zcopy.h,[
-       AC_DEFINE(YAF_ENABLE_BIVIO,1,[Define to 1 to enable BIVIO support])
-        RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-bivio=${withval}"
-        OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}" bivio ${withval}|"
-       ],[
-       AC_MSG_ERROR([--with-bivio given but cannot find pcap-zcopy.h])
-     ],
-     [#ifdef HAVE_PCAP_H
-      #include <pcap.h>
-      #endif
-     ])
-   fi
-])
-
 dnl ----------------------------------------------------------------------
 dnl Enable optional flow table features
 dnl ----------------------------------------------------------------------
@@ -510,59 +392,28 @@ fi
 ])
 
 dnl ----------------------------------------------------------------------
-dnl check if the user wants to enable the DAG interface hack
+dnl Enable detuning
 dnl ----------------------------------------------------------------------
-AC_ARG_ENABLE(daginterface,
-    AC_HELP_STRING([--enable-daginterface], [enable encoding DAG interface numbers into the record output]),
-    [
-        if test "x$enableval" = "xno"; then
-            AC_MSG_NOTICE([Disabling the DAG interface numbers recording])
-            daginterfacehack=false
-        else
-            AC_DEFINE(YAF_ENABLE_DAG_SEPARATE_INTERFACES, 1, [Define to 1 to enable recording DAG interface numbers])
-            daginterfacehack=true
-            AC_MSG_NOTICE([DAG interface recording into output records is enabled])
-            RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --enable-daginterface"
-            OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"DAG interface labeling|"
-        fi
-    ],
-    [
-        AC_MSG_NOTICE([DAG interface recording into output record disabled by default])
-        daginterfacehack=false
-    ]
-)
 
-dnl ----------------------------------------------------------------------
-dnl check if the user wants to enable the Napatech interface hack
-dnl ----------------------------------------------------------------------
-AC_ARG_ENABLE(napatechinterface,
-    AC_HELP_STRING([--enable-napatechinterface], [enable encoding Napatech interface numbers into the record output]),
-    [
-        if test "x$enableval" = "xno"; then
-            AC_MSG_NOTICE([Disabling the Napatech interface numbers recording])
-            napatechinterface=false
-        else
-            AC_DEFINE(YAF_ENABLE_NAPATECH_SEPARATE_INTERFACES, 1, [Define to 1 to enable recording DAG interface numbers])
-            napatechinterface=true
-            AC_MSG_NOTICE([Napatech interface recording into output records is enabled])
-            RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --enable-napatechinterface"
-            OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"Napatech interface labeling|"
-        fi
-    ],
-    [
-        AC_MSG_NOTICE([Napatech interface recording into output record disabled by default])
-        napatechinterface=false
-    ]
-)
-
-dnl ----------------------------------------------------------------------
-dnl Check for Spread Support
-dnl ----------------------------------------------------------------------
-m4_include([autoconf/spread.m4])
-AC_PATH_SPREAD([4.1])
-if test "x$ac_cv_header_spread_sp_h" == "xyes"; then
-   AC_SUBST(FIXBUF_REQ_LIBSPREAD, [1])
+AC_ARG_ENABLE(detune,
+AS_HELP_STRING([--enable-detune],
+               [Enable experimental --detune-* options]), [
+if test "x$enableval" = "xno"; then
+    AC_DEFINE(QOF_ENABLE_DETUNE, 0,
+              [Define to 1 to enable detuning support])
+    OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"no-detune|"
+else
+    AC_MSG_NOTICE([Enabling experimental --detune-* options])
+    AC_DEFINE(QOF_ENABLE_DETUNE, 1,
+              [Define to 1 to enable detuning support])
+    OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"detune|"
+    RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --enable-detune"
 fi
+],[
+    AC_DEFINE(QOF_ENABLE_DETUNE, 0,
+              [Define to 1 to enable detuning support])
+    OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"no-detune|"
+])
 
 dnl ----------------------------------------------------------------------
 dnl Check for Unix vs. Linux privdrop (EWW EWW HACK EWW)
@@ -583,11 +434,6 @@ dnl ----------------------------------------------------------------------
 case $target_os in
 	solaris*) LDFLAGS="$LDFLAGS -mimpure-text" ;;
 esac
-
-dnl ----------------------------------------------------------------------
-dnl Add a conditional flag into Automake for Cygwin checking
-dnl ----------------------------------------------------------------------
-AM_CONDITIONAL([CYGWIN], [test "x$target_os" = "xcygwin"])
 
 dnl ----------------------------------------------------------------------
 dnl Lets put the configuation information into the version output for YAF
@@ -611,20 +457,14 @@ AC_SUBST([abs_top_builddir])
 AC_CONFIG_FILES([Makefile
 				src/Makefile
 				include/Makefile
-				etc/Makefile
-				src/yaf.pod
-				libyaf.pc
-				etc/init.d/yaf
-				yaf.spec
+				src/qof.pod
+				libqof.pc
 				Doxyfile
-				README
-				etc/yaf.conf
 				airframe/Makefile
 				airframe/src/Makefile
 				airframe/include/Makefile
 				airframe/doc/Makefile
 				airframe/libairframe.pc
-				airframe/libairframe.spec
 				airframe/Doxyfile
 				])
 

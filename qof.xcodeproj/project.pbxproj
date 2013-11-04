@@ -15,8 +15,10 @@
 		D38872B716946DDF00E66A70 /* qofifmap.c in Sources */ = {isa = PBXBuildFile; fileRef = F51922211672388F00514165 /* qofifmap.c */; };
 		D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EADBDC170BDDEC006FE1FE /* qofltrace.c */; };
 		D39F5C33170CDE480094B103 /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
+		D3A7DFEA181CFB48006F629B /* message_split.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A7DFE9181CFB48006F629B /* message_split.c */; };
 		D3C4E99917263E9200DB5423 /* qofconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = D3CCBE961716AF06006C25EB /* qofconfig.c */; };
 		D3C4E99B17263FA100DB5423 /* qof.c in Sources */ = {isa = PBXBuildFile; fileRef = D3C4E99A17263FA100DB5423 /* qof.c */; };
+		D3C98F8F181ED9A500B1BC87 /* qofdetune.c in Sources */ = {isa = PBXBuildFile; fileRef = D3C98F8E181ED9A500B1BC87 /* qofdetune.c */; };
 		D3E1D8BF1712764700E94E6D /* streamstat.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E1D8BE1712764700E94E6D /* streamstat.c */; };
 		D3EBDBF817E64D42003059FF /* qofrwin.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EBDBF717E64D42003059FF /* qofrwin.c */; };
 		D3EBDBFB17E650F7003059FF /* qofack.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EBDBFA17E650F7003059FF /* qofack.c */; };
@@ -65,6 +67,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		D3A7DFDE181CFB32006F629B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		F52D56BE16723812006D32A1 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -78,10 +89,8 @@
 
 /* Begin PBXFileReference section */
 		D31013E416A94BA80068059F /* test_ifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_ifmap.c; sourceTree = "<group>"; };
-		D324127A17E1F0A50088C9E4 /* qofseq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofseq.h; sourceTree = "<group>"; };
 		D324127B17E1FA7B0088C9E4 /* qofseq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofseq.c; sourceTree = "<group>"; };
 		D3282A601708CF2100B2ABA4 /* bitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitmap.c; sourceTree = "<group>"; };
-		D3282A621708CF8400B2ABA4 /* bitmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = "<group>"; };
 		D33B675117DCF4B000E44B6B /* qofrtt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrtt.c; sourceTree = "<group>"; };
 		D364E00E176A281E0011F16A /* qof.iespec */ = {isa = PBXFileReference; lastKnownFileType = text; path = qof.iespec; sourceTree = "<group>"; };
 		D364E00F176A281E0011F16A /* qof.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = qof.py; sourceTree = "<group>"; };
@@ -91,56 +100,60 @@
 		D377338F171CFB50004FF28F /* qofconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofconfig.h; sourceTree = "<group>"; };
 		D3773390171DF9E4004FF28F /* tracepull.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tracepull.c; sourceTree = "<group>"; };
 		D3773395171E0B2C004FF28F /* tracepull */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tracepull; sourceTree = BUILT_PRODUCTS_DIR; };
-		D37733A0171E43A0004FF28F /* qofdyntmi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qofdyntmi.c; sourceTree = "<group>"; };
+		D37A419A1818221F00BFC4AA /* autoinc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = autoinc.h; sourceTree = "<group>"; };
+		D37A419B1818222000BFC4AA /* bitmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = "<group>"; };
+		D37A419C1818222000BFC4AA /* CERT_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CERT_IE.h; sourceTree = "<group>"; };
+		D37A419D1818222000BFC4AA /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		D37A419E1818222000BFC4AA /* config.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = config.h.in; sourceTree = "<group>"; };
+		D37A419F1818222000BFC4AA /* decode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = decode.h; sourceTree = "<group>"; };
+		D37A41A01818222000BFC4AA /* IANA_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IANA_IE.h; sourceTree = "<group>"; };
+		D37A41A11818222000BFC4AA /* picq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = picq.h; sourceTree = "<group>"; };
+		D37A41A21818222000BFC4AA /* qofack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofack.h; sourceTree = "<group>"; };
+		D37A41A31818222000BFC4AA /* qofifmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofifmap.h; sourceTree = "<group>"; };
+		D37A41A41818222000BFC4AA /* qofmaclist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofmaclist.h; sourceTree = "<group>"; };
+		D37A41A51818222000BFC4AA /* qofopt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofopt.h; sourceTree = "<group>"; };
+		D37A41A61818222000BFC4AA /* qofrtt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrtt.h; sourceTree = "<group>"; };
+		D37A41A71818222000BFC4AA /* qofrwin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrwin.h; sourceTree = "<group>"; };
+		D37A41A81818222000BFC4AA /* qofseq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofseq.h; sourceTree = "<group>"; };
+		D37A41A91818222000BFC4AA /* ring.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ring.h; sourceTree = "<group>"; };
+		D37A41AA1818222000BFC4AA /* stamp-h1 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "stamp-h1"; sourceTree = "<group>"; };
+		D37A41AB1818222000BFC4AA /* streamstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = streamstat.h; sourceTree = "<group>"; };
+		D37A41AC1818222000BFC4AA /* TCH_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCH_IE.h; sourceTree = "<group>"; };
+		D37A41AD1818222000BFC4AA /* yafcore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafcore.h; sourceTree = "<group>"; };
+		D37A41AE1818222000BFC4AA /* yafrag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafrag.h; sourceTree = "<group>"; };
+		D37A41AF1818222000BFC4AA /* yaftab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yaftab.h; sourceTree = "<group>"; };
+		D384064618181EF6002C2E05 /* qof.pod.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = qof.pod.in; sourceTree = "<group>"; };
 		D39F5C32170CDE480094B103 /* libtrace.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtrace.3.dylib; path = ../../opt/lib/libtrace.3.dylib; sourceTree = "<group>"; };
-		D39F5C34170D03150094B103 /* IANA_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IANA_IE.h; sourceTree = "<group>"; };
-		D3AF47E217279781000212C8 /* qofifmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofifmap.h; sourceTree = "<group>"; };
+		D3A7DFE0181CFB32006F629B /* message_split */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = message_split; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3A7DFE9181CFB48006F629B /* message_split.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = message_split.c; sourceTree = "<group>"; };
 		D3C4E99A17263FA100DB5423 /* qof.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qof.c; sourceTree = "<group>"; };
+		D3C98F8E181ED9A500B1BC87 /* qofdetune.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofdetune.c; sourceTree = "<group>"; };
+		D3C98F90181EDA2100B1BC87 /* qofdetune.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdetune.h; sourceTree = "<group>"; };
+		D3C98F911821029F00B1BC87 /* qof-uniflow.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "qof-uniflow.yaml"; sourceTree = "<group>"; };
 		D3CCBE961716AF06006C25EB /* qofconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofconfig.c; sourceTree = "<group>"; };
 		D3D91D8016EE7F9E00748C63 /* qof-test.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "qof-test.yaml"; sourceTree = "<group>"; };
 		D3E1B1C316E4EBD200C5D50C /* riptcp.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = riptcp.rb; sourceTree = "<group>"; };
 		D3E1D8BE1712764700E94E6D /* streamstat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = streamstat.c; sourceTree = "<group>"; };
-		D3E1D8C017127BDF00E94E6D /* streamstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = streamstat.h; sourceTree = "<group>"; };
 		D3EADBDC170BDDEC006FE1FE /* qofltrace.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofltrace.c; sourceTree = "<group>"; };
 		D3EADBDE170BE2B5006FE1FE /* qofltrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofltrace.h; sourceTree = "<group>"; };
-		D3EBDBF617E64C47003059FF /* qofrwin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrwin.h; sourceTree = "<group>"; };
 		D3EBDBF717E64D42003059FF /* qofrwin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofrwin.c; sourceTree = "<group>"; };
-		D3EBDBF917E65035003059FF /* qofack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofack.h; sourceTree = "<group>"; };
 		D3EBDBFA17E650F7003059FF /* qofack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofack.c; sourceTree = "<group>"; };
-		D3EBDBFC17E65700003059FF /* qofopt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofopt.h; sourceTree = "<group>"; };
 		D3EBDBFD17E65A55003059FF /* qofopt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofopt.c; sourceTree = "<group>"; };
-		D3F2AA70171F5506009DC254 /* qofdyntmi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdyntmi.h; sourceTree = "<group>"; };
 		F519221A1672388F00514165 /* decode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = decode.c; sourceTree = "<group>"; };
 		F519221E1672388F00514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		F51922201672388F00514165 /* picq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = picq.c; sourceTree = "<group>"; };
 		F51922211672388F00514165 /* qofifmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofifmap.c; sourceTree = "<group>"; };
 		F51922221672388F00514165 /* ring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ring.c; sourceTree = "<group>"; };
-		F51922251672388F00514165 /* yaf.pod.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yaf.pod.in; sourceTree = "<group>"; };
-		F51922261672388F00514165 /* yafcap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafcap.c; sourceTree = "<group>"; };
-		F51922271672388F00514165 /* yafcap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafcap.h; sourceTree = "<group>"; };
 		F51922291672388F00514165 /* yafcore.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafcore.c; sourceTree = "<group>"; };
-		F519222B1672388F00514165 /* yafcygwin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafcygwin.c; sourceTree = "<group>"; };
 		F519222E1672388F00514165 /* yaflush.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yaflush.c; sourceTree = "<group>"; };
 		F519222F1672388F00514165 /* yaflush.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yaflush.h; sourceTree = "<group>"; };
 		F51922301672388F00514165 /* yafout.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafout.c; sourceTree = "<group>"; };
 		F51922311672388F00514165 /* yafout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafout.h; sourceTree = "<group>"; };
 		F51922341672388F00514165 /* yafrag.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafrag.c; sourceTree = "<group>"; };
-		F51922361672388F00514165 /* yafscii.pod */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yafscii.pod; sourceTree = "<group>"; };
 		F51922371672388F00514165 /* yafstat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yafstat.c; sourceTree = "<group>"; };
 		F51922381672388F00514165 /* yafstat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafstat.h; sourceTree = "<group>"; };
 		F51922391672388F00514165 /* yaftab.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = yaftab.c; sourceTree = "<group>"; };
 		F51922511672389900514165 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		F51922541672389900514165 /* autoinc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = autoinc.h; sourceTree = "<group>"; };
-		F51922551672389900514165 /* CERT_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CERT_IE.h; sourceTree = "<group>"; };
-		F51922561672389900514165 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
-		F51922571672389900514165 /* config.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = config.h.in; sourceTree = "<group>"; };
-		F51922581672389900514165 /* decode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = decode.h; sourceTree = "<group>"; };
-		F51922591672389900514165 /* picq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = picq.h; sourceTree = "<group>"; };
-		F519225A1672389900514165 /* ring.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ring.h; sourceTree = "<group>"; };
-		F519225C1672389900514165 /* TCH_IE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCH_IE.h; sourceTree = "<group>"; };
-		F519225D1672389900514165 /* yafcore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafcore.h; sourceTree = "<group>"; };
-		F519225E1672389900514165 /* yafrag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yafrag.h; sourceTree = "<group>"; };
-		F519225F1672389900514165 /* yaftab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yaftab.h; sourceTree = "<group>"; };
 		F5192262167238A400514165 /* AUTHORS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = AUTHORS; sourceTree = "<group>"; };
 		F5192263167238A400514165 /* ChangeLog */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
 		F5192264167238A400514165 /* COPYING */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = COPYING; sourceTree = "<group>"; };
@@ -207,9 +220,7 @@
 		F5192302167238A400514165 /* mio_stdio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mio_stdio.c; sourceTree = "<group>"; };
 		F5192303167238A400514165 /* privconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = privconfig.c; sourceTree = "<group>"; };
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
-		F5AF252C17D4BC12003F3DB3 /* qofrtt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofrtt.h; sourceTree = "<group>"; };
 		F5CAEEA0176720A5003AD16F /* qofmaclist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofmaclist.c; sourceTree = "<group>"; };
-		F5CAEEA2176732AD003AD16F /* qofmaclist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofmaclist.h; sourceTree = "<group>"; };
 		F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
 		F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libyaml-0.2.dylib"; path = "../../../../opt/local/lib/libyaml-0.2.dylib"; sourceTree = "<group>"; };
 		F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libfixbuf-1.2.0.8.dylib"; path = "../../opt/lib/libfixbuf-1.2.0.8.dylib"; sourceTree = "<group>"; };
@@ -222,6 +233,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				D377339E171E0B40004FF28F /* libtrace.3.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3A7DFDD181CFB32006F629B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,7 +261,9 @@
 		D31013E316A949350068059F /* test */ = {
 			isa = PBXGroup;
 			children = (
+				D3A7DFE9181CFB48006F629B /* message_split.c */,
 				D3D91D8016EE7F9E00748C63 /* qof-test.yaml */,
+				D3C98F911821029F00B1BC87 /* qof-uniflow.yaml */,
 				D3E1B1C316E4EBD200C5D50C /* riptcp.rb */,
 				D31013E416A94BA80068059F /* test_ifmap.c */,
 				D3773390171DF9E4004FF28F /* tracepull.c */,
@@ -260,9 +280,39 @@
 			path = pytools;
 			sourceTree = "<group>";
 		};
+		D37A41991818221F00BFC4AA /* qof */ = {
+			isa = PBXGroup;
+			children = (
+				D37A419A1818221F00BFC4AA /* autoinc.h */,
+				D37A419B1818222000BFC4AA /* bitmap.h */,
+				D37A419C1818222000BFC4AA /* CERT_IE.h */,
+				D37A419D1818222000BFC4AA /* config.h */,
+				D37A419E1818222000BFC4AA /* config.h.in */,
+				D37A419F1818222000BFC4AA /* decode.h */,
+				D37A41A01818222000BFC4AA /* IANA_IE.h */,
+				D37A41A11818222000BFC4AA /* picq.h */,
+				D37A41A21818222000BFC4AA /* qofack.h */,
+				D37A41A31818222000BFC4AA /* qofifmap.h */,
+				D37A41A41818222000BFC4AA /* qofmaclist.h */,
+				D37A41A51818222000BFC4AA /* qofopt.h */,
+				D37A41A61818222000BFC4AA /* qofrtt.h */,
+				D37A41A71818222000BFC4AA /* qofrwin.h */,
+				D37A41A81818222000BFC4AA /* qofseq.h */,
+				D37A41A91818222000BFC4AA /* ring.h */,
+				D37A41AA1818222000BFC4AA /* stamp-h1 */,
+				D37A41AB1818222000BFC4AA /* streamstat.h */,
+				D37A41AC1818222000BFC4AA /* TCH_IE.h */,
+				D37A41AD1818222000BFC4AA /* yafcore.h */,
+				D37A41AE1818222000BFC4AA /* yafrag.h */,
+				D37A41AF1818222000BFC4AA /* yaftab.h */,
+			);
+			path = qof;
+			sourceTree = "<group>";
+		};
 		F51922041672388F00514165 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				D384064618181EF6002C2E05 /* qof.pod.in */,
 				D3C4E99A17263FA100DB5423 /* qof.c */,
 				F519221E1672388F00514165 /* Makefile.am */,
 				F519221A1672388F00514165 /* decode.c */,
@@ -270,24 +320,17 @@
 				F51922221672388F00514165 /* ring.c */,
 				D3282A601708CF2100B2ABA4 /* bitmap.c */,
 				D3E1D8BE1712764700E94E6D /* streamstat.c */,
-				F51922251672388F00514165 /* yaf.pod.in */,
-				F51922261672388F00514165 /* yafcap.c */,
-				F51922271672388F00514165 /* yafcap.h */,
 				F51922291672388F00514165 /* yafcore.c */,
-				F519222B1672388F00514165 /* yafcygwin.c */,
 				F519222E1672388F00514165 /* yaflush.c */,
 				F519222F1672388F00514165 /* yaflush.h */,
 				F51922301672388F00514165 /* yafout.c */,
 				F51922311672388F00514165 /* yafout.h */,
 				F51922341672388F00514165 /* yafrag.c */,
-				F51922361672388F00514165 /* yafscii.pod */,
 				F51922371672388F00514165 /* yafstat.c */,
 				F51922381672388F00514165 /* yafstat.h */,
 				F51922391672388F00514165 /* yaftab.c */,
 				D377338F171CFB50004FF28F /* qofconfig.h */,
 				D3CCBE961716AF06006C25EB /* qofconfig.c */,
-				D37733A0171E43A0004FF28F /* qofdyntmi.c */,
-				D3F2AA70171F5506009DC254 /* qofdyntmi.h */,
 				F51922211672388F00514165 /* qofifmap.c */,
 				F5CAEEA0176720A5003AD16F /* qofmaclist.c */,
 				D3EADBDE170BE2B5006FE1FE /* qofltrace.h */,
@@ -297,6 +340,8 @@
 				D3EBDBF717E64D42003059FF /* qofrwin.c */,
 				D3EBDBFA17E650F7003059FF /* qofack.c */,
 				D3EBDBFD17E65A55003059FF /* qofopt.c */,
+				D3C98F8E181ED9A500B1BC87 /* qofdetune.c */,
+				D3C98F90181EDA2100B1BC87 /* qofdetune.h */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -304,38 +349,10 @@
 		F519224F1672389900514165 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				D37A41991818221F00BFC4AA /* qof */,
 				F51922511672389900514165 /* Makefile.am */,
-				F51922531672389900514165 /* yaf */,
 			);
 			path = include;
-			sourceTree = "<group>";
-		};
-		F51922531672389900514165 /* yaf */ = {
-			isa = PBXGroup;
-			children = (
-				D3AF47E217279781000212C8 /* qofifmap.h */,
-				F5CAEEA2176732AD003AD16F /* qofmaclist.h */,
-				F51922541672389900514165 /* autoinc.h */,
-				F51922561672389900514165 /* config.h */,
-				F51922571672389900514165 /* config.h.in */,
-				F51922581672389900514165 /* decode.h */,
-				F51922591672389900514165 /* picq.h */,
-				F519225A1672389900514165 /* ring.h */,
-				D3282A621708CF8400B2ABA4 /* bitmap.h */,
-				D3E1D8C017127BDF00E94E6D /* streamstat.h */,
-				F519225C1672389900514165 /* TCH_IE.h */,
-				D39F5C34170D03150094B103 /* IANA_IE.h */,
-				F51922551672389900514165 /* CERT_IE.h */,
-				F519225D1672389900514165 /* yafcore.h */,
-				F519225E1672389900514165 /* yafrag.h */,
-				F519225F1672389900514165 /* yaftab.h */,
-				F5AF252C17D4BC12003F3DB3 /* qofrtt.h */,
-				D324127A17E1F0A50088C9E4 /* qofseq.h */,
-				D3EBDBF917E65035003059FF /* qofack.h */,
-				D3EBDBF617E64C47003059FF /* qofrwin.h */,
-				D3EBDBFC17E65700003059FF /* qofopt.h */,
-			);
-			path = yaf;
 			sourceTree = "<group>";
 		};
 		F5192261167238A400514165 /* airframe */ = {
@@ -467,6 +484,7 @@
 			children = (
 				F52D56C016723812006D32A1 /* qof */,
 				D3773395171E0B2C004FF28F /* tracepull */,
+				D3A7DFE0181CFB32006F629B /* message_split */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -489,6 +507,23 @@
 			name = tracepull;
 			productName = tracepull;
 			productReference = D3773395171E0B2C004FF28F /* tracepull */;
+			productType = "com.apple.product-type.tool";
+		};
+		D3A7DFDF181CFB32006F629B /* message_split */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D3A7DFE8181CFB32006F629B /* Build configuration list for PBXNativeTarget "message_split" */;
+			buildPhases = (
+				D3A7DFDC181CFB32006F629B /* Sources */,
+				D3A7DFDD181CFB32006F629B /* Frameworks */,
+				D3A7DFDE181CFB32006F629B /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = message_split;
+			productName = message_split;
+			productReference = D3A7DFE0181CFB32006F629B /* message_split */;
 			productType = "com.apple.product-type.tool";
 		};
 		F52D56BF16723812006D32A1 /* qof */ = {
@@ -531,6 +566,7 @@
 			targets = (
 				F52D56BF16723812006D32A1 /* qof */,
 				D3773394171E0B2C004FF28F /* tracepull */,
+				D3A7DFDF181CFB32006F629B /* message_split */,
 			);
 		};
 /* End PBXProject section */
@@ -541,6 +577,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				D377339F171E0B55004FF28F /* tracepull.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3A7DFDC181CFB32006F629B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3A7DFEA181CFB48006F629B /* message_split.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -571,6 +615,7 @@
 				F519233E167238A400514165 /* mio_sink_udp.c in Sources */,
 				F519233F167238A400514165 /* mio_source_file.c in Sources */,
 				F5192340167238A400514165 /* mio_source_pcap.c in Sources */,
+				D3C98F8F181ED9A500B1BC87 /* qofdetune.c in Sources */,
 				F5192341167238A400514165 /* mio_source_tcp.c in Sources */,
 				F5192342167238A400514165 /* mio_source_udp.c in Sources */,
 				F5192343167238A400514165 /* mio_stdio.c in Sources */,
@@ -631,10 +676,50 @@
 			};
 			name = Release;
 		};
+		D3A7DFE6181CFB32006F629B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		D3A7DFE7181CFB32006F629B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		F52D56C816723812006D32A1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -653,9 +738,9 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 			};
 			name = Debug;
 		};
@@ -663,6 +748,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -675,15 +761,15 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				SDKROOT = macosx;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx10.8;
 			};
 			name = Release;
 		};
 		F52D56CB16723812006D32A1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"HAVE_CONFIG_H=1",
@@ -713,7 +799,6 @@
 		F52D56CC16723812006D32A1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"HAVE_CONFIG_H=1",
 					"YAF_SOURCE=1",
@@ -746,6 +831,15 @@
 			buildConfigurations = (
 				D377339C171E0B2C004FF28F /* Debug */,
 				D377339D171E0B2C004FF28F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D3A7DFE8181CFB32006F629B /* Build configuration list for PBXNativeTarget "message_split" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3A7DFE6181CFB32006F629B /* Debug */,
+				D3A7DFE7181CFB32006F629B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

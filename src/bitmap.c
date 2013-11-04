@@ -13,7 +13,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/bitmap.h>
+#include <qof/bitmap.h>
 
 static const uint64_t bimBit[] = {
     0x0000000000000001ULL, 0x0000000000000002ULL,

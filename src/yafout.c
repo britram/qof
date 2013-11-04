@@ -58,8 +58,8 @@
 
 #define _YAF_SOURCE_
 #include "yafout.h"
-#include <yaf/yafcore.h>
-#include <yaf/yaftab.h>
+#include <qof/yafcore.h>
+#include <qof/yaftab.h>
 #include <airframe/airutil.h>
 
 fBuf_t *yfOutputOpen(

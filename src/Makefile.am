@@ -12,9 +12,10 @@
 ## ------------------------------------------------------------------------
 
 
-PODFILES = yaf.pod
-man1_MANS = yaf.1
-HTMLFILES = yaf.html
+PODFILES = qof.pod
+man1_MANS = qof.1
+HTMLFILES = qof.html
+PDFFILES = qof.pdf
 
 WARN_CFLAGS = -g -DDEBUG -Wall -W -Wmissing-prototypes -Wformat=2 -Wdeclaration-after-statement -Wpointer-arith -Wshadow
 
@@ -23,13 +24,16 @@ WARN_CFLAGS = -g -DDEBUG -Wall -W -Wmissing-prototypes -Wformat=2 -Wdeclaration-
 
 .pod.html:
 	$(POD2HTML) --noindex --infile="$<" --outfile="$@"
-	$(top_srcdir)/doc/add-header.pl "$@"
+
+.1.pdf:
+	groff -mandoc $< | ps2pdf - $@
 
 copy-man-pages: $(HTMLFILES)
 	mkdir -p $(top_builddir)/doc/html
 	cp $(HTMLFILES) $(top_builddir)/doc/html
+	cp $(PDFFILES) $(top_builddir)/doc
 
-docs: $(man1_MANS) copy-man-pages
+docs: $(man1_MANS) $(PDFFILES) copy-man-pages
 
 clean-docs:
 	rm -f $(man1_MANS) $(HTMLFILES)
@@ -48,18 +52,14 @@ libqof_la_SOURCES = yafcore.c yaftab.c yafrag.c decode.c picq.c ring.c \
                     bitmap.c streamstat.c qofifmap.c qofmaclist.c \
                     qofseq.c qofack.c qofrtt.c qofrwin.c qofopt.c
 
-if CYGWIN
-libqof_la_SOURCES += yafcygwin.c
-endif
-
 libqof_la_LIBADD = @GLIB_LDADD@
 libqof_la_LDFLAGS = @GLIB_LIBS@ @libfixbuf_LIBS@ -version-info @LIBCOMPAT@ -release ${VERSION}
 libqof_la_CFLAGS = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
-qof_SOURCES = qof.c yafstat.c qofltrace.c yafout.c yaflush.c qofconfig.c
+qof_SOURCES = qof.c yafstat.c qofltrace.c yafout.c yaflush.c qofconfig.c qofdetune.c
 qof_LDADD   =  libqof.la @GLIB_LDADD@
 qof_LDFLAGS = -L../airframe/src -lairframe @GLIB_LIBS@ @libfixbuf_LIBS@ -export-dynamic
 qof_CFLAGS  = @GLIB_CFLAGS@ @libfixbuf_CFLAGS@ -DYAF_CONF_DIR='"$(sysconfdir)"'
 
-noinst_HEADERS = qofltrace.h yafstat.h yafout.h yaflush.h qofconfig.h
+noinst_HEADERS = qofltrace.h yafstat.h yafout.h yaflush.h qofconfig.h qofdetune.h
 

@@ -25,10 +25,10 @@ template:
     - reverseTcpSequenceLossCount
     - tcpRetransmitCount
     - reverseTcpRetransmitCount
-    - tcpLossBurstCount
-    - reverseTcpLossBurstCount
-    - tcpOutOfOrderCount
-    - reverseTcpOutOfOrderCount
+    - tcpLossEventCount
+    - reverseTcpLossEventCount
+    - tcpSequenceJumpCount
+    - reverseTcpSequenceJumpCount
     - tcpDupAckCount
     - reverseTcpDupAckCount
     - tcpSelAckCount

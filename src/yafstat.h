@@ -59,7 +59,7 @@
 #ifndef _YAF_STAT_H_
 #define _YAF_STAT_H_
 
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include "qofconfig.h"
 
 void yfStatInit(

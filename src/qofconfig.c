@@ -13,7 +13,7 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include <airframe/airopt.h>
 #include <airframe/privconfig.h>
 
@@ -34,6 +34,7 @@ typedef enum {
     QF_CONFIG_STRING,
     QF_CONFIG_U32,
     QF_CONFIG_U64,
+    QF_CONFIG_DOUBLE,
     QF_CONFIG_BOOL,
 } qfConfigKeyType_t;
 
@@ -46,13 +47,14 @@ typedef struct qfConfigKeyAction_st {
 #define CFG_OFF(_F_) offsetof(qfConfig_t, _F_)
 
 static qfConfigKeyAction_t cfg_key_actions[] = {
-    {"active-timeout",         CFG_OFF(ato_ms), QF_CONFIG_U32},
-    {"idle-timeout",           CFG_OFF(ito_ms), QF_CONFIG_U32},
+    {"active-timeout",         CFG_OFF(ato_s), QF_CONFIG_U32},
+    {"idle-timeout",           CFG_OFF(ito_s), QF_CONFIG_U32},
     {"max-flows",              CFG_OFF(max_flowtab), QF_CONFIG_U32},
     {"max-frags",              CFG_OFF(max_fragtab), QF_CONFIG_U32},
     {"active-timeout-octets",  CFG_OFF(max_flow_oct), QF_CONFIG_U64},
     {"active-timeout-packets", CFG_OFF(max_flow_pkt), QF_CONFIG_U64},
     {"active-timeout-rtts",    CFG_OFF(ato_rtts), QF_CONFIG_U32},
+    {"force-biflow",           CFG_OFF(enable_biforce), QF_CONFIG_BOOL},
     {"gre-decap",              CFG_OFF(enable_gre), QF_CONFIG_BOOL},
     {"silk-compatible",        CFG_OFF(enable_silk), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
@@ -70,19 +72,21 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"maxTcpSequenceJump",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpSequenceLossCount",    CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpRetransmitCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
-    {"tcpOutOfOrderCount",      CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"tcpSequenceJumpCount",    CFG_OFF(enable_seq), QF_CONFIG_BOOL},
+    {"tcpLossEventCount",       CFG_OFF(enable_seq), QF_CONFIG_BOOL},
     {"tcpDupAckCount",          CFG_OFF(enable_ack), QF_CONFIG_BOOL},
     {"tcpSelAckCount",          CFG_OFF(enable_ack), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
     {"tcpRttMilliseconds",      CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
+    {"tcpLossEventCount",       CFG_OFF(enable_rtt), QF_CONFIG_BOOL},
     {"minTcpRwin",              CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
     {"meanTcpRwin",             CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
     {"maxTcpRwin",              CFG_OFF(enable_rwin), QF_CONFIG_BOOL},
     {"tcpTimestampFrequency",   CFG_OFF(enable_ts), QF_CONFIG_BOOL},
     {"minTcpChirpMilliseconds", CFG_OFF(enable_ts), QF_CONFIG_BOOL},
     {"maxTcpChirpMilliseconds", CFG_OFF(enable_ts), QF_CONFIG_BOOL},
-    {"minTcpIOTMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
-    {"maxTcpIOTMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
+    {"minTcpIOTMilliseconds",   CFG_OFF(enable_iat), QF_CONFIG_BOOL},
+    {"maxTcpIOTMilliseconds",   CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"minTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"maxTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
@@ -287,14 +291,28 @@ static gboolean qfYamlParseBool(yaml_parser_t      *parser,
     if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
     
     if (valbuf[0] == '0') {
-        val = FALSE;
+        *val = FALSE;
     } else {
-        val = TRUE;
+        *val = TRUE;
     }
     
     return TRUE;
 }
 
+static gboolean qfYamlParseDouble(yaml_parser_t      *parser,
+                                  double             *val,
+                                  GError             **err)
+{
+    char valbuf[VALBUF_SIZE];
+    
+    if (!qfYamlParseValue(parser, valbuf, sizeof(valbuf), err)) return FALSE;
+    
+    if (sscanf(valbuf, "%lf", val) < 1) {
+        return qfYamlError(err, parser, "expected float value");
+    }
+    
+    return TRUE;
+}
 
 static gboolean qfYamlParsePrefixedV4(yaml_parser_t      *parser,
                                       uint32_t           *addr,
@@ -699,6 +717,9 @@ static gboolean qfYamlDocument(qfConfig_t       *cfg,
                   case QF_CONFIG_U64:
                     rv = qfYamlParseU64(parser, (uint64_t*)cvp, err);
                     break;
+                  case QF_CONFIG_DOUBLE:
+                    rv = qfYamlParseDouble(parser, (double*)cvp, err);
+                    break;
                   case QF_CONFIG_BOOL:
                     rv = qfYamlParseBool(parser, (gboolean*)cvp, err);
                     break;
@@ -790,17 +811,16 @@ void qfConfigDefaults(qfConfig_t           *cfg,
                       qfInputContext_t     *ictx,
                       qfOutputContext_t    *octx)
 {
-    cfg->ato_ms = 300000;   /* active timeout 5 min */
-    cfg->ito_ms = 30000;    /* idle timeout 30 sec */
+    cfg->ato_s = 300;                   /* active timeout 5 min */
+    cfg->ito_s = 30;                    /* idle timeout 30 sec */
     cfg->max_flowtab = 1024 * 1024;     /* 1 mebiflow */
     cfg->max_fragtab = 256 * 1024;      /* 256 kfrags */
     cfg->max_flow_pkt = 0;              /* no max packet */
     cfg->max_flow_oct = 0;              /* no max octet count */
     cfg->ato_rtts = 0;                  /* no RTT-based ATO */
     octx->rotate_period = 0;            /* no output rotation by default */
-    octx->template_rtx_period = 60000;  /* 1 min template 
-                                           retransmit period on UDP */
-    octx->stats_period = 60000;         /* 1 min stats transmit period */
+    octx->template_rtx_period = 0;      /* no template retransmit by default */
+    octx->stats_period = 0;             /* no stats transmit by default */
 }
 
 void qfConfigDefaultTemplate(qfConfig_t     *cfg)
@@ -824,6 +844,11 @@ static void qfContextSetupOutput(qfContext_t *ctx)
     /* Map IPv6 if necessary */
     if (ctx->cfg.enable_ipv6 && !ctx->cfg.enable_ipv4) {
         yfWriterExportMappedV6(TRUE);
+    }
+    
+    /* Force biflows if requested */
+    if (ctx->cfg.enable_biforce) {
+        yfWriterForceBiflowExport(TRUE);
     }
     
     /* Configure IPFIX connspec for transport */
@@ -862,7 +887,7 @@ static void qfContextSetupOutput(qfContext_t *ctx)
                 ctx->octx.connspec.transport = FB_UDP;
             }
             if (!ctx->octx.template_rtx_period) {
-                ctx->octx.template_rtx_period = 600000; // 10 minutes
+                ctx->octx.template_rtx_period = 60000; // 1 minute in ms
             } else {
                 ctx->octx.template_rtx_period *= 1000; // convert to milliseconds
             }
@@ -873,7 +898,7 @@ static void qfContextSetupOutput(qfContext_t *ctx)
         
         /* grab TLS password from environment */
         if (ctx->octx.enable_tls) {
-            ctx->octx.connspec.ssl_key_pass = getenv("YAF_TLS_PASS");
+            ctx->octx.connspec.ssl_key_pass = getenv("QOF_TLS_PASS");
         }
         
     } else {
@@ -931,8 +956,7 @@ void qfContextSetup(qfContext_t *ctx) {
     /* drop privilege if necessary */
     if (!privc_become(&ctx->err)) {
         if (g_error_matches(ctx->err, PRIVC_ERROR_DOMAIN, PRIVC_ERROR_NODROP)) {
-            g_warning("running as root in --live mode, "
-                      "but not dropping privilege");
+            g_warning("running as root, but not dropping privilege");
             g_clear_error(&ctx->err);
         } else {
             qfTraceClose(ctx->ictx.pktsrc);
@@ -960,8 +984,8 @@ void qfContextSetup(qfContext_t *ctx) {
                                   ctx->cfg.enable_gre);
 
     /* Allocate flow table */
-    ctx->flowtab = yfFlowTabAlloc(ctx->cfg.ito_ms * 1000,
-                                  ctx->cfg.ato_ms * 1000,
+    ctx->flowtab = yfFlowTabAlloc(ctx->cfg.ito_s * 1000,
+                                  ctx->cfg.ato_s * 1000,
                                   ctx->cfg.max_flowtab,
                                   !ctx->cfg.enable_biflow,
                                   ctx->cfg.enable_silk,
@@ -970,6 +994,7 @@ void qfContextSetup(qfContext_t *ctx) {
                                   ctx->cfg.enable_ack,
                                   ctx->cfg.enable_rtt,
                                   ctx->cfg.enable_rwin,
+                                  ctx->cfg.enable_tcpopt,
                                   ctx->cfg.enable_ts,
                                   ctx->cfg.enable_iat);
     

@@ -19,7 +19,7 @@ ACLOCAL_AMFLAGS = -I m4
 # Avoid picking up MacOS X resource forks in "make dist"
 am__tar = COPY_EXTENDED_ATTRIBUTES_DISABLE=1 COPYFILE_DISABLE=1 ${AMTAR} cof - "$$tardir"
 
-SUBDIRS = airframe src include etc
+SUBDIRS = airframe src include
 
 include doxygen.am
 
@@ -28,32 +28,26 @@ MOSTLYCLEANFILES = $(DX_CLEANFILES)
 utils-doc:
 	(cd $(top_builddir)/src && $(MAKE) docs)
 
-release-note-doc: NEWS
-	$(top_srcdir)/doc/news2xhtml.pl yaf gpl 16 < $(top_srcdir)/NEWS > doc/releases.xml
+#release-note-doc: NEWS
+#	$(top_srcdir)/doc/news2xhtml.pl yaf gpl 16 < $(top_srcdir)/NEWS > doc/releases.xml
 
 make-doc-path:
 	mkdir -p $(top_builddir)/doc/html
 
-copy-doxygen-doc:
-	cp -pr doc/html $(distdir)/doc
+#copy-doxygen-doc:
+#	cp -pr doc/html $(distdir)/doc
 
-dist-hook: docs copy-doxygen-doc
+dist-hook: docs
 	find $(distdir) -name .svn -type d -prune -exec rm -rf '{}' ';'
 
-distclean-local:
-	rm -f $(top_builddir)/doc/releases.xml
+#distclean-local:
+#	rm -f $(top_builddir)/doc/releases.xml
 
-docs: make-doc-path doxygen-doc utils-doc release-note-doc
+docs: make-doc-path utils-doc 
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libyaf.pc
+pkgconfig_DATA = libqof.pc
 
 EXTRA_DIST = \
     Doxyfile.in \
-    yaf.spec \
-    yaf.spec.in \
-    doc/add-header.pl \
-    doc/Doxyhead.html \
-    doc/Doxyfoot.html \
-    doc/doxygen.css \
-    doc/news2xhtml.pl
+    doc/doxygen.css

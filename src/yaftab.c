@@ -61,17 +61,17 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/autoinc.h>
+#include <qof/autoinc.h>
 #include <airframe/logconfig.h>
 #include <airframe/daeconfig.h>
 #include <airframe/airutil.h>
-#include <yaf/picq.h>
-#include <yaf/yaftab.h>
-#include <yaf/yafrag.h>
-#include <yaf/qofopt.h>
+#include <qof/picq.h>
+#include <qof/yaftab.h>
+#include <qof/yafrag.h>
+#include <qof/qofopt.h>
 
 #include "qofconfig.h"
-#include <yaf/decode.h>
+#include <qof/decode.h>
 
 #ifndef YFDEBUG_FLOWTABLE
 #define YFDEBUG_FLOWTABLE 0
@@ -184,6 +184,7 @@ struct yfFlowTab_st {
     gboolean        tcp_ack_enable;
     gboolean        tcp_rtt_enable;
     gboolean        tcp_rwin_enable;
+    gboolean        tcp_opt_enable;
     gboolean        tcp_ts_enable;
     gboolean        tcp_iat_enable;
     /* Statistics */
@@ -584,6 +585,7 @@ yfFlowTab_t *yfFlowTabAlloc(
     gboolean        tcp_ack_enable,
     gboolean        tcp_rtt_enable,
     gboolean        tcp_rwin_enable,
+    gboolean        tcp_opt_enable,
     gboolean        tcp_ts_enable,
     gboolean        tcp_iat_enable)
 {
@@ -608,6 +610,7 @@ yfFlowTab_t *yfFlowTabAlloc(
     flowtab->tcp_ack_enable = tcp_ack_enable;
     flowtab->tcp_rtt_enable = tcp_rtt_enable;
     flowtab->tcp_rwin_enable = tcp_rwin_enable;
+    flowtab->tcp_opt_enable = tcp_opt_enable;
     flowtab->tcp_ts_enable = tcp_ts_enable,
     flowtab->tcp_iat_enable = tcp_iat_enable;
 
@@ -751,6 +754,7 @@ static void yfFlowPktIP( yfFlowTab_t                 *flowtab,
     if (ipinfo->ttl > val->maxttl) {
         val->maxttl = ipinfo->ttl;
     }
+    
 }
 
 /**
@@ -792,15 +796,23 @@ static void yfFlowPktTCP(
                                   flowtab->tcp_iat_enable);
         }
     } else {
-        /* First packet. Allocate a TCP structure for this direction */
-        val->tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
-         
+        /* First packet. Allocate a TCP structure for this direction,
+           if necessary */
+        if (flowtab->tcp_seq_enable ||
+            flowtab->tcp_ack_enable ||
+            flowtab->tcp_rwin_enable ||
+            flowtab->tcp_opt_enable ||
+            flowtab->tcp_ts_enable ||
+            flowtab->tcp_iat_enable) {
+            val->tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
+        }
+        
         /* Initial flags, start sequence number tracking */
         val->iflags = tcpinfo->flags;
         if (flowtab->tcp_seq_enable) {
             qfSeqFirstSegment(&val->tcp->seq, tcpinfo->flags,
                               tcpinfo->seq, (uint32_t) datalen,
-                              lms, flowtab->tcp_ts_enable, tcpinfo->tsval);
+                              lms, tcpinfo->tsval, flowtab->tcp_ts_enable);
         }
     }
     
@@ -824,7 +836,9 @@ static void yfFlowPktTCP(
     }
     
     /* Store information from options */
-    qfOptSegment(&val->tcp->opts, tcpinfo, ipinfo, (uint32_t) datalen);
+    if (flowtab->tcp_opt_enable) {
+        qfOptSegment(&val->tcp->opts, tcpinfo, ipinfo, (uint16_t)datalen);
+    }
     
     /* Update flow state for FIN flag */
     if (val == &(fn->f.val)) {
@@ -1026,6 +1040,7 @@ static gboolean yfUniflowReverse(
     uf->stime = bf->stime + bf->rdtime;
     uf->etime = bf->etime;
     uf->rdtime = 0;
+    
     if (bf->destinationMacAddr) {
         memcpy(uf->sourceMacAddr, bf->destinationMacAddr,
                ETHERNET_MAC_ADDR_LENGTH);
@@ -1041,6 +1056,9 @@ static gboolean yfUniflowReverse(
     memcpy(&(uf->val), &(bf->rval), sizeof(yfFlowVal_t));
     memset(&(uf->rval), 0, sizeof(yfFlowVal_t));
 
+    /* copy rtt */
+    memcpy(&uf->rtt, &bf->rtt, sizeof(qfRtt_t));
+    
     /* copy reason */
     uf->reason = bf->reason;
 

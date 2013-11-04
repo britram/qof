@@ -14,11 +14,11 @@
 
 #define _YAF_SOURCE_
 
-#include <yaf/qofseq.h>
-#include <yaf/decode.h>
+#include <qof/qofseq.h>
+#include <qof/decode.h>
 
 #if QF_DEBUG_SEQ
-#include <yaf/streamstat.h>
+#include <qof/streamstat.h>
 
 static sstMean_t gapstack_high;
 static int debug_init = 0;
@@ -94,7 +94,6 @@ static void qfSeqGapPush(qfSeq_t *qs, uint32_t a, uint32_t b, uint16_t mss) {
         qs->gaps[0].a = a;
         qs->gaps[0].b = b;
     }
-
 }
 
 static int qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
@@ -174,10 +173,12 @@ static int qfSeqGapFill(qfSeq_t *qs, uint32_t a, uint32_t b) {
     
 }
 
-static void qfLossBurst(qfSeq_t *qs, qfRtt_t *rtt, uint32_t ms) {
-    if (ms > (qs->burstlms + rtt->val.val)) {
-        qs->burstlms = ms;
-        qs->burstct++;
+static void qfCountLoss(qfSeq_t *qs, qfRtt_t *rtt, uint32_t ms) {
+
+    /* only count one loss indication per RTT */
+    if (ms > (qs->losslms + rtt->val.val)) {
+        qs->losslms = ms;
+        qs->lossct++;
     }
 }
 
@@ -208,7 +209,7 @@ int qfSeqSegment(qfSeq_t *qs, qfRtt_t *rtt, uint16_t mss,
             qs->maxooo = seq - qs->nsn;
         }
         if (qfSeqGapFill(qs, seq, seq + oct)) {
-            qfLossBurst(qs, rtt, ms);
+            qfCountLoss(qs, rtt, ms);
         }
     } else {
         /* Sequence beyond NSN: push */
@@ -216,7 +217,7 @@ int qfSeqSegment(qfSeq_t *qs, qfRtt_t *rtt, uint16_t mss,
             qfSeqGapPush(qs, qs->nsn, seq, mss);
 
             /* signal loss for burst tracking */
-            qfLossBurst(qs, rtt, ms);
+            qfCountLoss(qs, rtt, ms);
             
             /* track max out of order */
             if (seq - qs->nsn > qs->maxooo) {
@@ -282,7 +283,7 @@ uint32_t qfSeqCountLost(qfSeq_t *qs) {
 //    fprintf(stderr,"seqCountLost %p prev_seqlost %u isn %u nsn %u len %u\n",
 //            qs, qs->seqlost, qs->isn, qs->nsn, qs->nsn - qs->isn);
     for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i); i++) {
-        qs->seqlost += qs->gaps[i].b - qs->gaps[i].a;
+        qs->seqlost += (uint32_t)(qs->gaps[i].b - qs->gaps[i].a);
 //            fprintf(stderr, "\t%u-%u (%u) (%u)\n",
 //                    qs->gaps[i].a,  qs->gaps[i].b,
 //                    qs->gaps[i].b - qs->gaps[i].a,
@@ -302,7 +303,7 @@ uint32_t qfTimestampHz(qfSeq_t *qs)
     uint64_t lms_interval =
     (((uint64_t)qs->lmswrap * k2e32) + qs->advlms - qs->initlms);
     
-    if (lms_interval) {
+    if (lms_interval && qs->initsval && qs->advtsval) {
         return (uint32_t)(val_interval * 1000 / lms_interval);
     } else {
         return 0;

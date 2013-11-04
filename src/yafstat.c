@@ -58,9 +58,10 @@
 
 #define _YAF_SOURCE_
 #include "yafstat.h"
-#include <yaf/yaftab.h>
-#include <yaf/yafrag.h>
-#include <yaf/decode.h>
+#include <qof/yaftab.h>
+#include <qof/yafrag.h>
+#include <qof/decode.h>
+#include "qofdetune.h"
 
 static uint32_t yaf_do_stat = 0;
 static GTimer *yaf_fft = NULL;
@@ -98,8 +99,13 @@ static void yfStatDump()
     uint64_t numPackets;
     numPackets = yfFlowDumpStats(statctx->flowtab, yaf_fft);
     yfFragDumpStats(statctx->fragtab, numPackets);
+#if QOF_ENABLE_DETUNE
+    if (statctx->ictx.detune) {
+        numPackets = qfDetuneDumpStats(statctx->ictx.detune, numPackets);
+    }
+#endif
     yfDecodeDumpStats(statctx->dectx, numPackets);
-
+    
     if (yaf_dropped) {
         g_warning("Capture dropped %llu packets.", yaf_dropped);
     }

@@ -13,13 +13,13 @@
  */
 
 #define _YAF_SOURCE_
-#include <yaf/qofopt.h>
-#include <yaf/decode.h>
+#include <qof/qofopt.h>
+#include <qof/decode.h>
 
 void qfOptSegment(qfOpt_t *qo,
                   yfTCPInfo_t *tcpinfo,
                   yfIPInfo_t *ipinfo,
-                  uint32_t oct)
+                  uint16_t oct)
 {
     if (ipinfo->ecn & 0x01) qo->flags |= QF_OPT_ECT0;
     if (ipinfo->ecn & 0x02) qo->flags |= QF_OPT_ECT1;
