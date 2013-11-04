@@ -8,8 +8,8 @@
 ** ------------------------------------------------------------------------
 ** Author: Brian Trammell <brian@trammell.ch>
 ** ------------------------------------------------------------------------
-** QoF is made available under the terms of the GNU Public License (GPL)
-** Version 2, June 1991
+ ** QoF is made available under the terms of the
+ ** GNU General Public License (GPL) Version 2, June 1991
 ** ------------------------------------------------------------------------
 */
 

@@ -1,7 +1,7 @@
 /**
  ** @internal
  ** yafcore.c
- ** YAF core I/O routines
+ ** QoF core I/O routines
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2006-2012 Carnegie Mellon University. All Rights Reserved.
@@ -10,52 +10,8 @@
  ** Authors: Brian Trammell, Chris Inacio, Emily Ecoff <ecoff@cert.org>
  ** QoF redesign by Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
- ** @OPENSOURCE_HEADER_START@
- ** Use of the YAF system and related source code is subject to the terms
- ** of the following licenses:
- **
- ** GNU Public License (GPL) Rights pursuant to Version 2, June 1991
- ** Government Purpose License Rights (GPLR) pursuant to DFARS 252.227.7013
- **
- ** NO WARRANTY
- **
- ** ANY INFORMATION, MATERIALS, SERVICES, INTELLECTUAL PROPERTY OR OTHER
- ** PROPERTY OR RIGHTS GRANTED OR PROVIDED BY CARNEGIE MELLON UNIVERSITY
- ** PURSUANT TO THIS LICENSE (HEREINAFTER THE "DELIVERABLES") ARE ON AN
- ** "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY
- ** KIND, EITHER EXPRESS OR IMPLIED AS TO ANY MATTER INCLUDING, BUT NOT
- ** LIMITED TO, WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE,
- ** MERCHANTABILITY, INFORMATIONAL CONTENT, NONINFRINGEMENT, OR ERROR-FREE
- ** OPERATION. CARNEGIE MELLON UNIVERSITY SHALL NOT BE LIABLE FOR INDIRECT,
- ** SPECIAL OR CONSEQUENTIAL DAMAGES, SUCH AS LOSS OF PROFITS OR INABILITY
- ** TO USE SAID INTELLECTUAL PROPERTY, UNDER THIS LICENSE, REGARDLESS OF
- ** WHETHER SUCH PARTY WAS AWARE OF THE POSSIBILITY OF SUCH DAMAGES.
- ** LICENSEE AGREES THAT IT WILL NOT MAKE ANY WARRANTY ON BEHALF OF
- ** CARNEGIE MELLON UNIVERSITY, EXPRESS OR IMPLIED, TO ANY PERSON
- ** CONCERNING THE APPLICATION OF OR THE RESULTS TO BE OBTAINED WITH THE
- ** DELIVERABLES UNDER THIS LICENSE.
- **
- ** Licensee hereby agrees to defend, indemnify, and hold harmless Carnegie
- ** Mellon University, its trustees, officers, employees, and agents from
- ** all claims or demands made against them (and any related losses,
- ** expenses, or attorney's fees) arising out of, or relating to Licensee's
- ** and/or its sub licensees' negligent use or willful misuse of or
- ** negligent conduct or willful misconduct regarding the Software,
- ** facilities, or other rights or assistance granted by Carnegie Mellon
- ** University under this License, including, but not limited to, any
- ** claims of product liability, personal injury, death, damage to
- ** property, or violation of any laws or regulations.
- **
- ** Carnegie Mellon University Software Engineering Institute authored
- ** documents are sponsored by the U.S. Department of Defense under
- ** Contract FA8721-05-C-0003. Carnegie Mellon University retains
- ** copyrights in all material produced under this contract. The U.S.
- ** Government retains a non-exclusive, royalty-free license to publish or
- ** reproduce these documents, or allow others to do so, for U.S.
- ** Government purposes only pursuant to the copyright license under the
- ** contract clause at 252.227.7013.
- **
- ** @OPENSOURCE_HEADER_END@
+ ** QoF is made available under the terms of the
+ ** GNU General Public License (GPL) Version 2, June 1991
  ** ------------------------------------------------------------------------
  */
 
@@ -213,6 +169,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMinTcpChirpMilliseconds",     2, YTF_TCP | YTF_TSV | YTF_BIF},
     { "maxTcpChirpMilliseconds",            2, YTF_TCP | YTF_TSV },
     { "reverseMaxTcpChirpMilliseconds",     2, YTF_TCP | YTF_TSV | YTF_BIF},
+    { "meanTcpChirpMilliseconds",           2, YTF_TCP | YTF_TSV},
+    { "reverseMeanTcpChirpMilliseconds",    2, YTF_TCP | YTF_TSV | YTF_BIF},
     /* First-packet RTT (for all biflows) */
     { "reverseFlowDeltaMilliseconds",       4, YTF_BIF },
     /* port, protocol, flow status, interfaces */
@@ -330,6 +288,8 @@ typedef struct yfIpfixFlow_st {
     int16_t     reverseMinTcpChirpMilliseconds;
     int16_t     maxTcpChirpMilliseconds;
     int16_t     reverseMaxTcpChirpMilliseconds;
+    int16_t     meanTcpChirpMilliseconds;
+    int16_t     reverseMeanTcpChirpMilliseconds;
     /* First-packet RTT */
     int32_t     reverseFlowDeltaMilliseconds;
     /* Flow key */
@@ -473,6 +433,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseMinTcpChirpMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,maxTcpChirpMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,reverseMaxTcpChirpMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,meanTcpChirpMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseMeanTcpChirpMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,reverseFlowDeltaMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,sourceTransportPort);
     CHECK_OFFSET(yfIpfixFlow_t,destinationTransportPort);
@@ -1097,6 +1059,7 @@ gboolean yfWriteFlow(
                 rec.tcpTimestampFrequency = hz;
                 rec.minTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.min;
                 rec.maxTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mm.max;
+                rec.meanTcpChirpMilliseconds = (int16_t)val->tcp->seq.seg_variat.mean;
             }
         }
         
@@ -1129,7 +1092,8 @@ gboolean yfWriteFlow(
                 rec.reverseTcpTimestampFrequency = rhz;
                 rec.reverseMinTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.min;
                 rec.reverseMaxTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mm.max;
-            }
+                rec.reverseMeanTcpChirpMilliseconds = (int16_t)rval->tcp->seq.seg_variat.mean;
+           }
         }
         
         /* Enable RTT export if we have enough samples */

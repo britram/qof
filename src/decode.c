@@ -244,10 +244,10 @@ typedef struct yfHdrIPv6_st {
 } yfHdrIPv6_t;
 
 /* Version, class, and flow decode macros */
-#define YF_VCF6_VERSION(_ip6hdr_)   (((_ip6hdr_)->ip6_vcf & 0xF0000000) >> 28)
-#define YF_VCF6_CLASS(_ip6hdr_)     (((_ip6hdr_)->ip6_vcf & 0x0FF00000) >> 20)
-#define YF_VCF6_ECN(_ip6hdr_)       (((_ip6hdr_)->ip6_vcf & 0x0C000000) >> 26)
-#define YF_VCF6_FLOW(_ip6hdr_)       ((_ip6hdr_)->ip6_vcf & 0x000FFFFF)
+#define YF_VCF6_VERSION(_ip6hdr_)   ((g_ntohl((_ip6hdr_)->ip6_vcf) & 0xF0000000) >> 28)
+#define YF_VCF6_CLASS(_ip6hdr_)     ((g_ntohl((_ip6hdr_)->ip6_vcf) & 0x0FC00000) >> 22)
+#define YF_VCF6_ECN(_ip6hdr_)       ((g_ntohl((_ip6hdr_)->ip6_vcf) & 0x00300000) >> 20)
+#define YF_VCF6_FLOW(_ip6hdr_)      ((g_ntohl((_ip6hdr_)->ip6_vcf) & 0x000FFFFF)
 
 /**
  * IPv6 partial extension header structure. Used to decode next and length only.
@@ -761,7 +761,7 @@ static const uint8_t *yfDecodeIPv4(
 
     /* Decode TTL and ECN */
     ipinfo->ttl = iph->ip_ttl;
-    ipinfo->ecn = (iph->ip_tos & 0xC0) >> 6;
+    ipinfo->ecn = iph->ip_tos & 0x03;
     
     /* Advance packet pointer */
     *caplen -= iph_len;

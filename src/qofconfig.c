@@ -7,8 +7,8 @@
  ** ------------------------------------------------------------------------
  ** Authors: Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
- ** QoF is made available under the terms of the GNU Public License (GPL)
- ** Version 2, June 1991
+ ** QoF is made available under the terms of the
+ ** GNU General Public License (GPL) Version 2, June 1991
  ** ------------------------------------------------------------------------
  */
 
@@ -89,6 +89,7 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"maxTcpIOTMilliseconds",   CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"minTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"maxTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
+    {"meanTcpChirpMilliseconds", CFG_OFF(enable_iat), QF_CONFIG_BOOL},
     {"minTcpRttMilliseconds",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"tcpRttMilliseconds",      CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"qofTcpCharacteristics",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
@@ -100,6 +101,7 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"tcpTimestampFrequency",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"minTcpChirpMilliseconds", CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"maxTcpChirpMilliseconds", CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"meanTcpChirpMilliseconds", CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
 };
 

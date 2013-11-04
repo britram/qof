@@ -7,8 +7,8 @@
  ** ------------------------------------------------------------------------
  ** Authors: Brian Trammell <brian@trammell.ch>
  ** ------------------------------------------------------------------------
- ** QoF is made available under the terms of the GNU Public License (GPL)
- ** Version 2, June 1991
+ ** QoF is made available under the terms of the
+ ** GNU General Public License (GPL) Version 2, June 1991
  ** ------------------------------------------------------------------------
  */
 
@@ -21,8 +21,8 @@ void qfOptSegment(qfOpt_t *qo,
                   yfIPInfo_t *ipinfo,
                   uint16_t oct)
 {
-    if (ipinfo->ecn & 0x01) qo->flags |= QF_OPT_ECT0;
-    if (ipinfo->ecn & 0x02) qo->flags |= QF_OPT_ECT1;
+    if (ipinfo->ecn & 0x01) qo->flags |= QF_OPT_ECT1;
+    if (ipinfo->ecn & 0x02) qo->flags |= QF_OPT_ECT0;
     if ((ipinfo->ecn & 0x03) == 0x03) qo->flags |= QF_OPT_CE;
     if (tcpinfo->tsval) qo->flags |= QF_OPT_TS;
     if (tcpinfo->ws) qo->flags |= QF_OPT_WS;

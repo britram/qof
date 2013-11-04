@@ -16,6 +16,8 @@
 		D39F5C31170CD23A0094B103 /* qofltrace.c in Sources */ = {isa = PBXBuildFile; fileRef = D3EADBDC170BDDEC006FE1FE /* qofltrace.c */; };
 		D39F5C33170CDE480094B103 /* libtrace.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D39F5C32170CDE480094B103 /* libtrace.3.dylib */; };
 		D3A7DFEA181CFB48006F629B /* message_split.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A7DFE9181CFB48006F629B /* message_split.c */; };
+		D3C024721826387100BE6B9E /* libglib-2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3C024711826387100BE6B9E /* libglib-2.0.dylib */; };
+		D3C02474182638A000BE6B9E /* libyaml.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D3C02473182638A000BE6B9E /* libyaml.dylib */; };
 		D3C4E99917263E9200DB5423 /* qofconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = D3CCBE961716AF06006C25EB /* qofconfig.c */; };
 		D3C4E99B17263FA100DB5423 /* qof.c in Sources */ = {isa = PBXBuildFile; fileRef = D3C4E99A17263FA100DB5423 /* qof.c */; };
 		D3C98F8F181ED9A500B1BC87 /* qofdetune.c in Sources */ = {isa = PBXBuildFile; fileRef = D3C98F8E181ED9A500B1BC87 /* qofdetune.c */; };
@@ -52,9 +54,7 @@
 		F5192344167238A400514165 /* privconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192303167238A400514165 /* privconfig.c */; };
 		F5CAEEA1176720A5003AD16F /* qofmaclist.c in Sources */ = {isa = PBXBuildFile; fileRef = F5CAEEA0176720A5003AD16F /* qofmaclist.c */; };
 		F5EF14DC16D4CF6A00A4358E /* libpcap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */; };
-		F5EF14DE16D4D26800A4358E /* libyaml-0.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */; };
 		F5EF14E016D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */; };
-		F5EF14E216D4D2E600A4358E /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14E116D4D2E600A4358E /* libglib-2.0.0.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -126,6 +126,8 @@
 		D39F5C32170CDE480094B103 /* libtrace.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtrace.3.dylib; path = ../../opt/lib/libtrace.3.dylib; sourceTree = "<group>"; };
 		D3A7DFE0181CFB32006F629B /* message_split */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = message_split; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3A7DFE9181CFB48006F629B /* message_split.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = message_split.c; sourceTree = "<group>"; };
+		D3C024711826387100BE6B9E /* libglib-2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libglib-2.0.dylib"; path = "../../../../usr/local/lib/libglib-2.0.dylib"; sourceTree = "<group>"; };
+		D3C02473182638A000BE6B9E /* libyaml.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libyaml.dylib; path = ../../../../usr/local/lib/libyaml.dylib; sourceTree = "<group>"; };
 		D3C4E99A17263FA100DB5423 /* qof.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qof.c; sourceTree = "<group>"; };
 		D3C98F8E181ED9A500B1BC87 /* qofdetune.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofdetune.c; sourceTree = "<group>"; };
 		D3C98F90181EDA2100B1BC87 /* qofdetune.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qofdetune.h; sourceTree = "<group>"; };
@@ -222,9 +224,7 @@
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5CAEEA0176720A5003AD16F /* qofmaclist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofmaclist.c; sourceTree = "<group>"; };
 		F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
-		F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libyaml-0.2.dylib"; path = "../../../../opt/local/lib/libyaml-0.2.dylib"; sourceTree = "<group>"; };
 		F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libfixbuf-1.2.0.8.dylib"; path = "../../opt/lib/libfixbuf-1.2.0.8.dylib"; sourceTree = "<group>"; };
-		F5EF14E116D4D2E600A4358E /* libglib-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libglib-2.0.0.dylib"; path = "../../../../opt/local/lib/libglib-2.0.0.dylib"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -247,9 +247,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F5EF14E216D4D2E600A4358E /* libglib-2.0.0.dylib in Frameworks */,
 				F5EF14E016D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib in Frameworks */,
-				F5EF14DE16D4D26800A4358E /* libyaml-0.2.dylib in Frameworks */,
+				D3C024721826387100BE6B9E /* libglib-2.0.dylib in Frameworks */,
+				D3C02474182638A000BE6B9E /* libyaml.dylib in Frameworks */,
 				D39F5C33170CDE480094B103 /* libtrace.3.dylib in Frameworks */,
 				F5EF14DC16D4CF6A00A4358E /* libpcap.dylib in Frameworks */,
 			);
@@ -462,13 +462,13 @@
 		F52D56B516723812006D32A1 = {
 			isa = PBXGroup;
 			children = (
+				D3C02473182638A000BE6B9E /* libyaml.dylib */,
+				D3C024711826387100BE6B9E /* libglib-2.0.dylib */,
 				D39F5C32170CDE480094B103 /* libtrace.3.dylib */,
-				F5EF14E116D4D2E600A4358E /* libglib-2.0.0.dylib */,
 				F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */,
 				D36F0F4916E3B6B80028EDAE /* configure.ac */,
 				D36F0F4B16E3BA480028EDAE /* acinclude.m4 */,
 				D36F0F4A16E3B6B80028EDAE /* Makefile.am */,
-				F5EF14DD16D4D26800A4358E /* libyaml-0.2.dylib */,
 				F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */,
 				D31013E316A949350068059F /* test */,
 				F5192261167238A400514165 /* airframe */,
@@ -779,16 +779,16 @@
 				HEADER_SEARCH_PATHS = (
 					./include,
 					./airframe/include,
-					/opt/local/include,
-					"/opt/local/include/glib-2.0",
-					"/opt/local/lib/glib-2.0/include",
+					/usr/local/include,
+					"/usr/local/include/glib-2.0",
+					"/usr/local/lib/glib-2.0/include",
 					"$(HOME)/opt/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/airframe/src/.libs\"",
 					"$(HOME)/opt/lib",
-					/opt/local/lib,
+					/usr/local/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -806,16 +806,16 @@
 				HEADER_SEARCH_PATHS = (
 					./include,
 					./airframe/include,
-					/opt/local/include,
-					"/opt/local/include/glib-2.0",
-					"/opt/local/lib/glib-2.0/include",
+					/usr/local/include,
+					"/usr/local/include/glib-2.0",
+					"/usr/local/lib/glib-2.0/include",
 					"$(HOME)/opt/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/airframe/src/.libs\"",
 					"$(HOME)/opt/lib",
-					/opt/local/lib,
+					/usr/local/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
