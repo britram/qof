@@ -36,10 +36,11 @@ bidirectional flow assembly natively. Biflow export is done via the export
 method specified in B<RFC 5103> Bidirectional Flow Export using IPFIX. See the
 B<OUTPUT> section below for information on this format.
 
-As of this release, B<qof> should be considered alpha quality software. The core is reasonably
-stable, having been based on B<yaf>, but the command-line options,
-configuration interface, and output format may change wildly before a 
-1.0 release.
+As of this release, B<qof> should be considered alpha quality software. 
+The core is reasonably stable, having been based on B<yaf>, but the 
+command-line options, configuration interface, and output format may 
+change wildly before a 1.0 release, and the correctness of the output has
+not yet been rigorously established by controlled testing.
 
 =head1 OPTIONS
 
@@ -306,18 +307,6 @@ See the B<OUTPUT> section for a definition of each information
 element available here, and for the features enabled by each information 
 element.
 
-=item B<interface-map>: I<IFMAP_LIST>
-
-This feature will be documented in a future release.
-
-=item B<source-mac>: I<MACADDR_LIST>
-
-This feature will be documented in a future release.
-
-=item B<source-ip>: I<IPADDR_LIST>
-
-This feature will be documented in a future release.
-
 =item B<idle-timeout>: I<IDLE_TIMEOUT>
 
 Set flow idle timeout in seconds. Flows are considered idle and flushed
@@ -349,22 +338,6 @@ fragmentation. The fragment table may exceed this limit slightly due
 to limits on how often B<qof> prunes the fragment table (every 5 seconds).
 By default, there is no fragment table limit, and the fragment
 table can grow to resource exhaustion.
-
-=item B<active-timeout-octets>: I<MAX_FLOW_OCTETS>
-
-Not implemented.
-
-=item B<active-timeout-packets>: I<MAX_FLOW_PACKETS>
-
-Not implemented.
-
-=item B<active-timeout-rtts>: I<MAX_FLOW_PACKETS>
-
-Not implemented.
-
-=item B<active-timeout-rtts>: I<MAX_FLOW_PACKETS>
-
-Not implemented.
 
 =item B<force-biflow>: I<FLAG>
 
@@ -950,7 +923,7 @@ C<yaf --yaml qof-config.yaml --in dag:/dev/dag0 --ipfix tcp --out my-collector.e
 
 Brian Trammell E<lt>brian@trammell.chE<gt>
 
-Based on YAF by Chris Inacio, Michael Duggan, Emily Sarneso, Dan Ruef,
+Based on YAF by Chris Inacio, Emily Sarneso, 
 and the CERT Network Situational Awareness Group Engineering Team,
 E<lt>http://www.cert.org/netsaE<gt>.
 
