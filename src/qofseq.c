@@ -226,7 +226,9 @@ int qfSeqSegment(qfSeq_t *qs, qfRtt_t *rtt, uint16_t mss,
         }
         
         /* Detect wrap */
-        if (seq + oct < qs->nsn) qs->wrapct++;
+        if (seq + oct < qs->nsn) {
+            qs->wrapct++;
+        }
         
         /* Determine next sequence number */
         qs->nsn = seq + oct;
