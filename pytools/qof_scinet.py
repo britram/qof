@@ -55,12 +55,18 @@ def _dataframe_iterator(tuple_iterator, columns, chunksize=100000):
         yield pd.DataFrame.from_records([rec for rec in 
                   filter(lambda a: a is not None, group)], columns=columns)
 
-def plot_rtt_spectrum(df, filename):
-    plt.figure(figsize=(8,8))
-    df["minTcpRttMilliseconds"].hist(bins=125,
-                                     range=(1,501),
-                                     weights=df["transportPacketDeltaCount"]+
-                                             df["reverseTransportPacketDeltaCount"])
+def plot_rtt_spectrum_packets(df, filename):
+    plt.figure(figsize=(8,4))
+    rttms = df[(df["minTcpRttMilliseconds"] > 0) & (df["tcpRttSampleCount"] > 3)]["minTcpRttMilliseconds"]
+    rttms.hist(bins=125, range=(0,500),
+               weights=df["transportPacketDeltaCount"]+
+                       df["reverseTransportPacketDeltaCount"])
+    plt.savefig(filename)
+
+def plot_rtt_spectrum_flows(df, filename):
+    plt.figure(figsize=(8,4))
+    rttms = df[(df["minTcpRttMilliseconds"] > 0) & (df["tcpRttSampleCount"] > 3)]["minTcpRttMilliseconds"]
+    rttms.hist(bins=125, range=(0,500))
     plt.savefig(filename)
 
 def stream_to_scinet(instream):
@@ -79,8 +85,8 @@ def stream_to_scinet(instream):
 
     # iterate over dataframes
     for df in _dataframe_iterator(i, ienames, args.rotate_rec):
-        plot_rtt_spectrum(df, args.out + 
-                  datetime.today().strftime("/rtt_%d%H%M%S.png"))
+        plot_rtt_spectrum_flows(df, args.out + 
+                                datetime.today().strftime("/rtt_%d%H%M%S.png"))
 
 class TcpScinetHandler(socketserver.StreamRequestHandler):
     def handle(self):
