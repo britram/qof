@@ -54,7 +54,9 @@ static qfConfigKeyAction_t cfg_key_actions[] = {
     {"active-timeout-octets",  CFG_OFF(max_flow_oct), QF_CONFIG_U64},
     {"active-timeout-packets", CFG_OFF(max_flow_pkt), QF_CONFIG_U64},
     {"active-timeout-rtts",    CFG_OFF(ato_rtts), QF_CONFIG_U32},
+    {"min-packets",            CFG_OFF(min_pkt_export), QF_CONFIG_U32},
     {"force-biflow",           CFG_OFF(enable_biforce), QF_CONFIG_BOOL},
+    {"suppress-uniflow",       CFG_OFF(enable_bionly), QF_CONFIG_BOOL},
     {"gre-decap",              CFG_OFF(enable_gre), QF_CONFIG_BOOL},
     {"silk-compatible",        CFG_OFF(enable_silk), QF_CONFIG_BOOL},
     {NULL, NULL, QF_CONFIG_NOTYPE}
@@ -851,6 +853,16 @@ static void qfContextSetupOutput(qfContext_t *ctx)
     /* Force biflows if requested */
     if (ctx->cfg.enable_biforce) {
         yfWriterForceBiflowExport(TRUE);
+    }
+    
+    /* Suppress uniflows if requested */
+    if (ctx->cfg.enable_bionly) {
+        yfWriterSuppressUniflows(TRUE);
+    }
+    
+    /* Suppress tinyflows if requested */
+    if (ctx->cfg.min_pkt_export) {
+        yfWriterSuppressTinyflows(ctx->cfg.min_pkt_export);
     }
     
     /* Configure IPFIX connspec for transport */

@@ -416,6 +416,11 @@ void yfWriterForceBiflowExport(gboolean biforce_mode);
 
 void yfWriterExportMappedV6(gboolean map_mode);
 
+void yfWriterSuppressUniflows(gboolean bionly_mode);
+
+void yfWriterSuppressTinyflows(uint32_t min_packets);
+
+
 /**
  * FIXME doc
  */

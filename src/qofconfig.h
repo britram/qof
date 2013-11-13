@@ -33,6 +33,9 @@ typedef struct qfConfig_st {
     gboolean    enable_silk;    // SiLK compatibility mode
     gboolean    enable_gre;     // GRE decap mode
     gboolean    enable_biforce; // force biflow export
+    gboolean    enable_bionly;  // suppress uniflow
+    /* Flow export characteristics */
+    uint32_t    min_pkt_export; // minimum size in packets of flows to export
     /* Flow state configuration */
     uint32_t    ato_s;
     uint32_t    ito_s;
