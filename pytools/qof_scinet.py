@@ -62,12 +62,14 @@ def plot_rtt_spectrum_packets(df, filename):
                weights=df["transportPacketDeltaCount"]+
                        df["reverseTransportPacketDeltaCount"])
     plt.savefig(filename)
+    plt.close()
 
 def plot_rtt_spectrum_flows(df, filename):
     plt.figure(figsize=(8,4))
     rttms = df[(df["minTcpRttMilliseconds"] > 0) & (df["tcpRttSampleCount"] > 3)]["minTcpRttMilliseconds"]
     rttms.hist(bins=125, range=(0,500))
     plt.savefig(filename)
+    plt.close()
 
 def _scinet_stream_iterator(instream, rotate_sec=300, chunksize=10000):
     # select IEs to import
