@@ -12,7 +12,7 @@ import argparse
 import csv
 import bz2
 from sys import stdin, stdout, stderr
-from datetime import datetime
+from datetime import datetime, timedelta
 
 args = None
 
@@ -31,8 +31,8 @@ def parse_args():
                         default="", help="address to bind to as CP (default all)")
     parser.add_argument('--port', '-P', metavar="port", type=int,
                         default=4739, help="port to bind to as CP (default 4739)")
-    parser.add_argument('--rotate-rec', metavar="records", type=int,
-                        default=100000, help="number of records per output file")
+    parser.add_argument('--rotate', metavar="sec", type=int,
+                        default=300, help="seconds to capture in each output file")
     parser.add_argument('--out', metavar="dir",
                         default=".", help="write PNG files to directory (default .)")
     args = parser.parse_args()
@@ -50,7 +50,7 @@ def iter_group(iterable, n, fillvalue=None):
     zipargs = [iter(iterable)] * n
     return itertools.zip_longest(*zipargs, fillvalue=fillvalue)
 
-def _dataframe_iterator(tuple_iterator, columns, chunksize=100000):
+def _dataframe_iterator(tuple_iterator, columns, chunksize=10000):
     for group in iter_group(tuple_iterator, chunksize):
         yield pd.DataFrame.from_records([rec for rec in 
                   filter(lambda a: a is not None, group)], columns=columns)
@@ -69,22 +69,42 @@ def plot_rtt_spectrum_flows(df, filename):
     rttms.hist(bins=125, range=(0,500))
     plt.savefig(filename)
 
-def stream_to_scinet(instream):
-    global args
+def _scinet_stream_iterator(instream, rotate_sec=300, chunksize=10000):
     # select IEs to import
     ienames = ["sourceIPv4Address", "destinationIPv4Address", 
+               "flowStartMilliseconds", "flowEndMilliseconds",
                "minTcpRttMilliseconds", "tcpRttSampleCount",
                # "tcpLossEventCount", 
                "transportPacketDeltaCount", "reverseTransportPacketDeltaCount",
                # "tcpSequenceCount", "reverseTcpSequenceCount",
                # "transportOctetDeltaCount", "reverseTransportOctetDeltaCount"]
                ]
+
+    # get a tuple iterator
     ielist = ipfix.ie.spec_list(ienames)
     r = ipfix.reader.from_stream(instream)
     i = r.tuple_iterator(ielist)
 
-    # iterate over dataframes
-    for df in _dataframe_iterator(i, ienames, args.rotate_rec):
+    catdf = None
+    last_rotate = None
+
+    # iterate over dataframes, yield each rotate_sec on the packet clock
+    for df in _dataframe_iterator(i, ienames, chunksize):
+        if catdf is None:
+            # new data frame, set rotate time
+            catdf = df
+            last_rotate = catdf["flowEndMilliseconds"].iloc[0]
+        else:
+            catdf = pd.concat([catdf, df])
+
+        if catdf["flowEndMilliseconds"].iloc[-1] > last_rotate + timedelta(seconds=rotate_sec):
+            yield catdf
+            last_rotate = catdf["flowEndMilliseconds"].iloc[-1]
+            catdf = None
+
+def stream_to_scinet(instream):
+    global args
+    for df in _scinet_stream_iterator(instream, args.rotate):
         plot_rtt_spectrum_flows(df, args.out + 
                                 datetime.today().strftime("/rtt_%d%H%M%S.png"))
 
