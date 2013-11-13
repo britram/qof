@@ -108,7 +108,7 @@ def stream_to_scinet(instream):
     global args
     for df in _scinet_stream_iterator(instream, args.rotate):
         plot_rtt_spectrum_flows(df, args.out + 
-                                datetime.today().strftime("/rtt_%d%H%M%S.png"))
+                                datetime.today().strftime("/rtt-flows-%d%H%M%S.png"))
 
 class TcpScinetHandler(socketserver.StreamRequestHandler):
     def handle(self):
