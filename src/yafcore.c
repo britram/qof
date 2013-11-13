@@ -335,6 +335,8 @@ typedef struct yfIpfixStats_st {
 /* Core library configuration variables */
 static gboolean yaf_core_map_ipv6 = FALSE;
 static gboolean yaf_core_force_biflow = FALSE;
+static gboolean yaf_core_suppress_uniflow = FALSE;
+static uint32_t yaf_core_min_packets = 0;
 static qfIfMap_t *yaf_core_ifmap = NULL;
 static qfNetList_t *yaf_source_netlist = NULL;
 static qfMacList_t *yaf_source_maclist = NULL;
@@ -467,6 +469,17 @@ void yfWriterForceBiflowExport(
     yaf_core_force_biflow = biforce_mode;
 }
 
+void yfWriterSuppressUniflows(
+    gboolean            bionly_mode)
+{
+    yaf_core_suppress_uniflow = bionly_mode;
+}
+
+void yfWriterSuppressTinyflows(
+    uint32_t               min_packets)
+{
+    yaf_core_min_packets = min_packets;
+}
 
 void yfWriterExportMappedV6(
     gboolean            map_mode)
@@ -941,6 +954,18 @@ gboolean yfWriteFlow(
     
     yfFlowVal_t         *val, *rval;
     yfFlowKey_t         kbuf, *key;
+    
+    /* suppress one-way flows if asked to */
+    if (yaf_core_suppress_uniflow && !flow->rval.pkt) {
+        return TRUE;
+    }
+    
+    /* suppress short flows if asked to */
+    if (yaf_core_min_packets &&
+        (flow->val.pkt + flow->rval.pkt < yaf_core_min_packets))
+    {
+        return TRUE;
+    }
     
     /* assign flow directions */
     if ((yaf_source_netlist &&
