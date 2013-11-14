@@ -55,6 +55,9 @@ def _dataframe_iterator(tuple_iterator, columns, chunksize=10000):
         yield pd.DataFrame.from_records([rec for rec in 
                   filter(lambda a: a is not None, group)], columns=columns)
 
+def dftime(df, format):
+    return df["flowEndMilliseconds"].iloc[-1].strftime(format)
+
 def plot_rtt_spectrum_packets(df, filename):
     plt.figure(figsize=(8,4))
     rttms = df[(df["minTcpRttMilliseconds"] > 0) & (df["tcpRttSampleCount"] > 3)]["minTcpRttMilliseconds"]
@@ -63,7 +66,7 @@ def plot_rtt_spectrum_packets(df, filename):
                        df["reverseTransportPacketDeltaCount"])
     plt.xlabel("round-trip time (ms)")
     plt.ylabel("packets")
-    plt.title("RTT spectrum to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
+    plt.title("TCP RTT spectrum to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
     plt.savefig(filename)
     plt.close()
 
@@ -73,7 +76,31 @@ def plot_rtt_spectrum_flows(df, filename):
     rttms.hist(bins=125, range=(0,500))
     plt.xlabel("round-trip time (ms)")
     plt.ylabel("flows")
-    plt.title("RTT spectrum to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
+    plt.title("TCP RTT spectrum to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
+    plt.savefig(filename)
+    plt.close()
+
+def plot_rtx_spectrum_flows(df, filename):
+    plt.figure(figsize=(8,4))
+    octl4 = df["transportOctetDeltaCount"] + df["reverseTransportOctetDeltaCount"]
+    octl7 = df["tcpSequenceCount"] + df["reverseTcpSequenceCount"]
+    rtx_load = (octl4 - octl7) / octl4
+    rtx_load.hist(bins=100, range=(0,0.5), log=True)
+    plt.xlabel("retransmit load")
+    plt.ylabel("flows")
+    plt.title("TCP RTX load to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
+    plt.savefig(filename)
+    plt.close()
+
+def plot_loss_rate_flows(df, filename):
+    plt.figure(figsize=(8,4))
+    duration = (df["flowEndMilliseconds"] - df["flowStartMilliseconds"]).map(lambda x: x.item()/1e9)
+    losses = df["tcpLossEventCount"] + df["reverseTcpLossEventCount"]
+    loss_rate = losses / duration
+    loss_rate.hist(bins=100, range=(0,50), log=True)
+    plt.xlabel("losses/sec")
+    plt.ylabel("flows")
+    plt.title("TCP flows by loss rate to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
     plt.savefig(filename)
     plt.close()
 
@@ -82,10 +109,10 @@ def _scinet_stream_iterator(instream, rotate_sec=300, chunksize=10000):
     ienames = ["sourceIPv4Address", "destinationIPv4Address", 
                "flowStartMilliseconds", "flowEndMilliseconds",
                "minTcpRttMilliseconds", "tcpRttSampleCount",
-               # "tcpLossEventCount", 
+               "tcpLossEventCount", "reverseTcpLossEventCount",
                "transportPacketDeltaCount", "reverseTransportPacketDeltaCount",
-               # "tcpSequenceCount", "reverseTcpSequenceCount",
-               # "transportOctetDeltaCount", "reverseTransportOctetDeltaCount"]
+               "tcpSequenceCount", "reverseTcpSequenceCount",
+               "transportOctetDeltaCount", "reverseTransportOctetDeltaCount",
                ]
 
     # get a tuple iterator
@@ -113,8 +140,9 @@ def _scinet_stream_iterator(instream, rotate_sec=300, chunksize=10000):
 def stream_to_scinet(instream):
     global args
     for df in _scinet_stream_iterator(instream, args.rotate):
-        plot_rtt_spectrum_flows(df, args.out + 
-                                datetime.today().strftime("/rtt-flows-%d%H%M%S.png"))
+        plot_rtt_spectrum_flows(df, args.out + dftime(df, "/rtt-flows-%d%H%M.png"))
+        plot_rtx_spectrum_flows(df, args.out + dftime(df, "/rtx-flows-%d%H%M.png"))
+        plot_loss_rate_flows(df, args.out + dftime(df, "/loss-flows-%d%H%M.png"))
 
 class TcpScinetHandler(socketserver.StreamRequestHandler):
     def handle(self):
