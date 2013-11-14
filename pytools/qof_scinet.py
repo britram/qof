@@ -63,7 +63,7 @@ def plot_rtt_spectrum_packets(df, filename):
                        df["reverseTransportPacketDeltaCount"])
     plt.xlabel("round-trip time (ms)")
     plt.ylabel("packets")
-    plt.title("RTT spectrum to " + df["flowEndMilliseconds"].strftime("%Y-%m-%d %H:%M"))
+    plt.title("RTT spectrum to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
     plt.savefig(filename)
     plt.close()
 
@@ -73,7 +73,7 @@ def plot_rtt_spectrum_flows(df, filename):
     rttms.hist(bins=125, range=(0,500))
     plt.xlabel("round-trip time (ms)")
     plt.ylabel("flows")
-    plt.title("RTT spectrum to " + df["flowEndMilliseconds"].strftime("%Y-%m-%d %H:%M"))
+    plt.title("RTT spectrum to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
     plt.savefig(filename)
     plt.close()
 
