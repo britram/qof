@@ -66,7 +66,7 @@ def plot_rtt_spectrum_packets(df, filename):
                        df["reverseTransportPacketDeltaCount"])
     plt.xlabel("round-trip time (ms)")
     plt.ylabel("packets")
-    plt.title("TCP RTT spectrum to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
+    plt.title("Measured TCP round trip times at " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
     plt.savefig(filename)
     plt.close()
 
@@ -76,7 +76,7 @@ def plot_rtt_spectrum_flows(df, filename):
     rttms.hist(bins=125, range=(0,500))
     plt.xlabel("round-trip time (ms)")
     plt.ylabel("flows")
-    plt.title("TCP RTT spectrum to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
+    plt.title("Measured TCP round trip times at " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
     plt.savefig(filename)
     plt.close()
 
@@ -88,7 +88,7 @@ def plot_rtx_spectrum_flows(df, filename):
     rtx_load.hist(bins=100, range=(0,0.5), log=True)
     plt.xlabel("retransmit load")
     plt.ylabel("flows")
-    plt.title("TCP RTX load to " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
+    plt.title("Measured TCP retransmissions at " + df["flowEndMilliseconds"].iloc[-1].strftime("%Y-%m-%d %H:%M"))
     plt.savefig(filename)
     plt.close()
 
