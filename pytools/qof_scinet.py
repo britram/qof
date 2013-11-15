@@ -60,7 +60,7 @@ def dftime(df, format):
 
 def plot_rtt_spectrum_packets(df, filename):
     plt.figure(figsize=(8,4))
-    rttms = df[(df["minTcpRttMilliseconds"] > 0) & (df["tcpRttSampleCount"] > 3)]["minTcpRttMilliseconds"]
+    rttms = df[(df["minTcpRttMilliseconds"] > 0) & (df["tcpRttSampleCount"] > 1)]["minTcpRttMilliseconds"]
     rttms.hist(bins=125, range=(0,500),
                weights=df["transportPacketDeltaCount"]+
                        df["reverseTransportPacketDeltaCount"])
@@ -72,7 +72,7 @@ def plot_rtt_spectrum_packets(df, filename):
 
 def plot_rtt_spectrum_flows(df, filename):
     plt.figure(figsize=(8,4))
-    rttms = df[(df["minTcpRttMilliseconds"] > 0) & (df["tcpRttSampleCount"] > 3)]["minTcpRttMilliseconds"]
+    rttms = df[(df["minTcpRttMilliseconds"] > 0) & (df["tcpRttSampleCount"] > 1)]["minTcpRttMilliseconds"]
     rttms.hist(bins=125, range=(0,500))
     plt.xlabel("round-trip time (ms)")
     plt.ylabel("flows")
