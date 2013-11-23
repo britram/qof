@@ -311,3 +311,8 @@ uint32_t qfTimestampHz(qfSeq_t *qs)
         return 0;
     }
 }
+
+void qfSeqContinue(qfSeq_t *cont_seq, qfSeq_t *orig_seq)
+{
+    
+}

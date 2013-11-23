@@ -843,7 +843,7 @@ static yfFlowNode_t *qfFlowTimeout(
     yfFlowClose(flowtab, fn, reason);
     
     /* get a new flow node for the packet's key */
-    nfn = yfFlowGetNode(flowtab, key, &val, &rval, fn->f.fid);
+    nfn = yfFlowGetNode(flowtab, key, valp, rvalp, fn->f.fid);
 
     /* set continuation flag for active timeout in silk mode */
     if (flowtab->silkmode && reason == YAF_END_ACTIVE) {
@@ -851,11 +851,20 @@ static yfFlowNode_t *qfFlowTimeout(
     }
     
     /* copy necessary state from old flow into continued flow */
-    memcpy(nfn->f.rtt, fn->f.rtt, sizeof(qfRtt_t));
+    qfRttContinue(&nfn->f.rtt, &fn->f.rtt);
 
     /* FIXME needs to copy the right bits of the seqgap stuff over
        (move this into qofseq.c) */
-   
+    if (fn->f.val.tcp) {
+        nfn->f.val.tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
+        qfSeqContinue(&(nfn->f.val.tcp->seq), &(fn->f.val.tcp->seq));
+    }
+    
+    if (fn->f.rval.tcp) {
+        nfn->f.rval.tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
+        qfSeqContinue(&(nfn->f.rval.tcp->seq), &(fn->f.rval.tcp->seq));
+    }
+    
     /* all done */
     return nfn;
 }

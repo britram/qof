@@ -89,3 +89,4 @@ uint32_t qfSeqCountLost(qfSeq_t *qs);
 
 uint32_t qfTimestampHz(qfSeq_t *qs);
 
+void qfSeqContinue(qfSeq_t *cont_seq, qfSeq_t *orig_seq);

@@ -125,3 +125,8 @@ void qfRttSegment(qfRtt_t           *rtt,
         qfRttSetAckWait(rdir, seq, ms);
     }
 }
+
+void qfRttContinue(qfRtt_t *cont_rtt, qfRtt_t *orig_rtt)
+{
+    memcpy(cont_rtt, orig_rtt, sizeof(qfRtt_t));
+}
