@@ -1058,7 +1058,7 @@ gboolean yfWriteFlow(
         if (val->tcp) {
             rec.tcpSequenceCount = qfSeqCount(&val->tcp->seq,
                                               val->iflags | val->uflags);
-            rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcp->seq);
+            rec.tcpSequenceLossCount = qfSeqCountLost(&val->tcp->seq, flow->reason);
             rec.tcpRetransmitCount = val->tcp->seq.rtx;
             rec.tcpSequenceJumpCount = val->tcp->seq.ooo;
             rec.maxTcpSequenceJump = val->tcp->seq.maxooo;
@@ -1091,7 +1091,7 @@ gboolean yfWriteFlow(
         if (rval->tcp) {
             rec.reverseTcpSequenceCount = qfSeqCount(&rval->tcp->seq,
                                           rval->iflags | rval->uflags);
-            rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcp->seq);
+            rec.reverseTcpSequenceLossCount = qfSeqCountLost(&rval->tcp->seq, flow->reason);
             rec.reverseTcpRetransmitCount = rval->tcp->seq.rtx;
             rec.reverseTcpSequenceJumpCount = rval->tcp->seq.ooo;
             rec.reverseMaxTcpSequenceJump = rval->tcp->seq.maxooo;
