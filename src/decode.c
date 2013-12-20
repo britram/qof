@@ -1020,6 +1020,10 @@ static const uint8_t *yfDecodeTCP(
                 tcpinfo->sack = g_ntohl(*((uint32_t*)(pkt + to_len - sizeof(uint32_t))));
 //                fprintf(stderr, "[%u]", tcpinfo->sack - tcpinfo->ack);
                 break;
+            case YF_TOK_SACKOK:
+                if (tcph_len < to_len) goto OPT_ERR;
+                tcpinfo->sack = QOF_SACK_OK;
+                break;
             default:
 //                fprintf(stderr, " %hhu(%hhu)", to_kind, to_len);
                 break;
