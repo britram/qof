@@ -278,20 +278,16 @@ uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags) {
     return sc;
 }
 
-uint32_t qfSeqCountLost(qfSeq_t *qs) {
+uint32_t qfSeqCountLost(qfSeq_t *qs, uint8_t reason) {
     int i;
     
-    /* iterate over gaps adding to loss */
-//    fprintf(stderr,"seqCountLost %p prev_seqlost %u isn %u nsn %u len %u\n",
-//            qs, qs->seqlost, qs->isn, qs->nsn, qs->nsn - qs->isn);
-    for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i); i++) {
-        qs->seqlost += (uint32_t)(qs->gaps[i].b - qs->gaps[i].a);
-//            fprintf(stderr, "\t%u-%u (%u) (%u)\n",
-//                    qs->gaps[i].a,  qs->gaps[i].b,
-//                    qs->gaps[i].b - qs->gaps[i].a,
-//                    qs->nsn - qs->gaps[i].b);
-        qs->gaps[i].a = 0;
-        qs->gaps[i].b = 0;
+    /* iterate over gaps adding to loss unless active */
+    if (reason != YAF_END_ACTIVE) {
+        for (i = 0; i < QF_SEQGAP_CT && !qfSeqGapEmpty(qs->gaps, i); i++) {
+            qs->seqlost += (uint32_t)(qs->gaps[i].b - qs->gaps[i].a);
+            qs->gaps[i].a = 0;
+            qs->gaps[i].b = 0;
+        }
     }
 
     return qs->seqlost;
@@ -310,4 +306,25 @@ uint32_t qfTimestampHz(qfSeq_t *qs)
     } else {
         return 0;
     }
+}
+
+void qfSeqContinue(qfSeq_t *cont_seq, qfSeq_t *orig_seq)
+{
+    /* Copy whole structure to start */
+    memcpy(cont_seq, orig_seq, sizeof(qfSeq_t));
+    
+    /* Reset timestamp frequency */
+    cont_seq->initlms = cont_seq->advlms;
+    cont_seq->initsval = cont_seq->advtsval;
+    
+    /* Set ISN to NSN (sequence count zero) */
+    cont_seq->isn = cont_seq->nsn;
+    cont_seq->wrapct = 0;
+    
+    /* Zero other counters and high-water marks */
+    cont_seq->rtx = 0;
+    cont_seq->ooo = 0;
+    cont_seq->maxooo = 0;
+    cont_seq->seqlost = 0;
+    cont_seq->lossct = 0;
 }

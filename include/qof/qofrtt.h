@@ -50,4 +50,6 @@ void qfRttSegment(qfRtt_t           *rtt,
                   uint8_t           tcpflags,
                   unsigned          reverse);
 
+void qfRttContinue(qfRtt_t *cont_rtt, qfRtt_t *orig_rtt);
+
 #endif /* idem */

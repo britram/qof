@@ -6,7 +6,7 @@
  **
  ** ------------------------------------------------------------------------
  ** Copyright (C) 2006-2012 Carnegie Mellon University. All Rights Reserved.
- ** Copyright (C) 2012      Brian Trammell.             All Rights Reserved.
+ ** Copyright (C) 2012-2013 Brian Trammell.             All Rights Reserved.
  ** ------------------------------------------------------------------------
  ** Authors: Brian Trammell, Chris Inacio
  ** QoF redesign by Brian Trammell <brian@trammell.ch>
@@ -754,12 +754,12 @@ static void yfFlowPktTCP(
     } else {
         /* First packet. Allocate a TCP structure for this direction,
            if necessary */
-        if (flowtab->tcp_seq_enable ||
+        if ((flowtab->tcp_seq_enable ||
             flowtab->tcp_ack_enable ||
             flowtab->tcp_rwin_enable ||
             flowtab->tcp_opt_enable ||
             flowtab->tcp_ts_enable ||
-            flowtab->tcp_iat_enable) {
+            flowtab->tcp_iat_enable) && !val->tcp) {
             val->tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
         }
         
@@ -816,6 +816,60 @@ static void yfFlowPktTCP(
 }
 
 /**
+ * qfFlowTimeout
+ *
+ * close a flow on timeout discovered on packet receipt
+ *
+ */
+
+static yfFlowNode_t *qfFlowTimeout(
+    yfFlowTab_t                 *flowtab,
+    yfFlowNode_t                *fn,
+    yfFlowKey_t                 *key,
+    yfFlowVal_t                 **valp,
+    yfFlowVal_t                 **rvalp,
+    uint8_t                     reason)
+{
+    yfFlowNode_t                *nfn;
+    yfFlowKey_t                 rkey;
+    
+    /* determine whether the key causing the timeout is reversed */
+    if (*valp == &(fn->f.rval)) {
+        yfFlowKeyReverse(key, &rkey);
+        key = &rkey;
+    }
+    
+    /* close existing flow */
+    yfFlowClose(flowtab, fn, reason);
+    
+    /* get a new flow node for the packet's key */
+    nfn = yfFlowGetNode(flowtab, key, valp, rvalp, fn->f.fid);
+
+    /* set continuation flag for active timeout in silk mode */
+    if (flowtab->silkmode && reason == YAF_END_ACTIVE) {
+        nfn->f.reason = YAF_ENDF_ISCONT;
+    }
+    
+    /* copy necessary state from old flow into continued flow */
+    qfRttContinue(&nfn->f.rtt, &fn->f.rtt);
+
+    /* FIXME needs to copy the right bits of the seqgap stuff over
+       (move this into qofseq.c) */
+    if (fn->f.val.tcp) {
+        nfn->f.val.tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
+        qfSeqContinue(&(nfn->f.val.tcp->seq), &(fn->f.val.tcp->seq));
+    }
+    
+    if (fn->f.rval.tcp) {
+        nfn->f.rval.tcp = yg_slice_alloc0(sizeof(qfTcpVal_t));
+        qfSeqContinue(&(nfn->f.rval.tcp->seq), &(fn->f.rval.tcp->seq));
+    }
+    
+    /* all done */
+    return nfn;
+}
+
+/**
  * yfFlowPBuf
  *
  * parse a packet buffer structure and turn it into a flow record
@@ -824,7 +878,6 @@ static void yfFlowPktTCP(
  * packet buffer and extract protocol details
  *
  * @param flowtab pointer to the flow table
- * @param pbuflen length of the packet buffer
  * @param pbuf pointer to the packet data
  *
  */
@@ -863,20 +916,12 @@ void yfFlowPBuf(
     if (((pbuf->ptime - fn->f.stime) > flowtab->active_ms) ||
         (flowtab->silkmode && (val->oct + pbuf->iplen > UINT32_MAX)))
     {
-        cont_fid = fn->f.fid;
-        yfFlowClose(flowtab, fn, YAF_END_ACTIVE);
-        /* get a new flow node containing this packet */
-        fn = yfFlowGetNode(flowtab, key, &val, &rval, cont_fid);
-        /* set continuation flag in silk mode */
-        if (flowtab->silkmode) fn->f.reason = YAF_ENDF_ISCONT;
+        fn = qfFlowTimeout(flowtab, fn, key, &val, &rval, YAF_END_ACTIVE);
     }
 
     /* Check for inactive timeout - esp when reading from pcap */
     if ((pbuf->ptime - fn->f.etime) > flowtab->idle_ms) {
-        cont_fid = fn->f.fid;
-        yfFlowClose(flowtab, fn, YAF_END_IDLE);
-        /* get a new flow node for the current packet */
-        fn = yfFlowGetNode(flowtab, key, &val, &rval, cont_fid);
+        fn = qfFlowTimeout(flowtab, fn, key, &val, &rval, YAF_END_IDLE);
     }
 
     /* Calculate reverse SYN/ACK RTT */

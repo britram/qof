@@ -85,7 +85,8 @@ int qfSeqSegment(qfSeq_t *qs, qfRtt_t *rtt, uint16_t mss,
 
 uint64_t qfSeqCount(qfSeq_t *qs, uint8_t flags);
 
-uint32_t qfSeqCountLost(qfSeq_t *qs);
+uint32_t qfSeqCountLost(qfSeq_t *qs, uint8_t reason);
 
 uint32_t qfTimestampHz(qfSeq_t *qs);
 
+void qfSeqContinue(qfSeq_t *cont_seq, qfSeq_t *orig_seq);
