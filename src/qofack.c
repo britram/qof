@@ -15,6 +15,7 @@
 #define _YAF_SOURCE_
 
 #include <qof/qofack.h>
+#include <qof/decode.h>
 
 static int qfWrapCompare(uint32_t a, uint32_t b) {
     return a == b ? 0 : ((a - b) & 0x80000000) ? -1 : 1;
@@ -33,7 +34,7 @@ void qfAckSegment(qfAck_t *qa,
         qa->dup_ct++;
     }
     
-    if (sack && qfWrapCompare(sack, ack) > 0) {
+    if (sack && sack != QOF_SACK_OK && qfWrapCompare(sack, ack) > 0) {
         qa->sel_ct++;
     }
 }
