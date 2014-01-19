@@ -130,10 +130,10 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseTcpSequenceLossCount",        4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpRetransmitCount",                 4, YTF_TCP | YTF_RLE },
     { "reverseTcpRetransmitCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpLossEventCount",                   4, YTF_TCP | YTF_RLE },
-    { "reverseTcpLossEventCount",            4, YTF_TCP | YTF_RLE | YTF_BIF },
-    { "tcpSequenceJumpCount",                 4, YTF_TCP | YTF_RLE },
-    { "reverseTcpSequenceJumpCount",          4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpLossEventCount",                  4, YTF_TCP | YTF_RLE },
+    { "reverseTcpLossEventCount",           4, YTF_TCP | YTF_RLE | YTF_BIF },
+    { "tcpSequenceJumpCount",               4, YTF_TCP | YTF_RLE },
+    { "reverseTcpSequenceJumpCount",        4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpDupAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "reverseTcpDupAckCount",              4, YTF_TCP | YTF_RLE | YTF_BIF },
     { "tcpSelAckCount",                     4, YTF_TCP | YTF_RLE | YTF_BIF },
@@ -157,6 +157,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "tcpRttSampleCount",                  4, YTF_RTT },
     { "lastTcpRttMilliseconds",             2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
+    { "tcpSynTotalCount",                        2, YTF_TCP },
+    { "reverseTcpSynTotalCount",                 2, YTF_TCP | YTF_BIF },
     { "declaredTcpMss",                     2, YTF_TCP },
     { "reverseDeclaredTcpMss",              2, YTF_TCP | YTF_BIF },
     { "observedTcpMss",                     2, YTF_TCP },
@@ -194,6 +196,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseInitialTCPFlags",             1, YTF_TCP | YTF_BIF },
     { "unionTCPFlags",                      1, YTF_TCP },
     { "reverseUnionTCPFlags",               1, YTF_TCP | YTF_BIF },
+    { "lastSynTcpFlags",                    1, YTF_TCP },
+    { "reverseLastSynTcpFlags",             1, YTF_TCP | YTF_BIF },
     { "tcpControlBits",                     1, YTF_TCP },
     { "reverseTcpControlBits",              1, YTF_TCP | YTF_BIF },
 FB_IESPEC_NULL
@@ -276,6 +280,8 @@ typedef struct yfIpfixFlow_st {
     uint32_t    tcpRttSampleCount;
     uint16_t    lastTcpRttMilliseconds;
     uint16_t    minTcpRttMilliseconds;
+    uint16_t    tcpSynTotalCount;
+    uint16_t    reverseTcpSynTotalCount;
     uint16_t    declaredTcpMss;
     uint16_t    reverseDeclaredTcpMss;
     uint16_t    observedTcpMss;
@@ -308,11 +314,13 @@ typedef struct yfIpfixFlow_st {
     uint8_t     maximumTTL;
     uint8_t     reverseMinimumTTL;
     uint8_t     reverseMaximumTTL;
-    /* Layer 4 Information */
+    /* Layer 4 Information (TCP Flags) */
     uint8_t     initialTCPFlags;
     uint8_t     reverseInitialTCPFlags;
     uint8_t     unionTCPFlags;
     uint8_t     reverseUnionTCPFlags;
+    uint8_t     lastSynTcpFlags;
+    uint8_t     reverseLastSynTcpFlags;
     uint8_t     tcpControlBits;
     uint8_t     reverseTcpControlBits;
 } yfIpfixFlow_t;
@@ -423,6 +431,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,tcpRttSampleCount);
     CHECK_OFFSET(yfIpfixFlow_t,lastTcpRttMilliseconds);
     CHECK_OFFSET(yfIpfixFlow_t,minTcpRttMilliseconds);
+    CHECK_OFFSET(yfIpfixFlow_t,tcpSynTotalCount);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseTcpSynTotalCount);
     CHECK_OFFSET(yfIpfixFlow_t,declaredTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,reverseDeclaredTcpMss);
     CHECK_OFFSET(yfIpfixFlow_t,observedTcpMss);
@@ -455,6 +465,8 @@ void qfInternalTemplateCheck() {
     CHECK_OFFSET(yfIpfixFlow_t,reverseInitialTCPFlags);
     CHECK_OFFSET(yfIpfixFlow_t,unionTCPFlags);
     CHECK_OFFSET(yfIpfixFlow_t,reverseUnionTCPFlags);
+    CHECK_OFFSET(yfIpfixFlow_t,lastSynTcpFlags);
+    CHECK_OFFSET(yfIpfixFlow_t,reverseLastSynTcpFlags);
     CHECK_OFFSET(yfIpfixFlow_t,tcpControlBits);
     CHECK_OFFSET(yfIpfixFlow_t,reverseTcpControlBits);
 
