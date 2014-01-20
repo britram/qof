@@ -772,6 +772,11 @@ static void yfFlowPktTCP(
         }
     }
     
+    /* Handle last-SYN flags */
+    if (tcpinfo->flags & YF_TF_SYN) {
+        val->lsynflags = tcpinfo->flags;
+    }
+    
     /* track ACK dynamics */
     if (tcpinfo->flags & YF_TF_ACK && flowtab->tcp_ack_enable) {
         qfAckSegment(&val->tcp->ack, tcpinfo->ack, tcpinfo->sack,

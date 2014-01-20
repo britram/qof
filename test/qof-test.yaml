@@ -33,6 +33,8 @@ template:
     - reverseTcpDupAckCount
     - tcpSelAckCount
     - reverseTcpSelAckCount
+    - tcpSynTotalCount
+    - reverseTcpSynTotalCount
     - lastTcpRttMilliseconds
     - minTcpRttMilliseconds
     - tcpRttSampleCount
@@ -46,6 +48,8 @@ template:
     - reverseInitialTCPFlags
     - unionTCPFlags
     - reverseUnionTCPFlags
+    - lastSynTcpFlags
+    - reverseLastSynTcpFlags
     - minTcpRwin
     - reverseMinTcpRwin
     - maxTcpRwin

@@ -32,7 +32,7 @@
 
 
 /* FIXME determine if we want to be more dynamic about this */
-#define YAF_SNAPLEN 96
+#define YAF_SNAPLEN 128
 
 /* Configuration configuration */
 static char         *qof_yaml_config = NULL;

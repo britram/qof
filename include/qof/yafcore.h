@@ -203,6 +203,8 @@ typedef struct yfFlowKey_st {
 
 /** Options tracking structure */
 typedef struct qfOpt_st {
+    /* TCP SYN segment count */
+    uint32_t    syncount;
     /* TCP characteristics flags */
     uint32_t    flags;
     /* Advertised maximum segment size */
@@ -246,6 +248,8 @@ typedef struct yfFlowVal_st {
     uint8_t     iflags;
     /** Union of remaining TCP flags */
     uint8_t     uflags;
+    /** Flags on final observed SYN segment */
+    uint8_t     lsynflags;
     /** Real or virtual network interface */
     uint8_t     netIf;
 } yfFlowVal_t;

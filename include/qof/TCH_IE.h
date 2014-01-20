@@ -45,6 +45,7 @@ static fbInfoElement_t yaf_tch_info_elements[] = {
      FB_IE_INIT("minTcpIOTMilliseconds", TCH_PEN, 1050, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("maxTcpIOTMilliseconds", TCH_PEN, 1051, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
      FB_IE_INIT("meanTcpChirpMilliseconds", TCH_PEN, 1052, 4, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+     FB_IE_INIT("lastSynTcpFlags", TCH_PEN, 1053, 1, FB_IE_F_REVERSIBLE),
      FB_IE_NULL
 };
 

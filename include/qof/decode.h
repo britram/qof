@@ -132,6 +132,11 @@ typedef struct yfIPInfo_st {
     uint8_t         ecn;
 } yfIPInfo_t;
 
+/* This is a bit of a hack.
+   Use a special value (which we shouldn't see in a real SACK option
+   to note that sackOK was set on this packet. */
+#define QOF_SACK_OK 0xffffffff
+
 /** TCP information structure */
 typedef struct yfTCPInfo_st {
     /** TCP sequence number */
