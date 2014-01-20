@@ -772,7 +772,7 @@ static void yfFlowPktTCP(
         }
     }
     
-    /* Handle last-SYN and SYN count */
+    /* Handle last-SYN flags */
     if (tcpinfo->flags & YF_TF_SYN) {
         val->lsynflags = tcpinfo->flags;
     }

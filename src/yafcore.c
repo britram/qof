@@ -1064,6 +1064,8 @@ gboolean yfWriteFlow(
         rec.reverseInitialTCPFlags = rval->iflags;
         rec.unionTCPFlags = val->uflags;
         rec.reverseUnionTCPFlags = rval->uflags;
+        rec.lastSynTcpFlags = val->lsynflags;
+        rec.reverseLastSynTcpFlags = rval->lsynflags;
         rec.tcpControlBits = val->iflags | val->uflags;
         rec.reverseTcpControlBits = rval->iflags | rval->uflags;
         
@@ -1077,6 +1079,7 @@ gboolean yfWriteFlow(
             rec.tcpLossEventCount = val->tcp->seq.lossct;
             rec.tcpDupAckCount = val->tcp->ack.dup_ct;
             rec.tcpSelAckCount = val->tcp->ack.sel_ct;
+            rec.tcpSynTotalCount = val->tcp->opts.syncount;
             rec.qofTcpCharacteristics = val->tcp->opts.flags;
             rec.tcpSequenceNumber = val->tcp->seq.isn;
             rec.observedTcpMss = val->tcp->opts.mss;
@@ -1110,6 +1113,7 @@ gboolean yfWriteFlow(
             rec.reverseTcpLossEventCount = rval->tcp->seq.lossct;
             rec.reverseTcpDupAckCount = rval->tcp->ack.dup_ct;
             rec.reverseTcpSelAckCount = rval->tcp->ack.sel_ct;
+            rec.reverseTcpSynTotalCount = rval->tcp->opts.syncount;
             rec.reverseQofTcpCharacteristics = rval->tcp->opts.flags;
             rec.reverseTcpSequenceNumber = rval->tcp->seq.isn;
             rec.reverseObservedTcpMss = rval->tcp->opts.mss;

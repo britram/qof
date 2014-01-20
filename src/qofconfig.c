@@ -100,6 +100,7 @@ static qfConfigKeyAction_t cfg_ie_features[] = {
     {"meanTcpRwin",             CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"maxTcpRwin",              CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"tcpSelAckCount",          CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
+    {"tcpSynTotalCount",        CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"tcpTimestampFrequency",   CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"minTcpChirpMilliseconds", CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
     {"maxTcpChirpMilliseconds", CFG_OFF(enable_tcpopt), QF_CONFIG_BOOL},
