@@ -52,9 +52,9 @@
 		F5192342167238A400514165 /* mio_source_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192301167238A400514165 /* mio_source_udp.c */; };
 		F5192343167238A400514165 /* mio_stdio.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192302167238A400514165 /* mio_stdio.c */; };
 		F5192344167238A400514165 /* privconfig.c in Sources */ = {isa = PBXBuildFile; fileRef = F5192303167238A400514165 /* privconfig.c */; };
+		F5B599CA18F41F08006C24E1 /* libfixbuf.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5B599C918F41F08006C24E1 /* libfixbuf.2.dylib */; };
 		F5CAEEA1176720A5003AD16F /* qofmaclist.c in Sources */ = {isa = PBXBuildFile; fileRef = F5CAEEA0176720A5003AD16F /* qofmaclist.c */; };
 		F5EF14DC16D4CF6A00A4358E /* libpcap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */; };
-		F5EF14E016D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -222,9 +222,9 @@
 		F5192302167238A400514165 /* mio_stdio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mio_stdio.c; sourceTree = "<group>"; };
 		F5192303167238A400514165 /* privconfig.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = privconfig.c; sourceTree = "<group>"; };
 		F52D56C016723812006D32A1 /* qof */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = qof; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5B599C918F41F08006C24E1 /* libfixbuf.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfixbuf.2.dylib; path = ../../opt/lib/libfixbuf.2.dylib; sourceTree = "<group>"; };
 		F5CAEEA0176720A5003AD16F /* qofmaclist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = qofmaclist.c; sourceTree = "<group>"; };
 		F5EF14DB16D4CF6A00A4358E /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
-		F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libfixbuf-1.2.0.8.dylib"; path = "../../opt/lib/libfixbuf-1.2.0.8.dylib"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -247,7 +247,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F5EF14E016D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib in Frameworks */,
+				F5B599CA18F41F08006C24E1 /* libfixbuf.2.dylib in Frameworks */,
 				D3C024721826387100BE6B9E /* libglib-2.0.dylib in Frameworks */,
 				D3C02474182638A000BE6B9E /* libyaml.dylib in Frameworks */,
 				D39F5C33170CDE480094B103 /* libtrace.3.dylib in Frameworks */,
@@ -462,10 +462,10 @@
 		F52D56B516723812006D32A1 = {
 			isa = PBXGroup;
 			children = (
+				F5B599C918F41F08006C24E1 /* libfixbuf.2.dylib */,
 				D3C02473182638A000BE6B9E /* libyaml.dylib */,
 				D3C024711826387100BE6B9E /* libglib-2.0.dylib */,
 				D39F5C32170CDE480094B103 /* libtrace.3.dylib */,
-				F5EF14DF16D4D2B100A4358E /* libfixbuf-1.2.0.8.dylib */,
 				D36F0F4916E3B6B80028EDAE /* configure.ac */,
 				D36F0F4B16E3BA480028EDAE /* acinclude.m4 */,
 				D36F0F4A16E3B6B80028EDAE /* Makefile.am */,
@@ -789,6 +789,7 @@
 					"\"$(SRCROOT)/airframe/src/.libs\"",
 					"$(HOME)/opt/lib",
 					/usr/local/lib,
+					/Users/briant/opt/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -816,6 +817,7 @@
 					"\"$(SRCROOT)/airframe/src/.libs\"",
 					"$(HOME)/opt/lib",
 					/usr/local/lib,
+					/Users/briant/opt/lib,
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
