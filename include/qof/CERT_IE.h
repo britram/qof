@@ -68,8 +68,8 @@
  * well
  */
 static fbInfoElement_t yaf_cert_info_elements[] = {
-    FB_IE_INIT("initialTCPFlags", CERT_PEN, 14, 1, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
-    FB_IE_INIT("unionTCPFlags", CERT_PEN, 15, 1, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+    FB_IE_INIT("initialTCPFlags", CERT_PEN, 14, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
+    FB_IE_INIT("unionTCPFlags", CERT_PEN, 15, 2, FB_IE_F_ENDIAN | FB_IE_F_REVERSIBLE),
     FB_IE_INIT("payload", CERT_PEN, 18, FB_IE_VARLEN, FB_IE_F_REVERSIBLE),
     FB_IE_INIT("reverseFlowDeltaMilliseconds", CERT_PEN, 21, 4, FB_IE_F_ENDIAN),
     FB_IE_INIT("silkAppLabel", CERT_PEN, 33, 2, FB_IE_F_ENDIAN),

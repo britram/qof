@@ -153,10 +153,10 @@ typedef struct yfTCPInfo_st {
     uint16_t        rwin;
     /** Maximum segment size option (SYN only) */
     uint16_t        mss;
+    /** TCP flags (including NS/ECE/CWR) */
+    uint16_t        flags;
     /** Window scale shift count (SYN only) */
     uint8_t         ws;
-    /** TCP flags (including ECE/CWR) */
-    uint8_t         flags;
 } yfTCPInfo_t;
 
 /** Full packet information structure. Used in the packet ring buffer. */

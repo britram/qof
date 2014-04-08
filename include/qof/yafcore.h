@@ -240,16 +240,16 @@ typedef struct yfFlowVal_st {
     uint64_t    pkt;
     /** Non-empty packet count */
     uint64_t    apppkt;
+    /** Initial TCP flags */
+    uint16_t     iflags;
+    /** Union of remaining TCP flags */
+    uint16_t     uflags;
+    /** Flags on final observed SYN segment */
+    uint16_t     lsynflags;
     /** minimum ttl */
     uint8_t     minttl;
     /** maximum ttl */
     uint8_t     maxttl;
-    /** Initial TCP flags */
-    uint8_t     iflags;
-    /** Union of remaining TCP flags */
-    uint8_t     uflags;
-    /** Flags on final observed SYN segment */
-    uint8_t     lsynflags;
     /** Real or virtual network interface */
     uint8_t     netIf;
 } yfFlowVal_t;

@@ -292,14 +292,14 @@ typedef struct yfHdrTcp_st {
     uint32_t        th_ack;
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
     /** Unused. Must be 0. */
-    unsigned int    th_x2:4,
+    unsigned int    th_highflags:4,
     /** Data offset. TCP header length in 32-bit words. */
                     th_off:4;
 #elif G_BYTE_ORDER == G_BIG_ENDIAN
     /** Data offset. TCP header length in 32-bit words. */
     unsigned int    th_off:4,
     /** Unused. Must be 0. */
-                    th_x2:4;
+                    th_highflags:4;
 #else
 #error Cannot determine byte order while defining TCP header structure.
 #endif
@@ -937,7 +937,7 @@ static const uint8_t *yfDecodeTCP(
         tcpinfo->seq = g_ntohl(tcph->th_seq);
         tcpinfo->ack = g_ntohl(tcph->th_ack);
         tcpinfo->rwin = g_ntohs(tcph->th_win);
-        tcpinfo->flags = tcph->th_flags;
+        tcpinfo->flags = tcph->th_flags | (tcph->th_highflags << 8);
     }
 
     if (fraginfo && fraginfo->frag) {

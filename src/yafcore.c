@@ -157,8 +157,8 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "tcpRttSampleCount",                  4, YTF_RTT },
     { "lastTcpRttMilliseconds",             2, YTF_RTT },
     { "minTcpRttMilliseconds",              2, YTF_RTT },
-    { "tcpSynTotalCount",                        2, YTF_TCP },
-    { "reverseTcpSynTotalCount",                 2, YTF_TCP | YTF_BIF },
+    { "tcpSynTotalCount",                   2, YTF_TCP },
+    { "reverseTcpSynTotalCount",            2, YTF_TCP | YTF_BIF },
     { "declaredTcpMss",                     2, YTF_TCP },
     { "reverseDeclaredTcpMss",              2, YTF_TCP | YTF_BIF },
     { "observedTcpMss",                     2, YTF_TCP },
@@ -192,14 +192,14 @@ static fbInfoElementSpec_t qof_internal_spec[] = {
     { "reverseMinimumTTL",                  1, YTF_BIF },
     { "reverseMaximumTTL",                  1, YTF_BIF },
     /* Layer 4 information */
-    { "initialTCPFlags",                    1, YTF_TCP },
-    { "reverseInitialTCPFlags",             1, YTF_TCP | YTF_BIF },
-    { "unionTCPFlags",                      1, YTF_TCP },
-    { "reverseUnionTCPFlags",               1, YTF_TCP | YTF_BIF },
-    { "lastSynTcpFlags",                    1, YTF_TCP },
-    { "reverseLastSynTcpFlags",             1, YTF_TCP | YTF_BIF },
-    { "tcpControlBits",                     1, YTF_TCP },
-    { "reverseTcpControlBits",              1, YTF_TCP | YTF_BIF },
+    { "initialTCPFlags",                    2, YTF_TCP },
+    { "reverseInitialTCPFlags",             2, YTF_TCP | YTF_BIF },
+    { "unionTCPFlags",                      2, YTF_TCP },
+    { "reverseUnionTCPFlags",               2, YTF_TCP | YTF_BIF },
+    { "lastSynTcpFlags",                    2, YTF_TCP },
+    { "reverseLastSynTcpFlags",             2, YTF_TCP | YTF_BIF },
+    { "tcpControlBits",                     2, YTF_TCP },
+    { "reverseTcpControlBits",              2, YTF_TCP | YTF_BIF },
 FB_IESPEC_NULL
 };
 
@@ -315,14 +315,14 @@ typedef struct yfIpfixFlow_st {
     uint8_t     reverseMinimumTTL;
     uint8_t     reverseMaximumTTL;
     /* Layer 4 Information (TCP Flags) */
-    uint8_t     initialTCPFlags;
-    uint8_t     reverseInitialTCPFlags;
-    uint8_t     unionTCPFlags;
-    uint8_t     reverseUnionTCPFlags;
-    uint8_t     lastSynTcpFlags;
-    uint8_t     reverseLastSynTcpFlags;
-    uint8_t     tcpControlBits;
-    uint8_t     reverseTcpControlBits;
+    uint16_t     initialTCPFlags;
+    uint16_t     reverseInitialTCPFlags;
+    uint16_t     unionTCPFlags;
+    uint16_t     reverseUnionTCPFlags;
+    uint16_t     lastSynTcpFlags;
+    uint16_t     reverseLastSynTcpFlags;
+    uint16_t     tcpControlBits;
+    uint16_t     reverseTcpControlBits;
 } yfIpfixFlow_t;
 
 typedef struct yfIpfixStats_st {
