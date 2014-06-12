@@ -272,61 +272,61 @@ AC_ARG_WITH(libyaml,
 )
 
 dnl ----------------------------------------------------------------------
-dnl Check for libpcap
+dnl Check for libpcap (which we don't need anymore)
 dnl ----------------------------------------------------------------------
-AC_ARG_WITH(libpcap,
-    AS_HELP_STRING([--with-libpcap=PCAP_DIR],[find pcap.h in PCAP_DIR/include, libpcap in PCAP_DIR/lib]),[
-    if test "x$withval" != "xno"; then
-        if test -d ${withval}; then
-            if test -d ${withval}/lib; then
-                CFLAGS="-I${withval}/include $CFLAGS"
-                CPPFLAGS="-I${withval}/include $CPPFLAGS"
-                if test "x$target_os" = "xcygwin"; then
-                    LIBS="-L${withval}/lib -lwpcap $LIBS"
-                else
-                    LIBS="-L${withval}/lib -lpcap $LIBS"
-                    if test "x$target_os" = "xlinux" -o \
-                            "x$target_os" = "xlinux-gnu"; then
-                        LIBS="-Wl,--rpath -Wl,${withval}/lib $LIBS"
-                    fi
-                fi
-            else
-                if test "x$target_os" = "xcygwin"; then
-                    LIBS="-L${withval} -lwpcap $LIBS"  
-                else
-                    LIBS="-L${withval} -lpcap $LIBS"
-                    if test "x$target_os" = "xlinux" -o \
-                            "x$target_os" = "xlinux-gnu"; then
-                        LIBS="-Wl,--rpath -Wl,${withval} $LIBS"
-                    fi
-                fi
-            fi
-            OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libpcap from ${withval}|"
-            RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libpcap=${withval}"
-        fi
-        if test "x$target_os" = "xcygwin"; then
-            AC_CHECK_LIB(wpcap,pcap_open_offline, ,
-                [AC_MSG_ERROR([cannot locate required WPCAP library])])
-        else
-            AC_CHECK_LIB(pcap,pcap_open_offline, ,
-                [AC_MSG_ERROR([cannot locate required PCAP library])])
-        fi
-        AC_CHECK_HEADERS(pcap.h,[],
-                [AC_MSG_ERROR([cannot locate required pcap.h header file])])
-    fi
-    ],[
-    if test "x$target_os" = "xcygwin"; then
-        AC_CHECK_LIB(wpcap, pcap_open_offline, ,
-            [AC_MSG_ERROR([cannot locate required WPCAP library, try the --with-libpcap option])])
-    else
-        AC_CHECK_LIB(pcap, pcap_open_offline, ,
-            [AC_MSG_ERROR([cannot locate required PCAP library, try the --with-libpcap option])])
-    fi
-    
-    AC_CHECK_HEADERS(pcap.h,[],
-        [AC_MSG_ERROR([cannot locate the required pcap.h header file])])
-    ]
-)
+dnl AC_ARG_WITH(libpcap,
+dnl     AS_HELP_STRING([--with-libpcap=PCAP_DIR],[find pcap.h in PCAP_DIR/include, libpcap in PCAP_DIR/lib]),[
+dnl     if test "x$withval" != "xno"; then
+dnl         if test -d ${withval}; then
+dnl             if test -d ${withval}/lib; then
+dnl                 CFLAGS="-I${withval}/include $CFLAGS"
+dnl                 CPPFLAGS="-I${withval}/include $CPPFLAGS"
+dnl                 if test "x$target_os" = "xcygwin"; then
+dnl                     LIBS="-L${withval}/lib -lwpcap $LIBS"
+dnl                 else
+dnl                     LIBS="-L${withval}/lib -lpcap $LIBS"
+dnl                     if test "x$target_os" = "xlinux" -o \
+dnl                             "x$target_os" = "xlinux-gnu"; then
+dnl                         LIBS="-Wl,--rpath -Wl,${withval}/lib $LIBS"
+dnl                     fi
+dnl                 fi
+dnl             else
+dnl                 if test "x$target_os" = "xcygwin"; then
+dnl                     LIBS="-L${withval} -lwpcap $LIBS"  
+dnl                 else
+dnl                     LIBS="-L${withval} -lpcap $LIBS"
+dnl                     if test "x$target_os" = "xlinux" -o \
+dnl                             "x$target_os" = "xlinux-gnu"; then
+dnl                         LIBS="-Wl,--rpath -Wl,${withval} $LIBS"
+dnl                     fi
+dnl                 fi
+dnl             fi
+dnl             OPTION_CONFIG_STRING=${OPTION_CONFIG_STRING}"libpcap from ${withval}|"
+dnl             RPM_CONFIG_FLAGS="${RPM_CONFIG_FLAGS} --with-libpcap=${withval}"
+dnl         fi
+dnl         if test "x$target_os" = "xcygwin"; then
+dnl             AC_CHECK_LIB(wpcap,pcap_open_offline, ,
+dnl                 [AC_MSG_ERROR([cannot locate required WPCAP library])])
+dnl         else
+dnl             AC_CHECK_LIB(pcap,pcap_open_offline, ,
+dnl                 [AC_MSG_ERROR([cannot locate required PCAP library])])
+dnl         fi
+dnl         AC_CHECK_HEADERS(pcap.h,[],
+dnl                 [AC_MSG_ERROR([cannot locate required pcap.h header file])])
+dnl     fi
+dnl     ],[
+dnl     if test "x$target_os" = "xcygwin"; then
+dnl         AC_CHECK_LIB(wpcap, pcap_open_offline, ,
+dnl             [AC_MSG_ERROR([cannot locate required WPCAP library, try the --with-libpcap option])])
+dnl     else
+dnl         AC_CHECK_LIB(pcap, pcap_open_offline, ,
+dnl             [AC_MSG_ERROR([cannot locate required PCAP library, try the --with-libpcap option])])
+dnl     fi
+dnl     
+dnl     AC_CHECK_HEADERS(pcap.h,[],
+dnl         [AC_MSG_ERROR([cannot locate the required pcap.h header file])])
+dnl     ]
+dnl )
 
 dnl ----------------------------------------------------------------------
 dnl Check for libtrace
