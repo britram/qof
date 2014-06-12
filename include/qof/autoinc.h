@@ -133,8 +133,6 @@
 # endif
 #endif
 
-#include <pcap.h>
-
 #include <glib.h>
 #if GLIB_CHECK_VERSION(2,6,0)
 #  include <glib/gstdio.h>
