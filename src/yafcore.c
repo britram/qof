@@ -979,6 +979,9 @@ gboolean yfWriteFlow(
         return TRUE;
     }
     
+    /* nuke the output record, it's the only way to be sure. */
+    memset(&rec, 0, sizeof(rec));
+    
     /* assign flow directions */
     if ((yaf_source_netlist &&
         (qfFlowDirection(yaf_source_netlist, &flow->key) == QF_DIR_OUT)) ||

@@ -899,7 +899,6 @@ void yfFlowPBuf(
     yfL2Info_t                  *l2info = &(pbuf->l2info);
     uint16_t                    datalen = (pbuf->iplen - pbuf->allHeaderLen +
                                            l2info->l2hlen);
-    uint64_t                    cont_fid = 0;
 
     /* skip and count out of sequence packets */
     if (pbuf->ptime < flowtab->ctime) {
